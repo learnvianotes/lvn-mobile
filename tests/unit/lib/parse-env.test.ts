@@ -1,4 +1,4 @@
-import { parseEnv } from './parse-env'
+import { parseEnv } from '@/lib/parse-env'
 
 describe('parseEnv', () => {
   it('accepts the three environments', () => {
