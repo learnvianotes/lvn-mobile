@@ -1,0 +1,52 @@
+import { LinearGradient } from 'expo-linear-gradient'
+import { useEffect } from 'react'
+import { View } from 'react-native'
+import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withTiming } from 'react-native-reanimated'
+import Svg, { Circle, Path } from 'react-native-svg'
+import { Text } from '@/components/ui/text'
+
+const STARS = [
+  [18, 22, 1.4], [52, 12, 1], [86, 30, 1.6], [128, 16, 1.1], [168, 34, 1.3], [210, 14, 1], [248, 28, 1.5],
+  [290, 10, 1.2], [36, 48, 1], [120, 52, 1.2], [200, 56, 1], [276, 50, 1.3],
+] as const
+
+/** Night-sky hero card from the UI board: a motivating line over a calm scene; stars twinkle slowly (off with reduced motion). */
+export function HeroCard({ firstName }: { firstName: string }) {
+  const reduced = useReducedMotion()
+  const twinkle = useSharedValue(0.5)
+  useEffect(() => {
+    if (reduced) return
+    twinkle.value = withDelay(400, withRepeat(withTiming(1, { duration: 2200, easing: Easing.inOut(Easing.sin) }), -1, true))
+  }, [reduced, twinkle])
+  const starsStyle = useAnimatedStyle(() => ({ opacity: twinkle.value }))
+
+  return (
+    <View className="overflow-hidden rounded-3xl" style={{ height: 176 }}>
+      <LinearGradient colors={['#141233', '#2b2560', '#4c3a8f']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
+      <Animated.View style={[{ position: 'absolute', inset: 0 }, starsStyle]} pointerEvents="none">
+        <Svg width="100%" height="100%">
+          {STARS.map(([x, y, r], i) => (
+            <Circle key={i} cx={`${(x / 320) * 100}%`} cy={y} r={r} fill="#ffffff" opacity={0.85} />
+          ))}
+          <Circle cx="84%" cy={40} r={13} fill="#fef3c7" opacity={0.95} />
+          <Circle cx="86.5%" cy={36} r={12} fill="#2b2560" />
+        </Svg>
+      </Animated.View>
+      <Svg width="100%" height={86} viewBox="0 0 320 86" preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0 }} pointerEvents="none">
+        <Path d="M0 86 L0 52 L46 22 L82 48 L122 14 L170 58 L214 30 L262 60 L300 38 L320 50 L320 86 Z" fill="#3a2f7a" opacity={0.9} />
+        <Path d="M0 86 L0 66 L60 44 L110 70 L160 50 L220 74 L270 56 L320 70 L320 86 Z" fill="#1f1a4d" />
+      </Svg>
+      <View className="flex-1 justify-center gap-1.5 px-5">
+        <Text className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#c7d2fe' }}>
+          Keep learning, {firstName}
+        </Text>
+        <Text className="text-2xl font-bold" style={{ color: '#ffffff' }} accessibilityRole="header">
+          Make it happen
+        </Text>
+        <Text className="text-sm" style={{ color: '#e0e7ff', maxWidth: 220 }}>
+          “Discipline today creates the freedom tomorrow.”
+        </Text>
+      </View>
+    </View>
+  )
+}
