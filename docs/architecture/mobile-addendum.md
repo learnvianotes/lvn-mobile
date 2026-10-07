@@ -40,6 +40,10 @@ variant stops the scripts and the app config. No OTA updates for now (ADR-0008).
 `app.config.ts` and config plugins only. Release APKs are signed with the debug keystore until a store upload key is
 set up (installable on phones, not accepted by Google Play). CI builds the sandbox APK on every push to `main`.
 
+If a build fails with `ninja: error: … libworklets.so … missing and no known rule to make it` (or a similar missing
+native library), native build caches from an older dependency set are stale: delete `node_modules/*/android/.cxx` and
+`node_modules/*/android/build`, then build again.
+
 Measured 2026-10-08 on the dev machine: first `build:android development --abi arm64-v8a` 2 min 53 s (Gradle 9.3.1,
 JDK 21), APK 42 MB, label "LearnViaNotes Dev", target SDK 36.
 
