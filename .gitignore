@@ -42,3 +42,6 @@ yarn-error.*
 
 # test output
 coverage/
+
+# per-machine variant overrides
+env/*.local.env

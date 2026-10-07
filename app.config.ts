@@ -1,8 +1,9 @@
 import type { ConfigContext, ExpoConfig } from 'expo/config'
 
 /**
- * One app, three side-by-side installs (spec §13.1, §16.1). APP_VARIANT is set per EAS build profile
- * (eas.json) or in .env.local for local runs; nothing environment-specific is hardcoded in app code.
+ * One app, three side-by-side installs (spec §13.1, §16.1). APP_VARIANT comes from env/<variant>.env via
+ * scripts/with-variant.mjs and scripts/build-android.mjs (local builds, no EAS — ADR-0008); nothing
+ * environment-specific is hardcoded in app code.
  */
 type Variant = 'development' | 'sandbox' | 'production'
 
@@ -29,13 +30,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'automatic',
-    // §13.3: OTA updates for JS-only changes; native changes need a store build.
-    runtimeVersion: { policy: 'appVersion' },
     ios: {
       bundleIdentifier: id,
       supportsTablet: true,
-      // Universal links to https://learnvianotes.com/... (§9.3); the apple-app-site-association file ships with lvn-web.
-      associatedDomains: ['applinks:learnvianotes.com'],
+      // Universal links (§9.3) need the Associated Domains capability, which a free Apple account cannot sign.
+      // Added with the paid Apple Developer membership (ADR-0008); the learnvianotes:// scheme works meanwhile.
     },
     android: {
       package: id,
