@@ -22,7 +22,7 @@ this file and the spec disagree, the spec wins unless an accepted ADR says other
 | App name | LearnViaNotes Dev | LearnViaNotes Sandbox | LearnViaNotes |
 | Bundle id / package | `com.learnvianotes.dev` | `com.learnvianotes.sandbox` | `com.learnvianotes` |
 | Run / build | `pnpm android`, `pnpm build:android development` | `pnpm build:android sandbox` | `pnpm build:android production` |
-| `EXPO_PUBLIC_WEB_URL` | `http://100.70.234.41:3000` (dev machine) | `https://sandbox.learnvianotes.com` | `https://learnvianotes.com` |
+| `EXPO_PUBLIC_WEB_URL` | `http://100.70.234.41:3000` (dev machine) | `https://sandbox.learnvianotes.in` | `https://www.learnvianotes.in` |
 
 All three install side by side. Per-machine overrides go in `env/<variant>.local.env` (git-ignored). An unknown
 variant stops the scripts and the app config. No OTA updates for now (ADR-0008).
