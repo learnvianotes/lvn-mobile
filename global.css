@@ -1,0 +1,78 @@
+/*
+ * LearnViaNotes design tokens for the mobile app (ADR-0029). Names follow shadcn/ui so lvn-web and lvn-mobile share
+ * one vocabulary; values come from the LearnViaNotes UI board (lvn-backend docs/design/ui-reference.md).
+ * Every text/background pair passes WCAG AA; the dark accent is #818CF8 because #4F46E5 fails on dark surfaces.
+ */
+@import 'tailwindcss';
+@import 'uniwind';
+
+@layer theme {
+  :root {
+    @variant light {
+      --color-background: #f7f7fb;
+      --color-foreground: #1e1b2e;
+      --color-card: #ffffff;
+      --color-card-foreground: #1e1b2e;
+      --color-popover: #ffffff;
+      --color-popover-foreground: #1e1b2e;
+      --color-primary: #4f46e5;
+      --color-primary-foreground: #ffffff;
+      --color-secondary: #eef2ff;
+      --color-secondary-foreground: #3730a3;
+      --color-muted: #f1f1f7;
+      --color-muted-foreground: #5f5f73;
+      --color-accent: #eef2ff;
+      --color-accent-foreground: #3730a3;
+      --color-destructive: #dc2626;
+      --color-border: #e6e6ef;
+      --color-input: #e6e6ef;
+      --color-ring: #4f46e5;
+      /* brand extras */
+      --color-hero: #1c1a3a;
+      --color-hero-foreground: #f4f4f5;
+      --color-success: #15803d;
+      --color-success-soft: #dcfce7;
+      --color-warm: #c2410c;
+      --color-warm-soft: #ffedd5;
+      --color-rose: #be123c;
+      --color-rose-soft: #ffe4e6;
+      --color-sky: #0369a1;
+      --color-sky-soft: #e0f2fe;
+    }
+    @variant dark {
+      --color-background: #0e0e12;
+      --color-foreground: #f4f4f5;
+      --color-card: #17171c;
+      --color-card-foreground: #f4f4f5;
+      --color-popover: #17171c;
+      --color-popover-foreground: #f4f4f5;
+      --color-primary: #818cf8;
+      --color-primary-foreground: #0e0e12;
+      --color-secondary: #1e1b4b;
+      --color-secondary-foreground: #c7d2fe;
+      --color-muted: #1f1f26;
+      --color-muted-foreground: #a1a1aa;
+      --color-accent: #1e1b4b;
+      --color-accent-foreground: #c7d2fe;
+      --color-destructive: #f87171;
+      --color-border: #2c2c35;
+      --color-input: #2c2c35;
+      --color-ring: #818cf8;
+      --color-hero: #1c1a3a;
+      --color-hero-foreground: #f4f4f5;
+      --color-success: #4ade80;
+      --color-success-soft: #14532d;
+      --color-warm: #fdba74;
+      --color-warm-soft: #431407;
+      --color-rose: #fda4af;
+      --color-rose-soft: #4c0519;
+      --color-sky: #7dd3fc;
+      --color-sky-soft: #082f49;
+    }
+  }
+}
+
+@theme {
+  --radius: 0.75rem;
+  --radius-card: 1rem;
+}
