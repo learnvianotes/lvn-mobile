@@ -1,5 +1,5 @@
 import { View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from '@/components/ui/safe-area-view'
 import { Text } from '@/components/ui/text'
 
 /** PROTOTYPE placeholder for tabs that ship with their backend in later phases (spec §20). */

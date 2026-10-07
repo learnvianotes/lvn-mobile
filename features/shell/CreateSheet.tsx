@@ -1,5 +1,7 @@
 import { Camera, FileUp, Layers, ListChecks, Mic, NotebookPen, Zap, type LucideIcon } from 'lucide-react-native'
-import { Modal, Pressable, View } from 'react-native'
+import { Portal } from '@rn-primitives/portal'
+import { useEffect } from 'react'
+import { BackHandler, Pressable, View } from 'react-native'
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
@@ -17,13 +19,25 @@ const OPTIONS: { label: string; icon: LucideIcon }[] = [
   { label: 'Flashcards', icon: Layers },
 ]
 
+/**
+ * Rendered through a portal into the root view (PortalHost in app/_layout.tsx) rather than a system Modal: the root
+ * is edge-to-edge, so the backdrop and sheet reach the bottom of the screen on every Android version.
+ */
 export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
+  useEffect(() => {
+    if (!open) return
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      onClose()
+      return true
+    })
+    return () => sub.remove()
+  }, [open, onClose])
   const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   return (
-    <Modal visible={open} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
+    <Portal name="create-sheet">
       {open ? (
-        <View className="flex-1 justify-end">
+        <View className="absolute inset-0 justify-end" accessibilityViewIsModal>
           <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(150)} style={{ position: 'absolute', inset: 0 }}>
             <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(14,14,18,0.45)' }} accessibilityLabel="Close" />
           </Animated.View>
@@ -48,6 +62,6 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
           </Animated.View>
         </View>
       ) : null}
-    </Modal>
+    </Portal>
   )
 }

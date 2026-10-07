@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { ScrollView, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from '@/components/ui/safe-area-view'
 import { Text } from '@/components/ui/text'
 import { ContinueCard } from './ContinueCard'
 import { ExamReadiness } from './ExamReadiness'

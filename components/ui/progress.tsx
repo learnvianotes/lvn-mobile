@@ -72,7 +72,8 @@ function NativeIndicator({ value, className }: IndicatorProps) {
 
   return (
     <ProgressPrimitive.Indicator asChild>
-      <Animated.View style={indicator} className={cn('bg-foreground h-full', className)} />
+      {/* Upstream uses bg-foreground on native and bg-primary on web; we use the brand colour on both. */}
+      <Animated.View style={indicator} className={cn('bg-primary h-full', className)} />
     </ProgressPrimitive.Indicator>
   );
 }
