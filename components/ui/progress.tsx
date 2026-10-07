@@ -21,6 +21,8 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       className={cn('bg-primary/20 relative h-2 w-full overflow-hidden rounded-full', className)}
+      // Upstream passes `value` only to the indicator, so screen readers always heard "0%".
+      value={value}
       {...props}>
       <Indicator value={value} className={indicatorClassName} />
     </ProgressPrimitive.Root>
