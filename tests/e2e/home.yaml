@@ -1,0 +1,42 @@
+# Home tab: Rhythm ring counts the day at the low bar (ADR-0030), sections, recommendations say why.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Make it happen"
+    timeout: 20000
+- scrollUntilVisible:
+    element: "Review a card"
+    direction: DOWN
+- assertVisible: "4 more reviews and today counts"
+- repeat:
+    times: 4
+    commands:
+      - tapOn: "Review a card"
+- assertVisible: "Day counted"
+- assertVisible: "Today: 10 of 20 reviews. Day counted."
+- scrollUntilVisible:
+    element: "Continue learning"
+    direction: DOWN
+- assertVisible: "Continue Process Management, 45 percent complete"
+- assertVisible: "45%"
+- scrollUntilVisible:
+    element: "Graphs"
+    direction: DOWN
+- assertVisible:
+    text: "For you"
+    selected: true
+# The chips scroll sideways; bring DBMS into view and pick it.
+- swipe:
+    from:
+      text: "ML & AI"
+      index: 0
+    direction: LEFT
+- tapOn: "DBMS"
+- assertVisible:
+    text: "DBMS"
+    selected: true
+- assertVisible: "Graphs, DSA. Weak topic in your last quiz"

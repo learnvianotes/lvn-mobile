@@ -1,0 +1,23 @@
+# The centre button opens the create sheet; the backdrop, an option and the Android back button close it.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Make it happen"
+    timeout: 20000
+- tapOn: "Create"
+- assertVisible: "Quick note"
+- assertVisible: "Voice note"
+- assertVisible: "Flashcards"
+- pressKey: Back
+- assertNotVisible: "Quick note"
+- assertVisible: "Make it happen"
+- tapOn: "Create"
+- tapOn: "Quiz"
+- assertNotVisible: "Quick note"
+- tapOn: "Create"
+- tapOn:
+    point: "50%,15%"
+- assertNotVisible: "Quick note"

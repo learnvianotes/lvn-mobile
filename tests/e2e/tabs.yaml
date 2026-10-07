@@ -1,0 +1,17 @@
+# Bottom tabs of spec §13.1 switch screens; tabs that ship later say which phase.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Make it happen"
+    timeout: 20000
+- tapOn: "Explore"
+- assertVisible: "Arrives in Phase 2 .*"
+- tapOn: "Community"
+- assertVisible: "Arrives in Phase 3.*"
+- tapOn: "Profile"
+- assertVisible: "Arrives in Phase 1–3.*"
+- tapOn: "Home"
+- assertVisible: "Make it happen"

@@ -1,0 +1,7 @@
+# Maestro workspace: every flow in this folder, smoke first.
+flows:
+  - "*.yaml"
+executionOrder:
+  continueOnFailure: true
+  flowsOrder:
+    - smoke

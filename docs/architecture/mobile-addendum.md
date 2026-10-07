@@ -12,7 +12,7 @@ this file and the spec disagree, the spec wins unless an accepted ADR says other
 | UI kit | React Native Paper or Tamagui | Not chosen yet — decided by ADR before the first Phase 1 screen |
 | Data | Apollo Client, WatermelonDB, expo-secure-store, MMKV | Added in the phase that first needs each (§18) |
 | Config | `EXPO_PUBLIC_*` via `@lvn/contracts/config` | `lib/env.ts` (Zod, mirrors `mobileConfigSchema`) until the package is published (ADR-0003, ADR-0006) |
-| Tests | RN Testing Library, Maestro | jest-expo + RNTL 14; Maestro flow in `e2e/` |
+| Tests | RN Testing Library, Maestro | jest-expo + RNTL 14 in `tests/unit` and `tests/components`; Maestro 2.11 flows in `tests/e2e`, run on an Android 16 emulator |
 
 ## Environments
 
@@ -56,7 +56,14 @@ JDK 21), APK 42 MB, label "LearnViaNotes Dev", target SDK 36.
 | `(app)/(tabs)/` Home · Explore · Create · Community · Profile | 1–3 | Not started — each tab ships with its backend (§20) |
 
 Tests live in `tests/`, never in `app/`: Expo Router turns every file in `app/` into a route, so a test there
-would be bundled into the app.
+would be bundled into the app. `tests/unit` covers `lib/`, `tests/components` every exported component with props
+(§17), `tests/e2e` the Maestro flows, and `tests/support` the Jest setup, mocks and `renderInApp` (the providers of
+`app/_layout.tsx`).
+
+E2E runs locally on an emulator with no cloud service: `pnpm test:e2e [variant]` (scripts/e2e-android.mjs) boots the
+`lvn_pixel_7` AVD if none is running, installs the newest x86_64 APK of the variant from `dist/` and runs every flow
+with `APP_ID` set to the variant's application id. Maestro's adb client lists no devices at all while any device is
+offline, so the script stops and names offline devices first.
 
 ## Brand assets
 
@@ -69,7 +76,7 @@ first frame is laid out.
 ## Folder plan (§3)
 
 `app/` routes · `features/<domain>/` · `components/` · `db/` (WatermelonDB, outbox) · `lib/` · `state/` (MMKV) ·
-`assets/` · `e2e/`. Folders are created with their first file.
+`assets/` · `tests/` (unit, components, e2e, support). Folders are created with their first file.
 
 ## Known dependency advisories (2026-10-08)
 

@@ -1,0 +1,19 @@
+# Smoke (spec §17): the app starts past the splash and shows the Home tab.
+# Run: pnpm test:e2e  (or: maestro test tests/e2e/smoke.yaml)
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+tags: [smoke]
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Make it happen"
+    timeout: 20000
+- assertVisible: "LearnViaNotes"
+- assertVisible: "Keep learning, .*"
+- assertVisible: "Home"
+- assertVisible: "Explore"
+- assertVisible: "Community"
+- assertVisible: "Profile"
+- assertVisible: "Create"

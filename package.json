@@ -53,6 +53,7 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
+    "test:e2e": "node scripts/e2e-android.mjs",
     "doctor": "npx -y expo-doctor@latest",
     "export:check": "node scripts/with-variant.mjs development expo export --platform android --platform ios --output-dir dist/export"
   },
