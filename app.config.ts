@@ -7,8 +7,8 @@ import type { ConfigContext, ExpoConfig } from 'expo/config'
 type Variant = 'development' | 'sandbox' | 'production'
 
 const VARIANTS: Record<Variant, { name: string; id: string }> = {
-  development: { name: 'LVN Dev', id: 'com.learnvianotes.dev' },
-  sandbox: { name: 'LVN Sandbox', id: 'com.learnvianotes.sandbox' },
+  development: { name: 'LearnViaNotes Dev', id: 'com.learnvianotes.dev' },
+  sandbox: { name: 'LearnViaNotes Sandbox', id: 'com.learnvianotes.sandbox' },
   production: { name: 'LearnViaNotes', id: 'com.learnvianotes' },
 }
 
@@ -23,7 +23,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
   return {
     ...config,
     name,
-    slug: 'lvn-mobile',
+    slug: 'learnvianotes',
     version: '0.1.0',
     scheme: 'learnvianotes',
     orientation: 'portrait',
