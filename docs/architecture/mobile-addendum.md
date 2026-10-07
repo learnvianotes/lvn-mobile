@@ -1,0 +1,61 @@
+# lvn-mobile addendum
+
+How the Expo app implements section 13 of the spec (lvn-backend `docs/architecture/lvn-architecture-v2.md`). Where
+this file and the spec disagree, the spec wins unless an accepted ADR says otherwise.
+
+## Stack as installed (Phase 0)
+
+| Concern | Spec (§2, §13) | Installed |
+| --- | --- | --- |
+| Expo | SDK 52+ with dev client, EAS Build/Update | SDK 57 (current stable; 58 was 9 days old). `expo-dev-client` is added with the first native module in Phase 1 |
+| Routing | Expo Router | expo-router 57, routes in `app/`, typed routes on |
+| UI kit | React Native Paper or Tamagui | Not chosen yet — decided by ADR before the first Phase 1 screen |
+| Data | Apollo Client, WatermelonDB, expo-secure-store, MMKV | Added in the phase that first needs each (§18) |
+| Config | `EXPO_PUBLIC_*` via `@lvn/contracts/config` | `lib/env.ts` (Zod, mirrors `mobileConfigSchema`) until the package is published (ADR-0003, ADR-0006) |
+| Tests | RN Testing Library, Maestro | jest-expo + RNTL 14; Maestro flow in `e2e/` |
+
+## Environments
+
+| | Development | Sandbox | Production |
+| --- | --- | --- | --- |
+| EAS profile | `development` | `preview` | `production` |
+| `APP_VARIANT` | `development` | `sandbox` | `production` |
+| App name | LVN Dev | LVN Sandbox | LearnViaNotes |
+| Bundle id / package | `com.learnvianotes.dev` | `com.learnvianotes.sandbox` | `com.learnvianotes` |
+| EAS Update channel | `development` | `sandbox` | `production` |
+| `EXPO_PUBLIC_WEB_URL` | `http://100.70.234.41:3000` (dev machine) | `https://sandbox.learnvianotes.com` | `https://learnvianotes.com` |
+
+All three install side by side. `runtimeVersion` follows `appVersion` (§13.3). An unknown `APP_VARIANT` stops the
+config from loading.
+
+## Routes
+
+| Route | Phase | Status |
+| --- | --- | --- |
+| `/` (`app/index.tsx`) | 0 | Start screen: what LVN is and a link to the notes on the web (`/core`) |
+| `(auth)/…` sign-in, sign-up, verify, reset | 1 | Not started |
+| `(app)/(tabs)/` Home · Explore · Create · Community · Profile | 1–3 | Not started — each tab ships with its backend (§20) |
+
+Tests live in `tests/`, never in `app/`: Expo Router turns every file in `app/` into a route, so a test there
+would be bundled into the app.
+
+## Folder plan (§3)
+
+`app/` routes · `features/<domain>/` · `components/` · `db/` (WatermelonDB, outbox) · `lib/` · `state/` (MMKV) ·
+`assets/` · `e2e/`. Folders are created with their first file.
+
+## Known dependency advisories (2026-10-08)
+
+`pnpm audit --prod --audit-level high` runs in CI. Two high advisories are ignored in `package.json`
+(`pnpm.auditConfig.ignoreGhsas`) because they sit in Expo's build tooling, never reach the app bundle, and have no
+patched release:
+
+| Advisory | Package | Path | Why ignored |
+| --- | --- | --- | --- |
+| GHSA-86w9-cpqp-85rv (high) | node-forge | `expo › @expo/cli` | CLI only; no fix published |
+| GHSA-vfj7-8cjw-p6xm (high) | braces | `expo › @expo/metro › … › micromatch` | Bundler only; no fix published |
+
+Moderate, not ignored, tracked for the next SDK upgrade: `decode-uri-component` 0.2.2 via `expo-router › query-string`
+(runtime; the fix, 0.5.0, is ESM-only and breaks query-string 7), `uuid` via `@expo/config-plugins › xcode` (build
+time), `sprintf-js` via jest (test only). Remove ignores as soon as Expo ships fixed versions — Dependabot will open
+the PR.
