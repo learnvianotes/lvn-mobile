@@ -1,6 +1,7 @@
 import { Bell, Search } from 'lucide-react-native'
 import { View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
+import { Wordmark } from '@/components/brand/Logo'
 import { Text } from '@/components/ui/text'
 import { PressScale } from '@/features/shell/PressScale'
 
@@ -10,9 +11,7 @@ export function HomeHeader() {
   return (
     <View className="gap-4">
       <View className="flex-row items-center justify-between">
-        <Text className="text-primary text-2xl font-extrabold tracking-tight" accessibilityLabel="LearnViaNotes">
-          LVN
-        </Text>
+        <Wordmark size={34} />
         <View className="flex-row items-center gap-2">
           <PressScale accessibilityRole="button" accessibilityLabel="Notifications, 2 new" hitSlop={8}>
             <View className="bg-card border-border size-10 items-center justify-center rounded-full border">

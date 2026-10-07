@@ -58,6 +58,14 @@ JDK 21), APK 42 MB, label "LearnViaNotes Dev", target SDK 36.
 Tests live in `tests/`, never in `app/`: Expo Router turns every file in `app/` into a route, so a test there
 would be bundled into the app.
 
+## Brand assets
+
+The logo is one set of shapes in `assets/brand/logo-paths.json`. `node scripts/brand-assets.mjs` (needs `rsvg-convert`)
+renders the SVG sources in `assets/brand/` and every PNG Expo uses — app icon, Android adaptive foreground, background
+and monochrome (themed) layers, splash and favicon — and `components/brand/Logo.tsx` draws the same shapes in the app.
+The splash is the logo tile on the theme background (light `#F7F7FB`, dark `#0E0E12`) and fades out in ~220 ms once the
+first frame is laid out.
+
 ## Folder plan (§3)
 
 `app/` routes · `features/<domain>/` · `components/` · `db/` (WatermelonDB, outbox) · `lib/` · `state/` (MMKV) ·

@@ -38,15 +38,29 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       package: id,
+      // Icons and splash are rendered from assets/brand/logo-paths.json by scripts/brand-assets.mjs.
       adaptiveIcon: {
-        backgroundColor: '#E6F4FE',
+        backgroundColor: '#4F46E5',
         foregroundImage: './assets/android-icon-foreground.png',
         backgroundImage: './assets/android-icon-background.png',
         monochromeImage: './assets/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
     },
-    plugins: ['expo-router'],
+    plugins: [
+      'expo-router',
+      [
+        'expo-splash-screen',
+        {
+          // The logo tile on the theme background; small enough to sit inside Android 12+'s circular splash mask.
+          image: './assets/splash-icon.png',
+          imageWidth: 136,
+          resizeMode: 'contain',
+          backgroundColor: '#F7F7FB',
+          dark: { image: './assets/splash-icon.png', backgroundColor: '#0E0E12' },
+        },
+      ],
+    ],
     experiments: { typedRoutes: true },
   }
 }
