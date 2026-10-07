@@ -1,0 +1,10 @@
+# Maestro smoke flow (spec §17). Runs against a development or preview build on an Android emulator or iOS
+# simulator: `maestro test e2e/smoke.yaml`. Wired into CI against sandbox builds once EAS builds exist.
+appId: com.learnvianotes.dev
+---
+- launchApp:
+    clearState: true
+- assertVisible: "LearnViaNotes"
+- assertVisible: "Read the notes"
+- assertVisible:
+    id: "env-badge"
