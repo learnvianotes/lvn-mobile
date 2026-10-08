@@ -19,3 +19,6 @@ Object.assign(process.env, {
 
 // expo-secure-store has no Keychain/Keystore in Node: an in-memory store per test file (tests/support/secure-store.ts).
 jest.mock('expo-secure-store', () => require('./secure-store').secureStore)
+
+// No native splash screen in Node (its JS warns that options need a development build).
+jest.mock('expo-splash-screen', () => ({ preventAutoHideAsync: jest.fn(async () => true), hideAsync: jest.fn(async () => undefined), setOptions: jest.fn() }))

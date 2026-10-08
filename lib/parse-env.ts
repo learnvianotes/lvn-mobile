@@ -16,6 +16,8 @@ const schema = z.object({
   // not redirect to app schemes, so it waits for app links (docs/architecture/mobile-addendum.md → Sign-in).
   EXPO_PUBLIC_GITHUB_CLIENT_ID: optional,
   EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: z.url().optional(),
+  /** Sentry for crashes and unexpected errors (§16.5); off without it. */
+  EXPO_PUBLIC_SENTRY_DSN: z.url().refine((u) => /^https?:\/\//.test(u), 'must be an http(s) URL').optional(),
 })
 
 export type AppEnv = z.infer<typeof schema>

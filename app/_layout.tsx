@@ -10,6 +10,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useCSSVariable, useUniwind } from 'uniwind'
 import { createApolloClient } from '@/lib/apollo'
 import { restoreSession, useSession } from '@/lib/auth/session'
+import { startErrorReporting } from '@/lib/observability'
+
+// First, so a crash during start-up is reported too (when this build has a Sentry DSN).
+startErrorReporting()
 
 // Keep the native splash (logo on the theme background) until the stored session is restored, then fade it quickly.
 void SplashScreen.preventAutoHideAsync()

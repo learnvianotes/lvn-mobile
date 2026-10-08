@@ -26,6 +26,7 @@ this file and the spec disagree, the spec wins unless an accepted ADR says other
 | `EXPO_PUBLIC_WEB_URL` | `http://100.70.234.41:3000` (dev machine) | `https://sandbox.learnvianotes.in` | `https://www.learnvianotes.in` |
 | `EXPO_PUBLIC_API_URL` | `http://100.70.234.41:4000/graphql` | `https://api.sandbox.learnvianotes.in/graphql` | `https://api.learnvianotes.in/graphql` |
 | `EXPO_PUBLIC_GITHUB_CLIENT_ID` | optional; empty hides the button | same | same |
+| `EXPO_PUBLIC_SENTRY_DSN` | optional; empty turns error reporting off | same | same |
 | Plain HTTP | allowed (the dev API has no TLS) | HTTPS only | HTTPS only |
 
 All three install side by side, each with its own scheme so a sign-in redirect opens the install that started it. Per-machine overrides go in `env/<variant>.local.env` (git-ignored). An unknown
@@ -102,6 +103,15 @@ with `APP_ID` set to the variant's application id. The flows run against the rea
 start lvn-backend's dev services and API first. `tests/e2e/scripts/create-account.js` makes a fresh account per flow
 through the API, and `auth.yaml` reads the emailed code from Mailpit (`MAILPIT_URL`, default `http://localhost:58025`). Maestro's adb client lists no devices at all while any device is
 offline, so the script stops and names offline devices first.
+
+## Error reporting
+
+`lib/observability.ts` starts Sentry (`@sentry/react-native`, the version Expo SDK 57 pins) first thing in
+`app/_layout.tsx` when `EXPO_PUBLIC_SENTRY_DSN` is set: native crashes and unexpected JS errors only — no tracing,
+screenshots or view hierarchy — without the user, request details, console output or query strings (sign-in redirects
+carry codes). Autolinking adds the native module; the Sentry Expo config plugin is not used, because its Gradle step
+uploads source maps and needs an auth token. Symbolicated stack traces (source maps, ProGuard mappings) are added with
+the plugin when the Sentry project and its token exist.
 
 ## Brand assets
 
