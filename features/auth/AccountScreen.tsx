@@ -11,6 +11,7 @@ import { Text } from '@/components/ui/text'
 import { SignOutDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { signedOut } from '@/lib/auth/session'
 import { env } from '@/lib/env'
+import { YourDataCard } from '@/features/data/YourDataCard'
 import { copy } from './copy'
 import { Notice } from './Notice'
 
@@ -25,6 +26,7 @@ export function AccountScreen() {
       <ScrollView contentContainerClassName="gap-5 px-5 pb-32 pt-4">
         <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">{copy.account.title}</Text>
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
+        {viewer ? <YourDataCard /> : null}
         <SignOutButton />
       </ScrollView>
     </SafeAreaView>

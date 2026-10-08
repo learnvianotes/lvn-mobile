@@ -1,0 +1,29 @@
+# Settings → Data (lvn-backend ADR-0018): the archive of everything about you.
+
+fragment DataExportFields on DataExport {
+  id
+  status
+  requestedAt
+  expiresAt
+  sizeBytes
+  downloadUrl
+}
+
+query MyDataExports {
+  myDataExports {
+    ...DataExportFields
+  }
+}
+
+mutation RequestDataExport {
+  requestDataExport {
+    export {
+      ...DataExportFields
+    }
+    userErrors {
+      field
+      message
+      code
+    }
+  }
+}
