@@ -1,0 +1,20 @@
+# Starts the app signed in as a new account (made through the API) and waits for Home.
+appId: ${APP_ID}
+---
+- runScript:
+    file: ../scripts/create-account.js
+- launchApp:
+    clearState: true
+- tapOn: "I already have an account"
+- tapOn:
+    id: "sign-in-email"
+- inputText: ${output.email}
+- tapOn:
+    id: "sign-in-password"
+- inputText: ${output.password}
+- hideKeyboard
+- tapOn:
+    id: "sign-in-submit"
+- extendedWaitUntil:
+    visible: "Make it happen"
+    timeout: 20000

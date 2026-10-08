@@ -3,15 +3,13 @@ appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
 ---
-- launchApp
-- extendedWaitUntil:
-    visible: "Make it happen"
-    timeout: 20000
+- runFlow: subflows/signed-in.yaml
 - tapOn: "Explore"
 - assertVisible: "Arrives in Phase 2 .*"
 - tapOn: "Community"
 - assertVisible: "Arrives in Phase 3.*"
 - tapOn: "Profile"
-- assertVisible: "Arrives in Phase 1–3.*"
+- assertVisible: "Your account"
+- assertVisible: "Ravi Kumar"
 - tapOn: "Home"
 - assertVisible: "Make it happen"

@@ -5,3 +5,4 @@ executionOrder:
   continueOnFailure: true
   flowsOrder:
     - smoke
+    - auth

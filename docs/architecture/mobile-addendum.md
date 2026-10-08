@@ -22,9 +22,13 @@ this file and the spec disagree, the spec wins unless an accepted ADR says other
 | App name | LearnViaNotes Dev | LearnViaNotes Sandbox | LearnViaNotes |
 | Bundle id / package | `com.learnvianotes.dev` | `com.learnvianotes.sandbox` | `com.learnvianotes` |
 | Run / build | `pnpm android`, `pnpm build:android development` | `pnpm build:android sandbox` | `pnpm build:android production` |
+| URL scheme | `learnvianotes-dev` | `learnvianotes-sandbox` | `learnvianotes` |
 | `EXPO_PUBLIC_WEB_URL` | `http://100.70.234.41:3000` (dev machine) | `https://sandbox.learnvianotes.in` | `https://www.learnvianotes.in` |
+| `EXPO_PUBLIC_API_URL` | `http://100.70.234.41:4000/graphql` | `https://api.sandbox.learnvianotes.in/graphql` | `https://api.learnvianotes.in/graphql` |
+| `EXPO_PUBLIC_GITHUB_CLIENT_ID` | optional; empty hides the button | same | same |
+| Plain HTTP | allowed (the dev API has no TLS) | HTTPS only | HTTPS only |
 
-All three install side by side. Per-machine overrides go in `env/<variant>.local.env` (git-ignored). An unknown
+All three install side by side, each with its own scheme so a sign-in redirect opens the install that started it. Per-machine overrides go in `env/<variant>.local.env` (git-ignored). An unknown
 variant stops the scripts and the app config. No OTA updates for now (ADR-0008).
 
 ## Building (no Expo account)
@@ -51,9 +55,41 @@ JDK 21), APK 42 MB, label "LearnViaNotes Dev", target SDK 36.
 
 | Route | Phase | Status |
 | --- | --- | --- |
-| `/` (`app/index.tsx`) | 0 | Start screen: what LVN is and a link to the notes on the web (`/core`) |
-| `(auth)/…` sign-in, sign-up, verify, reset | 1 | Not started |
-| `(app)/(tabs)/` Home · Explore · Create · Community · Profile | 1–3 | Not started — each tab ships with its backend (§20) |
+| `(auth)/welcome`, `sign-in`, `sign-up`, `reset` | 1 | Done — shown only when signed out |
+| `details` | 1 | Done — registration details for GitHub/LinkedIn accounts (ADR-0017), shown until given |
+| `verify` | 1 | Done — the 6-digit code for a college or organisation email (modal) |
+| `(tabs)/` Home · Explore · Create · Community · Profile | 1–3 | Home is the prototype; Profile is the account screen; the rest ship with their backend (§20) |
+
+`app/_layout.tsx` decides who sees what with `Stack.Protected`: signed out → `(auth)`; signed in without registration
+details → `details`; otherwise the tabs and `verify`. A guard that changes moves to the first screen allowed, so no
+screen navigates after sign-in or sign-out itself.
+
+## Sign-in (§7.1, Phase 1)
+
+- **Session.** `lib/auth/session.ts` keeps the access token in memory and both tokens in expo-secure-store
+  (`lib/auth/storage.ts`; Keychain / Android Keystore, excluded from backups by the expo-secure-store plugin). Every
+  request carries `X-LVN-Client: mobile`, so the API returns the refresh token in the payload instead of a cookie.
+  The access token is renewed a minute before it expires; one refresh at a time (the API treats a reused refresh token
+  as theft). On launch the stored refresh token is exchanged while the splash stays up; offline, the person stays
+  signed in and the next request tries again; only the API's refusal signs them out.
+- **Requests.** `lib/apollo.ts` retries once after a refresh when the API answers `UNAUTHENTICATED`. Operations live in
+  `graphql/operations/*.graphql`; `pnpm graphql:sync && pnpm codegen` regenerates `graphql/generated` from lvn-backend's
+  schema (a sibling checkout until `@lvn/contracts` is published).
+- **GitHub.** Authorization Code + PKCE in the system auth browser (expo-auth-session), redirect
+  `<scheme>://oauth/callback`, exchanged by `oauthExchange`. Register that URI with the GitHub OAuth app and add it to
+  the API's `OAUTH_REDIRECT_URIS`. `app/+native-intent.ts` keeps the router from treating the redirect as a screen.
+- **LinkedIn — web only for now.** LinkedIn redirects only to http(s) URLs, never to an app scheme, so the app has no
+  LinkedIn button. It needs Android App Links / iOS universal links for `https://<web>/oauth/callback`, or a page on
+  lvn-web that hands the code to the app's scheme. People who signed up with LinkedIn on the web sign in on the phone
+  with their email and password (or GitHub/Google with the same verified email, linked by §7.1).
+- **Google (ADR-0007) — not yet.** Native Google Sign-In needs the Firebase project's Android and iOS apps
+  (`google-services.json`, `GoogleService-Info.plist`) and the Google OAuth client ids, which do not exist yet. The API
+  side (`signInWithGoogle`) is done; the button appears once those files and `EXPO_PUBLIC_FIREBASE_*` are added.
+- **Emailed links.** Email confirmation and password reset links open lvn-web (`/verify?token=`, `/reset?token=`)
+  until app links exist; the app asks for the reset link and the web page sets the new password.
+- **Forms.** Date of birth is three number fields (day, month, year — GOV.UK's pattern for a date people know, not a
+  picker). Emails are trimmed (keyboards add a trailing space). A wrong code or password is cleared for a fresh try.
+  The API's `userErrors` land on their fields; anything else shows above the form.
 
 Tests live in `tests/`, never in `app/`: Expo Router turns every file in `app/` into a route, so a test there
 would be bundled into the app. `tests/unit` covers `lib/`, `tests/components` every exported component with props
@@ -62,7 +98,9 @@ would be bundled into the app. `tests/unit` covers `lib/`, `tests/components` ev
 
 E2E runs locally on an emulator with no cloud service: `pnpm test:e2e [variant]` (scripts/e2e-android.mjs) boots the
 `lvn_pixel_7` AVD if none is running, installs the newest x86_64 APK of the variant from `dist/` and runs every flow
-with `APP_ID` set to the variant's application id. Maestro's adb client lists no devices at all while any device is
+with `APP_ID` set to the variant's application id. The flows run against the real API of the variant (`API_URL`):
+start lvn-backend's dev services and API first. `tests/e2e/scripts/create-account.js` makes a fresh account per flow
+through the API, and `auth.yaml` reads the emailed code from Mailpit (`MAILPIT_URL`, default `http://localhost:58025`). Maestro's adb client lists no devices at all while any device is
 offline, so the script stops and names offline devices first.
 
 ## Brand assets

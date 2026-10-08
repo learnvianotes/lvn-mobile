@@ -1,0 +1,127 @@
+# Sign-in, registration and the account screen (lvn-backend users subgraph, Phase 1). The session refresh is sent
+# by lib/auth/session.ts outside Apollo, so it can run while every other request waits for it.
+
+fragment ViewerFields on User {
+  id
+  handle
+  displayName
+  email
+  emailVerified
+  registrationComplete
+  verified
+  verificationMethod
+  globalRole
+  restrictedMinor
+  institutionalEmail
+  institutionalEmailStatus
+  institution {
+    name
+    verified
+  }
+}
+
+fragment SessionFields on Session {
+  accessToken
+  accessTokenExpiresAt
+  refreshToken
+  user {
+    ...ViewerFields
+  }
+}
+
+fragment Problems on UserError {
+  field
+  message
+  code
+}
+
+query Viewer {
+  viewer {
+    ...ViewerFields
+  }
+}
+
+query SignInOptions {
+  signInOptions {
+    emailPassword
+    google
+    github
+    linkedin
+  }
+  termsVersion
+}
+
+mutation SignUp($input: SignUpInput!) {
+  signUp(input: $input) {
+    session {
+      ...SessionFields
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation SignIn($input: SignInInput!) {
+  signIn(input: $input) {
+    session {
+      ...SessionFields
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation SignOut {
+  signOut {
+    ok
+  }
+}
+
+mutation OAuthExchange($input: OAuthExchangeInput!) {
+  oauthExchange(input: $input) {
+    session {
+      ...SessionFields
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation CompleteRegistration($input: CompleteRegistrationInput!) {
+  completeRegistration(input: $input) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation RequestPasswordReset($email: String!) {
+  requestPasswordReset(input: { email: $email }) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation VerifyInstitutionalEmail($code: String!) {
+  verifyInstitutionalEmail(input: { code: $code }) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation ResendInstitutionalEmailCode {
+  resendInstitutionalEmailCode {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}

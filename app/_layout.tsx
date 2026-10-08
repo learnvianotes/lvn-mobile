@@ -1,14 +1,17 @@
 import '../global.css'
+import { ApolloProvider } from '@apollo/client/react'
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router'
 import { PortalHost } from '@rn-primitives/portal'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
-import { useCallback, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useCSSVariable, useUniwind } from 'uniwind'
+import { createApolloClient } from '@/lib/apollo'
+import { restoreSession, useSession } from '@/lib/auth/session'
 
-// Keep the native splash (logo on the theme background) until the first frame is laid out, then fade it quickly.
+// Keep the native splash (logo on the theme background) until the stored session is restored, then fade it quickly.
 void SplashScreen.preventAutoHideAsync()
 SplashScreen.setOptions({ duration: 220, fade: true })
 
@@ -42,17 +45,44 @@ function useNavigationTheme() {
 
 export default function RootLayout() {
   const navTheme = useNavigationTheme()
-  const onReady = useCallback(() => void SplashScreen.hideAsync(), [])
+  const [client] = useState(createApolloClient)
+  const status = useSession((s) => s.status)
+  const registered = useSession((s) => s.registrationComplete !== false)
+
+  useEffect(() => {
+    void restoreSession()
+  }, [])
+  useEffect(() => {
+    if (status !== 'restoring') void SplashScreen.hideAsync()
+  }, [status])
+
+  if (status === 'restoring') return null
+  const signedIn = status === 'signed-in'
   return (
-    <SafeAreaProvider>
-      <ThemeProvider value={navTheme}>
-        <View style={{ flex: 1, backgroundColor: navTheme.colors.background }} onLayout={onReady}>
-          <StatusBar style="auto" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: navTheme.colors.background } }} />
-          {/* Sheets and dialogs render here, above every screen (react-native-reusables convention). */}
-          <PortalHost />
-        </View>
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <ApolloProvider client={client}>
+      <SafeAreaProvider>
+        <ThemeProvider value={navTheme}>
+          <View style={{ flex: 1, backgroundColor: navTheme.colors.background }}>
+            <StatusBar style="auto" />
+            {/* Who sees what (§7.1): signed out → sign-in screens; a provider account without its details → the
+                details form; everyone else → the app. Switching a guard moves to the first screen allowed. */}
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: navTheme.colors.background } }}>
+              <Stack.Protected guard={signedIn && registered}>
+                <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="verify" options={{ presentation: 'modal' }} />
+              </Stack.Protected>
+              <Stack.Protected guard={signedIn && !registered}>
+                <Stack.Screen name="details" />
+              </Stack.Protected>
+              <Stack.Protected guard={!signedIn}>
+                <Stack.Screen name="(auth)" />
+              </Stack.Protected>
+            </Stack>
+            {/* Sheets and dialogs render here, above every screen (react-native-reusables convention). */}
+            <PortalHost />
+          </View>
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </ApolloProvider>
   )
 }

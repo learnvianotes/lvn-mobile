@@ -1,0 +1,13 @@
+# Types VALUE into the field with testID FIELD, scrolled into view first, and puts the keyboard away afterwards:
+# a tap on a field hidden behind the keyboard would land on a key and type into the previous field. (hideKeyboard
+# only after typing — with no keyboard open it presses Back and leaves the screen.)
+appId: ${APP_ID}
+---
+- scrollUntilVisible:
+    element:
+      id: ${FIELD}
+    direction: DOWN
+- tapOn:
+    id: ${FIELD}
+- inputText: ${VALUE}
+- hideKeyboard

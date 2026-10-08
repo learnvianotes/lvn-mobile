@@ -7,7 +7,9 @@
  * 1. Uses a running emulator, or boots --avd (default: $LVN_AVD or lvn_pixel_7) headless and waits for it.
  * 2. Installs the newest x86_64 APK for the variant from dist/ (build one with
  *    `pnpm build:android <variant> --abi x86_64`), or --apk.
- * 3. Runs `maestro test tests/e2e` against that emulator with APP_ID set to the variant's application id.
+ * 3. Runs `maestro test tests/e2e` against that emulator with APP_ID set to the variant's application id, API_URL
+ *    to the variant's API (the flows make accounts through it) and MAILPIT_URL to the mail sink of lvn-backend's
+ *    dev services (default http://localhost:58025) for the codes the API mails.
  *
  * Maestro's adb client stops listing devices if any device is "offline" (for example a phone whose wireless debugging
  * dropped), so the script refuses to start until offline devices are disconnected.
@@ -16,7 +18,7 @@ import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, readdirSync, statSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { VARIANTS } from './variant.mjs'
+import { variantEnv, VARIANTS } from './variant.mjs'
 
 const APP_IDS = { development: 'com.learnvianotes.dev', sandbox: 'com.learnvianotes.sandbox', production: 'com.learnvianotes' }
 
@@ -74,5 +76,8 @@ const install = adb('-s', emulator, 'install', '-r', apk)
 if (install.status !== 0) throw new Error(install.stderr || install.stdout)
 
 const flows = opt('flow') ?? 'tests/e2e'
-const run = spawnSync(maestroBin, ['--device', emulator, 'test', flows, '-e', `APP_ID=${APP_IDS[variant]}`, '--format', 'junit', '--output', 'dist/e2e/report.xml', '--test-output-dir', 'dist/e2e'], { cwd: root, stdio: 'inherit' })
+const { EXPO_PUBLIC_API_URL: apiUrl } = variantEnv(variant)
+const mailpitUrl = process.env.MAILPIT_URL ?? 'http://localhost:58025'
+const vars = [`APP_ID=${APP_IDS[variant]}`, `API_URL=${apiUrl}`, `MAILPIT_URL=${mailpitUrl}`].flatMap((v) => ['-e', v])
+const run = spawnSync(maestroBin, ['--device', emulator, 'test', flows, ...vars, '--format', 'junit', '--output', 'dist/e2e/report.xml', '--test-output-dir', 'dist/e2e'], { cwd: root, stdio: 'inherit' })
 process.exit(run.status ?? 1)

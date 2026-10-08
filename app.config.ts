@@ -7,10 +7,14 @@ import type { ConfigContext, ExpoConfig } from 'expo/config'
  */
 type Variant = 'development' | 'sandbox' | 'production'
 
-const VARIANTS: Record<Variant, { name: string; id: string }> = {
-  development: { name: 'LearnViaNotes Dev', id: 'com.learnvianotes.dev' },
-  sandbox: { name: 'LearnViaNotes Sandbox', id: 'com.learnvianotes.sandbox' },
-  production: { name: 'LearnViaNotes', id: 'com.learnvianotes' },
+/**
+ * Each variant has its own URL scheme as well as its own id: with one shared scheme, a sign-in redirect
+ * (`<scheme>://oauth/callback`) could open whichever of the three installs Android picks.
+ */
+const VARIANTS: Record<Variant, { name: string; id: string; scheme: string }> = {
+  development: { name: 'LearnViaNotes Dev', id: 'com.learnvianotes.dev', scheme: 'learnvianotes-dev' },
+  sandbox: { name: 'LearnViaNotes Sandbox', id: 'com.learnvianotes.sandbox', scheme: 'learnvianotes-sandbox' },
+  production: { name: 'LearnViaNotes', id: 'com.learnvianotes', scheme: 'learnvianotes' },
 }
 
 function variant(): Variant {
@@ -20,13 +24,14 @@ function variant(): Variant {
 }
 
 export default ({ config }: ConfigContext): ExpoConfig => {
-  const { name, id } = VARIANTS[variant()]
+  const current = variant()
+  const { name, id, scheme } = VARIANTS[current]
   return {
     ...config,
     name,
     slug: 'learnvianotes',
     version: '0.1.0',
-    scheme: 'learnvianotes',
+    scheme,
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'automatic',
@@ -34,7 +39,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       bundleIdentifier: id,
       supportsTablet: true,
       // Universal links (§9.3) need the Associated Domains capability, which a free Apple account cannot sign.
-      // Added with the paid Apple Developer membership (ADR-0008); the learnvianotes:// scheme works meanwhile.
+      // Added with the paid Apple Developer membership (ADR-0008); the app scheme works meanwhile.
     },
     android: {
       package: id,
@@ -49,6 +54,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       'expo-router',
+      'expo-secure-store',
+      'expo-web-browser',
+      // Development builds talk to the API on the dev machine over plain HTTP (env/development.env); Android blocks
+      // that unless allowed. Sandbox and production use HTTPS only.
+      ['expo-build-properties', { android: { usesCleartextTraffic: current === 'development' } }],
       [
         'expo-splash-screen',
         {

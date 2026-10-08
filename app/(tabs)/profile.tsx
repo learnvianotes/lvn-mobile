@@ -1,5 +1,3 @@
-import { ComingSoon } from '@/features/shell/ComingSoon'
+import { AccountScreen } from '@/features/auth/AccountScreen'
 
-export default function Screen() {
-  return <ComingSoon title="Profile" phase="Phase 1–3" />
-}
+export default AccountScreen

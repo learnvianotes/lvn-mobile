@@ -1,0 +1,147 @@
+# Sign-up with a college email, its code from the mail, sign-out, then sign-in (spec §7.1, ADR-0017) — against the
+# API on the dev machine (env/development.env) with Mailpit catching the mail.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+tags: [auth]
+---
+- evalScript: ${output.stamp = Date.now()}
+- evalScript: ${output.email = 'e2e-' + output.stamp + '@example.com'}
+- evalScript: ${output.college = 'e2e-' + output.stamp + '@iitb.ac.in'}
+- evalScript: ${output.password = 'lvn e2e passphrase ' + output.stamp}
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Create an account"
+    timeout: 20000
+- assertVisible: "Your notes, your pace.*"
+- tapOn: "Create an account"
+
+# The form checks itself before anything is sent.
+- scrollUntilVisible:
+    element:
+      id: "sign-up-submit"
+    direction: DOWN
+- tapOn:
+    id: "sign-up-submit"
+- assertVisible: "Accept the terms to continue."
+- scrollUntilVisible:
+    element:
+      id: "sign-up-name"
+    direction: UP
+
+- runFlow:
+    file: subflows/fill.yaml
+    env:
+      FIELD: sign-up-name
+      VALUE: "Asha Rao"
+- runFlow:
+    file: subflows/fill.yaml
+    env:
+      FIELD: sign-up-email
+      VALUE: ${output.email}
+- runFlow:
+    file: subflows/fill.yaml
+    env:
+      FIELD: sign-up-password
+      VALUE: ${output.password}
+- runFlow:
+    file: subflows/fill.yaml
+    env:
+      FIELD: dob-day
+      VALUE: "1"
+- runFlow:
+    file: subflows/fill.yaml
+    env:
+      FIELD: dob-month
+      VALUE: "5"
+- runFlow:
+    file: subflows/fill.yaml
+    env:
+      FIELD: dob-year
+      VALUE: "2004"
+- runFlow:
+    file: subflows/fill.yaml
+    env:
+      FIELD: sign-up-institutional-email
+      VALUE: ${output.college}
+- scrollUntilVisible:
+    element:
+      id: "terms"
+    direction: DOWN
+- tapOn:
+    id: "terms"
+- tapOn:
+    id: "sign-up-submit"
+
+# The code screen follows; a wrong code is refused, the mailed one is accepted.
+- extendedWaitUntil:
+    visible: "Enter your code"
+    timeout: 20000
+- assertVisible: "We sent a 6-digit code to ${output.college}."
+- tapOn:
+    id: "code"
+- inputText: "000000"
+- hideKeyboard
+- tapOn:
+    id: "verify-submit"
+- assertVisible: "That code is not right.*"
+- runScript:
+    file: scripts/mail-code.js
+    env:
+      TO: ${output.college}
+- tapOn:
+    id: "code"
+- inputText: ${output.code}
+- hideKeyboard
+- tapOn:
+    id: "verify-submit"
+- extendedWaitUntil:
+    visible: "(You are verified.|Your address is confirmed.*)"
+    timeout: 10000
+- tapOn: "Continue"
+- extendedWaitUntil:
+    visible: "Make it happen"
+    timeout: 10000
+
+# The account tab shows who is signed in; signing out returns to the welcome screen.
+- tapOn: "Profile"
+- assertVisible: "Your account"
+- assertVisible: "Asha Rao"
+- assertVisible: ".*${output.email}"
+- scrollUntilVisible:
+    element:
+      id: "sign-out"
+    direction: DOWN
+- tapOn:
+    id: "sign-out"
+- extendedWaitUntil:
+    visible: "Create an account"
+    timeout: 10000
+
+# Signing in: one message for a wrong password, then in with the right one — and still in after a restart.
+- tapOn: "I already have an account"
+- tapOn:
+    id: "sign-in-email"
+- inputText: ${output.email}
+- tapOn:
+    id: "sign-in-password"
+- inputText: "not the password"
+- hideKeyboard
+- tapOn:
+    id: "sign-in-submit"
+- assertVisible: "Email or password is incorrect."
+- tapOn:
+    id: "sign-in-password"
+- inputText: ${output.password}
+- hideKeyboard
+- tapOn:
+    id: "sign-in-submit"
+- extendedWaitUntil:
+    visible: "Make it happen"
+    timeout: 20000
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "Make it happen"
+    timeout: 20000

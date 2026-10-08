@@ -7,4 +7,7 @@ import { parseEnv } from './parse-env'
 export const env = parseEnv({
   EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV,
   EXPO_PUBLIC_WEB_URL: process.env.EXPO_PUBLIC_WEB_URL,
+  EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
+  EXPO_PUBLIC_GITHUB_CLIENT_ID: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID,
+  EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: process.env.EXPO_PUBLIC_GITHUB_AUTHORIZE_URL,
 })

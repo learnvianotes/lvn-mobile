@@ -1,8 +1,21 @@
 // Jest only: Reanimated and its worklets runtime have no native module in Node, and Uniwind has no compiled
 // stylesheet here — components fall back to their default colours when a CSS variable is unknown.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'))
-jest.mock('react-native-reanimated', () => ({ ...require('react-native-reanimated/mock'), useReducedMotion: () => false }))
+// The mock module itself gains useReducedMotion, so expo-router/testing-library's own Reanimated mock (which
+// returns the same module) has it too.
+require('react-native-reanimated/mock').useReducedMotion = () => false
+jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'))
 jest.mock('uniwind', () => ({
   ...jest.requireActual('uniwind'),
   useCSSVariable: (name: string | string[]) => (Array.isArray(name) ? name.map(() => undefined) : undefined),
 }))
+
+// The public build values a development build would inline (env/development.env).
+Object.assign(process.env, {
+  EXPO_PUBLIC_APP_ENV: 'development',
+  EXPO_PUBLIC_WEB_URL: 'http://web.test',
+  EXPO_PUBLIC_API_URL: 'http://api.test/graphql',
+})
+
+// expo-secure-store has no Keychain/Keystore in Node: an in-memory store per test file (tests/support/secure-store.ts).
+jest.mock('expo-secure-store', () => require('./secure-store').secureStore)

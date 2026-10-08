@@ -3,11 +3,7 @@ appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
 ---
-- launchApp:
-    clearState: true
-- extendedWaitUntil:
-    visible: "Make it happen"
-    timeout: 20000
+- runFlow: subflows/signed-in.yaml
 - scrollUntilVisible:
     element: "Review a card"
     direction: DOWN
