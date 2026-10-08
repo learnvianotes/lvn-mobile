@@ -1,0 +1,97 @@
+# Notes on the phone (lvn-backend §13.2): pull what changed, push the outbox, and search online.
+
+fragment SyncedNoteFields on Note {
+  id
+  title
+  visibility
+  viewerAccess
+  draftRevision
+  draftUpdatedAt
+  publishedAt
+  deletedAt
+  owner {
+    id
+    displayName
+  }
+}
+
+query SyncPull($since: String, $after: String) {
+  syncPull(since: $since, after: $after, first: 20) {
+    notes {
+      note {
+        ...SyncedNoteFields
+      }
+      cards {
+        id
+        type
+        position
+        revision
+        content
+      }
+    }
+    liveNoteIds
+    cursor
+    hasMore
+  }
+}
+
+mutation SyncPush($ops: [SyncOpInput!]!) {
+  syncPush(ops: $ops) {
+    results {
+      clientOpId
+      status
+      code
+      message
+      noteId
+      cardResults {
+        id
+        status
+        revision
+        message
+      }
+      conflictVersionId
+    }
+  }
+}
+
+query SearchNotes($query: String!) {
+  search(query: $query, scopes: [NOTES, TOPICS], first: 15) {
+    notes {
+      snippet
+      note {
+        id
+        title
+        visibility
+        owner {
+          id
+          displayName
+        }
+      }
+    }
+    topics {
+      id
+      title
+      subject {
+        id
+        title
+      }
+    }
+  }
+}
+
+query RemoteNote($id: UUID!) {
+  note(id: $id) {
+    ...SyncedNoteFields
+    cards(first: 100) {
+      edges {
+        node {
+          id
+          type
+          position
+          revision
+          content
+        }
+      }
+    }
+  }
+}

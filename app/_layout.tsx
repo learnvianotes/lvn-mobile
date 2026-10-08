@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useCSSVariable, useUniwind } from 'uniwind'
+import { NotesSync } from '@/features/notes/NotesSync'
 import { createApolloClient } from '@/lib/apollo'
 import { restoreSession, useSession } from '@/lib/auth/session'
 import { startErrorReporting } from '@/lib/observability'
@@ -73,6 +74,7 @@ export default function RootLayout() {
             <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: navTheme.colors.background } }}>
               <Stack.Protected guard={signedIn && registered}>
                 <Stack.Screen name="(tabs)" />
+                <Stack.Screen name="notes" />
                 <Stack.Screen name="verify" options={{ presentation: 'modal' }} />
               </Stack.Protected>
               <Stack.Protected guard={signedIn && !registered}>
@@ -84,6 +86,7 @@ export default function RootLayout() {
             </Stack>
             {/* Sheets and dialogs render here, above every screen (react-native-reusables convention). */}
             <PortalHost />
+            {signedIn && registered ? <NotesSync /> : null}
           </View>
         </ThemeProvider>
       </SafeAreaProvider>

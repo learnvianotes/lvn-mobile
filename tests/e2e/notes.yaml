@@ -1,0 +1,46 @@
+# Notes on the phone (lvn-backend §13.2): write a note, write another offline, and see both reach the server.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Notes"
+- assertVisible: "No notes yet"
+- tapOn: "New note"
+- tapOn: "Title"
+- inputText: "Graph traversal"
+- hideKeyboard
+# The first card is open in the rich-text editor (a DOM component).
+- tapOn: "Card text"
+- inputText: "BFS uses a queue"
+- tapOn: "Done"
+- tapOn: "Add a card"
+- tapOn: "Heading"
+- inputText: "DFS"
+- hideKeyboard
+- tapOn: "Done"
+- extendedWaitUntil:
+    visible: "Saved"
+    timeout: 20000
+- tapOn: "Back"
+- assertVisible: "Graph traversal"
+
+# Offline: the note is kept on the phone and sent when the connection returns.
+- setAirplaneMode: enabled
+- tapOn: "New note"
+- tapOn: "Title"
+- inputText: "Written offline"
+- hideKeyboard
+- tapOn: "Back"
+- assertVisible: "Not sent yet"
+- setAirplaneMode: disabled
+- extendedWaitUntil:
+    notVisible: "Not sent yet"
+    timeout: 45000
+
+- runScript:
+    file: scripts/server-notes.js
+    env:
+      TOKEN: ${output.token}
+- assertTrue: ${output.titles == 'Graph traversal | Written offline'}
+- assertTrue: ${output.cards.indexOf('BFS uses a queue') >= 0 && output.cards.indexOf('DFS') >= 0}

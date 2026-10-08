@@ -1,11 +1,13 @@
 import { Camera, FileUp, Layers, ListChecks, Mic, NotebookPen, Zap, type LucideIcon } from 'lucide-react-native'
 import { Portal } from '@rn-primitives/portal'
+import { router } from 'expo-router'
 import { useEffect } from 'react'
 import { BackHandler, Pressable, View } from 'react-native'
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { createNote } from '@/features/notes/store/actions'
 import { PressScale } from './PressScale'
 
 /** The centre sheet of spec §13.1: Note, Quick Note, Voice Note, Photo, Upload, Quiz, Flashcard. */
@@ -34,6 +36,14 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
     return () => sub.remove()
   }, [open, onClose])
   const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  // Note writes a new note on the phone (it syncs later); the other kinds arrive with their phases.
+  const choose = async (label: string) => {
+    onClose()
+    if (label === 'Note' || label === 'Quick note') {
+      const id = await createNote({ id: '', name: '' })
+      router.push(`/notes/${id}`)
+    }
+  }
   return (
     <Portal name="create-sheet">
       {open ? (
@@ -51,7 +61,7 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
             <Text className="text-lg font-bold" accessibilityRole="header">Create</Text>
             <View className="flex-row flex-wrap gap-3">
               {OPTIONS.map(({ label, icon: Icon }) => (
-                <PressScale key={label} onPress={onClose} accessibilityRole="button" accessibilityLabel={label} style={{ width: '30.5%' }}>
+                <PressScale key={label} onPress={() => void choose(label)} accessibilityRole="button" accessibilityLabel={label} style={{ width: '30.5%' }}>
                   <View className="bg-secondary items-center gap-2 rounded-2xl py-4">
                     <Icon size={22} color={primary} />
                     <Text className="text-secondary-foreground text-xs font-semibold">{label}</Text>
