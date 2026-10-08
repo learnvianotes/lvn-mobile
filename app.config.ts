@@ -56,6 +56,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       'expo-router',
       'expo-secure-store',
       'expo-web-browser',
+      // Native Google Sign-In: Android needs no plugin (the Android OAuth client is matched by package and signing key);
+      // iOS needs the reversed iOS client id as a URL scheme.
+      ...(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
+        ? [['@react-native-google-signin/google-signin', { iosUrlScheme: `com.googleusercontent.apps.${process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID.replace('.apps.googleusercontent.com', '')}` }] as [string, object]]
+        : []),
       // Development builds talk to the API on the dev machine over plain HTTP (env/development.env); Android blocks
       // that unless allowed. Sandbox and production use HTTPS only.
       ['expo-build-properties', { android: { usesCleartextTraffic: current === 'development' } }],

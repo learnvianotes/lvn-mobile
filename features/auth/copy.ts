@@ -44,6 +44,7 @@ export const copy = {
   },
   providers: {
     or: 'or',
+    google: 'Continue with Google',
     github: 'Continue with GitHub',
     failed: 'That sign-in did not work. Try again.',
   },

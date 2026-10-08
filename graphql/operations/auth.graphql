@@ -125,3 +125,14 @@ mutation ResendInstitutionalEmailCode {
     }
   }
 }
+
+mutation SignInWithGoogle($idToken: String!) {
+  signInWithGoogle(input: { idToken: $idToken }) {
+    session {
+      ...SessionFields
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}

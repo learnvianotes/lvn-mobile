@@ -25,6 +25,7 @@ this file and the spec disagree, the spec wins unless an accepted ADR says other
 | URL scheme | `learnvianotes-dev` | `learnvianotes-sandbox` | `learnvianotes` |
 | `EXPO_PUBLIC_WEB_URL` | `http://100.70.234.41:3000` (dev machine) | `https://sandbox.learnvianotes.in` | `https://www.learnvianotes.in` |
 | `EXPO_PUBLIC_API_URL` | `http://100.70.234.41:4000/graphql` | `https://api.sandbox.learnvianotes.in/graphql` | `https://api.learnvianotes.in/graphql` |
+| `EXPO_PUBLIC_FIREBASE_*`, `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | optional; empty hides the Google button | same | same |
 | `EXPO_PUBLIC_GITHUB_CLIENT_ID` | optional; empty hides the button | same | same |
 | `EXPO_PUBLIC_SENTRY_DSN` | optional; empty turns error reporting off | same | same |
 | Plain HTTP | allowed (the dev API has no TLS) | HTTPS only | HTTPS only |
@@ -76,16 +77,28 @@ screen navigates after sign-in or sign-out itself.
 - **Requests.** `lib/apollo.ts` retries once after a refresh when the API answers `UNAUTHENTICATED`. Operations live in
   `graphql/operations/*.graphql`; `pnpm graphql:sync && pnpm codegen` regenerates `graphql/generated` from lvn-backend's
   schema (a sibling checkout until `@lvn/contracts` is published).
-- **GitHub.** Authorization Code + PKCE in the system auth browser (expo-auth-session), redirect
-  `<scheme>://oauth/callback`, exchanged by `oauthExchange`. Register that URI with the GitHub OAuth app and add it to
-  the API's `OAUTH_REDIRECT_URIS`. `app/+native-intent.ts` keeps the router from treating the redirect as a screen.
-- **LinkedIn — web only for now.** LinkedIn redirects only to http(s) URLs, never to an app scheme, so the app has no
+- **Google (ADR-0007) — the sign-in shown at launch.** Native Google Sign-In
+  (`@react-native-google-signin/google-signin`) picks the account and returns a Google ID token; Firebase
+  (`signInWithCredential`, in-memory only) turns it into the Firebase ID token the API's `signInWithGoogle` accepts;
+  both are signed out straight after (`lib/auth/google.ts`). The button shows when the API offers Google and the build
+  has `EXPO_PUBLIC_FIREBASE_*` and `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. Setup, once per Firebase project:
+  1. Authentication → Sign-in method → enable **Google**. Its "Web SDK configuration" shows the **Web client ID** →
+     `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (the audience of the token Firebase accepts).
+  2. Project settings → add an **Android app** for each variant (`com.learnvianotes.dev`, `.sandbox`, `com.learnvianotes`)
+     with the **SHA-1** of the key the APK is signed with — that creates the Android OAuth client Google matches by
+     package and key. Local release builds are signed with `android/app/debug.keystore`:
+     `keytool -list -v -keystore android/app/debug.keystore -alias androiddebugkey -storepass android -keypass android`.
+     No `google-services.json` is needed.
+  3. Project settings → the **web app's** config → `EXPO_PUBLIC_FIREBASE_API_KEY`, `…_AUTH_DOMAIN`, `…_PROJECT_ID`,
+     `…_APP_ID`; the API gets `FIREBASE_PROJECT_ID`.
+  4. iOS (later, needs a Mac): an iOS app → `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`; `app.config.ts` then adds the URL scheme.
+- **GitHub — kept for later.** Authorization Code + PKCE in the system auth browser (expo-auth-session), redirect
+  `<scheme>://oauth/callback`, exchanged by `oauthExchange`. Not configured at launch; when it is, register that URI
+  with the GitHub OAuth app and add it to the API's `OAUTH_REDIRECT_URIS`. `app/+native-intent.ts` keeps the router
+  from treating the redirect as a screen.
+- **LinkedIn — later, web first.** LinkedIn redirects only to http(s) URLs, never to an app scheme, so the app has no
   LinkedIn button. It needs Android App Links / iOS universal links for `https://<web>/oauth/callback`, or a page on
-  lvn-web that hands the code to the app's scheme. People who signed up with LinkedIn on the web sign in on the phone
-  with their email and password (or GitHub/Google with the same verified email, linked by §7.1).
-- **Google (ADR-0007) — not yet.** Native Google Sign-In needs the Firebase project's Android and iOS apps
-  (`google-services.json`, `GoogleService-Info.plist`) and the Google OAuth client ids, which do not exist yet. The API
-  side (`signInWithGoogle`) is done; the button appears once those files and `EXPO_PUBLIC_FIREBASE_*` are added.
+  lvn-web that hands the code to the app's scheme.
 - **Emailed links.** Email confirmation and password reset links open lvn-web (`/verify?token=`, `/reset?token=`)
   until app links exist; the app asks for the reset link and the web page sets the new password.
 - **Forms.** Date of birth is three number fields (day, month, year — GOV.UK's pattern for a date people know, not a

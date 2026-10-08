@@ -16,6 +16,14 @@ const schema = z.object({
   // not redirect to app schemes, so it waits for app links (docs/architecture/mobile-addendum.md → Sign-in).
   EXPO_PUBLIC_GITHUB_CLIENT_ID: optional,
   EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: z.url().optional(),
+  // Google sign-in (ADR-0007): the Firebase web app's config and the OAuth client ids of that Firebase project's
+  // Google provider. Public identifiers, not secrets.
+  EXPO_PUBLIC_FIREBASE_API_KEY: optional,
+  EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN: optional,
+  EXPO_PUBLIC_FIREBASE_PROJECT_ID: optional,
+  EXPO_PUBLIC_FIREBASE_APP_ID: optional,
+  EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: optional,
+  EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: optional,
   /** Sentry for crashes and unexpected errors (§16.5); off without it. */
   EXPO_PUBLIC_SENTRY_DSN: z.url().refine((u) => /^https?:\/\//.test(u), 'must be an http(s) URL').optional(),
 })
