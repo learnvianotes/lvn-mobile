@@ -28,6 +28,26 @@ jobs:
       - name: Bundle JS for Android and iOS
         run: pnpm export:check
 
+  contract:
+    # Spec §17 contract tests: the client's operations still validate and compile against the API's current schema.
+    # Reads lvn-backend's exported schema until @lvn/contracts is published (lvn-backend ADR-0031); a private
+    # lvn-backend needs a read-only token in the LVN_BACKEND_READ_TOKEN secret.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: learnvianotes/lvn-backend
+          path: .lvn-backend
+          token: ${{ secrets.LVN_BACKEND_READ_TOKEN || github.token }}
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm graphql:sync && pnpm codegen
+        env: { LVN_SCHEMA: .lvn-backend/contracts/graphql/schema.graphql }
+      - run: pnpm typecheck
+
   android:
     # Standalone sandbox APK for testers, on main and on demand. Signed with the debug key until store signing exists.
     if: github.event_name != 'pull_request'
