@@ -1,4 +1,5 @@
 import { Camera, Mic, MessagesSquare, NotebookPen, Upload, type LucideIcon } from 'lucide-react-native'
+import { router } from 'expo-router'
 import { View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
@@ -18,7 +19,7 @@ export function QuickActions() {
   return (
     <View className="flex-row justify-between">
       {ACTIONS.map(({ label, icon: Icon, bg }, i) => (
-        <PressScale key={label} accessibilityRole="button" accessibilityLabel={label}>
+        <PressScale key={label} accessibilityRole="button" accessibilityLabel={label} onPress={label === 'Notes' ? () => router.push('/notes') : undefined}>
           <View className="items-center gap-1.5">
             <View className={`${bg} size-14 items-center justify-center rounded-2xl`}>
               <Icon size={22} color={String(colors[i] ?? '#4f46e5')} />

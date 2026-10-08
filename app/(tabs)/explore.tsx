@@ -1,5 +1,3 @@
-import { ComingSoon } from '@/features/shell/ComingSoon'
+import { ExploreScreen } from '@/features/explore/ExploreScreen'
 
-export default function Screen() {
-  return <ComingSoon title="Explore" phase="Phase 2 (search) and Phase 4 (Typesense)" />
-}
+export default ExploreScreen

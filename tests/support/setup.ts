@@ -22,3 +22,7 @@ jest.mock('expo-secure-store', () => require('./secure-store').secureStore)
 
 // No native splash screen in Node (its JS warns that options need a development build).
 jest.mock('expo-splash-screen', () => ({ preventAutoHideAsync: jest.fn(async () => true), hideAsync: jest.fn(async () => undefined), setOptions: jest.fn() }))
+
+// No network state in Node: a listener that never fires. Notes sync (features/notes) stays idle in component tests,
+// which hold no real access token; its logic is tested in tests/unit/notes.
+jest.mock('expo-network', () => ({ addNetworkStateListener: () => ({ remove: () => undefined }), getNetworkStateAsync: async () => ({ isConnected: true, isInternetReachable: true }) }))

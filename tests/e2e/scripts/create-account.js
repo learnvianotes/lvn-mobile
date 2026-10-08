@@ -12,4 +12,5 @@ const res = gql('mutation($input: SignUpInput!) { signUp(input: $input) { sessio
 })
 if (!res.data || !res.data.signUp.session) throw new Error(`sign-up failed: ${JSON.stringify(res)}`)
 output.email = email
+output.token = res.data.signUp.session.accessToken
 output.password = password
