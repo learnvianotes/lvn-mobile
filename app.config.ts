@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import type { ConfigContext, ExpoConfig } from 'expo/config'
 
 /**
@@ -23,9 +24,20 @@ function variant(): Variant {
   return v as Variant
 }
 
+/**
+ * The variant's Firebase Android config (Firebase console → Project settings → Android app → google-services.json),
+ * at the path GOOGLE_SERVICES_JSON names in env/<variant>.env. Kept out of git; a build without it still signs in with
+ * Google (the web client id is in the env file) and simply has no Firebase Android config.
+ */
+function googleServicesFile(): string | undefined {
+  const file = process.env.GOOGLE_SERVICES_JSON
+  return file && existsSync(file) ? file : undefined
+}
+
 export default ({ config }: ConfigContext): ExpoConfig => {
   const current = variant()
   const { name, id, scheme } = VARIANTS[current]
+  const googleServices = googleServicesFile()
   return {
     ...config,
     name,
@@ -43,6 +55,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     android: {
       package: id,
+      ...(googleServices ? { googleServicesFile: googleServices } : {}),
       // Icons and splash are rendered from assets/brand/logo-paths.json by scripts/brand-assets.mjs.
       adaptiveIcon: {
         backgroundColor: '#4F46E5',
@@ -56,6 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       'expo-router',
       'expo-secure-store',
       'expo-web-browser',
+      ...(googleServices ? [['./plugins/with-google-services-version', { version: '4.5.0' }] as [string, object]] : []),
       // Native Google Sign-In: Android needs no plugin (the Android OAuth client is matched by package and signing key);
       // iOS needs the reversed iOS client id as a URL scheme.
       ...(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID

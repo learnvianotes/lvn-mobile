@@ -88,7 +88,12 @@ screen navigates after sign-in or sign-out itself.
      with the **SHA-1** of the key the APK is signed with — that creates the Android OAuth client Google matches by
      package and key. Local release builds are signed with `android/app/debug.keystore`:
      `keytool -list -v -keystore android/app/debug.keystore -alias androiddebugkey -storepass android -keypass android`.
-     No `google-services.json` is needed.
+     Download that app's `google-services.json` **after** adding the SHA-1 (it then lists an Android OAuth client,
+     `client_type: 1`) and save it as `firebase/<variant>/google-services.json` (git-ignored; `GOOGLE_SERVICES_JSON`
+     in `env/<variant>.env` points at it). `app.config.ts` hands it to Expo, which copies it into `android/app` on
+     every prebuild and applies the Google Services Gradle plugin, pinned to 4.5.0 by
+     `plugins/with-google-services-version.js` — never edit `android/` by hand, prebuild regenerates it. Sign-in
+     itself does not need the file (it uses the web client id); FCM will (ADR-0021).
   3. Project settings → the **web app's** config → `EXPO_PUBLIC_FIREBASE_API_KEY`, `…_AUTH_DOMAIN`, `…_PROJECT_ID`,
      `…_APP_ID`; the API gets `FIREBASE_PROJECT_ID`.
   4. iOS (later, needs a Mac): an iOS app → `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`; `app.config.ts` then adds the URL scheme.

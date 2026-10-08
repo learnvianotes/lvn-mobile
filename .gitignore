@@ -45,3 +45,6 @@ coverage/
 
 # per-machine variant overrides
 env/*.local.env
+
+# Firebase Android config per variant (firebase/<variant>/google-services.json): public identifiers, kept out of git
+firebase/*/google-services.json
