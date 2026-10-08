@@ -53,7 +53,7 @@ it('signs in with GitHub through PKCE and asks a new account for its details', a
   expect(api.calls.find((c) => c.op === 'OAuthExchange')!.variables).toEqual({
     input: { provider: 'GITHUB', code: 'code-from-github', codeVerifier: 'verifier-from-device', redirectUri: 'learnvianotes-dev://oauth/callback' },
   })
-  expect(screen.getByText('A few details')).toBeVisible()
+  expect(screen.getByText(/^Almost there/)).toBeVisible()
 })
 
 it('does nothing when the browser is closed, and shows the API’s refusal', async () => {

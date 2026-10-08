@@ -64,7 +64,7 @@ export function DetailsForm() {
   const message = (n: (typeof FIELDS)[number], fallback: string) => (errors[n] ? (errors[n]!.type === 'server' ? errors[n]!.message : fallback) : undefined)
 
   return (
-    <AuthScreen title={t.title} lead={t.lead}>
+    <AuthScreen title={t.title(name?.split(' ')[0])} lead={t.lead}>
       <View className="gap-4">
         {general ? <Notice>{general}</Notice> : null}
         <Controller

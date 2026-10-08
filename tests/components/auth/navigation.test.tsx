@@ -36,14 +36,17 @@ describe('signed out', () => {
   it('opens on the welcome screen, whatever link the app was opened with', async () => {
     mockApi({})
     await render('./app', { initialUrl: '/explore' })
-    expect(screen.getByText('Create an account')).toBeVisible()
+    expect(screen.getByText('Turn your notes into knowledge that sticks.')).toBeVisible()
+    // Without Google in this build, email sign-up is the first action.
+    expect(screen.queryByTestId('welcome-google')).toBeNull()
+    expect(screen.getByText('Sign up with email')).toBeVisible()
     expect(screen.queryByText('Explore')).toBeNull()
   })
 
   it('signs in and lands on Home', async () => {
     const api = mockApi({ SignInOptions: () => signInOptions, SignIn: () => ({ data: { signIn: { __typename: 'AuthPayload', session: session(), userErrors: [] } } }) })
     await render('./app', { initialUrl: '/' })
-    await press(screen.getByText('I already have an account'))
+    await press(screen.getByTestId('welcome-sign-in'))
     await fireEvent.changeText(screen.getByLabelText('Email'), ' asha@example.com ')
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
     await press(screen.getByRole('button', { name: 'Sign in' }))
@@ -154,7 +157,7 @@ describe('signed in', () => {
     })
     await signIn(viewer({ registrationComplete: false }))
     await render('./app', { initialUrl: '/' })
-    expect(screen.getByText('A few details')).toBeVisible()
+    expect(screen.getByText('Almost there, Asha')).toBeVisible()
     await settle()
     expect(screen.getByLabelText('Your name')).toHaveDisplayValue('Asha from GitHub')
     await fireEvent.changeText(screen.getByLabelText('Date of birth, Day'), '1')
@@ -178,7 +181,7 @@ describe('signed in', () => {
     expect(screen.getByText('Asha Rao')).toBeVisible()
     expect(screen.getByText('by a teacher')).toBeVisible()
     await press(screen.getByText('Sign out'))
-    expect(screen.getByText('Create an account')).toBeVisible()
+    expect(screen.getByText('Sign up with email')).toBeVisible()
     expect(api.calls.find((c) => c.op === 'SignOut')!.headers.get('authorization')).toMatch(/^Bearer /)
   })
 })

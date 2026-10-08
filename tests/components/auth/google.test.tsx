@@ -62,7 +62,7 @@ it('signs in with Google through Firebase, sends the Firebase token, and signs b
   expect(mockFirebase.signOut).toHaveBeenCalled()
   expect(mockGoogle.signOut).toHaveBeenCalled()
   // A new Google account still owes its registration details (ADR-0017).
-  expect(screen.getByText('A few details')).toBeVisible()
+  expect(screen.getByText(/^Almost there/)).toBeVisible()
 })
 
 it('does nothing when the account chooser is closed, and shows the API’s refusal', async () => {
@@ -98,9 +98,47 @@ it('says so when Google or Firebase fails, and still signs out of Google', async
   expect(mockGoogle.signOut).toHaveBeenCalled()
 })
 
+it('puts Google first on the welcome screen: one tap, and a returning account is on Home', async () => {
+  let choose!: (r: unknown) => void
+  mockGoogle.signIn.mockReturnValueOnce(new Promise((resolve) => (choose = resolve)))
+  mockFirebase.signInWithCredential.mockResolvedValue({ user: { getIdToken: async () => 'firebase-id-token' } })
+  const api = mockApi({
+    SignInOptions: () => withGoogle,
+    SignInWithGoogle: () => ({ data: { signInWithGoogle: { __typename: 'AuthPayload', session: session(viewer()), userErrors: [] } } }),
+    Viewer: () => ({ data: { viewer: viewer() } }),
+  })
+  await renderRouter('./app', { initialUrl: '/' })
+  await settle()
+  expect(screen.getByText('Start learning in seconds')).toBeVisible()
+  await fireEvent.press(screen.getByTestId('welcome-google'))
+  // While Google's account chooser is open the button says so and cannot be pressed twice.
+  expect(screen.getByText('Signing in…')).toBeVisible()
+  expect(screen.getByTestId('welcome-google')).toBeDisabled()
+  await act(async () => choose({ type: 'success', data: { idToken: 'google-id-token' } }))
+  await settle()
+  expect(api.calls.find((c) => c.op === 'SignInWithGoogle')!.variables).toEqual({ idToken: 'firebase-id-token' })
+  expect(screen.getByLabelText('Search notes, topics and people')).toBeVisible()
+})
+
+it('keeps the welcome screen usable when Google sign-in fails', async () => {
+  mockApi({ SignInOptions: () => withGoogle })
+  mockGoogle.signIn.mockRejectedValueOnce(new Error(''))
+  await renderRouter('./app', { initialUrl: '/' })
+  await settle()
+  await fireEvent.press(screen.getByTestId('welcome-google'))
+  await settle()
+  expect(screen.getByText('That sign-in did not work. Try again.')).toBeVisible()
+  expect(screen.getByText('Continue with Google')).toBeVisible()
+  expect(screen.getByText('Sign up with email')).toBeVisible()
+})
+
 it('has no Google button when the API does not offer it', async () => {
   mockApi({ SignInOptions: () => signInOptions })
   await renderRouter('./app', { initialUrl: '/sign-in' })
   await settle()
   expect(screen.queryByText('Continue with Google')).toBeNull()
+  await renderRouter('./app', { initialUrl: '/' })
+  await settle()
+  expect(screen.queryByTestId('welcome-google')).toBeNull()
+  expect(screen.getByText('Sign up with email')).toBeVisible()
 })

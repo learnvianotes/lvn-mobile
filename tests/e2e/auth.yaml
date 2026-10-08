@@ -12,10 +12,11 @@ tags: [auth]
 - launchApp:
     clearState: true
 - extendedWaitUntil:
-    visible: "Create an account"
+    visible: "Sign up with email"
     timeout: 20000
-- assertVisible: "Your notes, your pace.*"
-- tapOn: "Create an account"
+- assertVisible: "Turn your notes into knowledge that sticks."
+- tapOn:
+    id: "welcome-email"
 
 # The form checks itself before anything is sent.
 - scrollUntilVisible:
@@ -116,11 +117,12 @@ tags: [auth]
 - tapOn:
     id: "sign-out"
 - extendedWaitUntil:
-    visible: "Create an account"
+    visible: "Sign up with email"
     timeout: 10000
 
 # Signing in: one message for a wrong password, then in with the right one — and still in after a restart.
-- tapOn: "I already have an account"
+- tapOn:
+    id: "welcome-sign-in"
 - tapOn:
     id: "sign-in-email"
 - inputText: ${output.email}

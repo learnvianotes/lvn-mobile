@@ -1,9 +1,15 @@
 /** Sign-in and account wording, shared with lvn-web's messages/en.json (auth.*, profile.*) so both say the same. */
 export const copy = {
   welcome: {
-    lead: 'Your notes, your pace. Learn, revise and share with your class.',
-    create: 'Create an account',
-    signIn: 'I already have an account',
+    headline: 'Turn your notes into knowledge that sticks.',
+    lead: 'Learn, revise and share with your class — at your own pace.',
+    features: ['All your notes in one place', 'A weekly Rhythm, not a streak to lose', 'Learn together with your class'] as const,
+    sheetTitle: 'Start learning in seconds',
+    sheetLead: 'One tap with Google, or use your email.',
+    email: 'Sign up with email',
+    haveAccount: 'Already have an account?',
+    signIn: 'Sign in',
+    legal: 'By continuing, you agree to our Terms and Privacy Policy.',
   },
   signIn: {
     title: 'Sign in',
@@ -37,14 +43,15 @@ export const copy = {
     signIn: 'Sign in',
   },
   details: {
-    title: 'A few details',
-    lead: 'We need these once, then you are in.',
+    title: (firstName?: string) => (firstName ? `Almost there, ${firstName}` : 'Almost there'),
+    lead: 'One quick step — we ask once, then you are in.',
     submit: 'Continue',
     signOut: 'Use another account',
   },
   providers: {
     or: 'or',
     google: 'Continue with Google',
+    googleBusy: 'Signing in…',
     github: 'Continue with GitHub',
     failed: 'That sign-in did not work. Try again.',
   },

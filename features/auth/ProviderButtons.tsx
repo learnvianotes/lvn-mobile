@@ -1,16 +1,16 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { useState } from 'react'
 import { View } from 'react-native'
+import { useUniwind } from 'uniwind'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
-import { OAuthExchangeDocument, SignInOptionsDocument, SignInWithGoogleDocument } from '@/graphql/generated/graphql'
-import { googleAvailable, googleIdToken } from '@/lib/auth/google'
+import { OAuthExchangeDocument, SignInOptionsDocument } from '@/graphql/generated/graphql'
 import { authorize, oauthAvailable } from '@/lib/auth/oauth'
 import { copy } from './copy'
+import { GoogleButton } from './GoogleButton'
 import { Notice } from './Notice'
 import { useFinishSignIn } from './useFinishSignIn'
-
-type Provider = 'GOOGLE' | 'GITHUB'
+import { useGoogleSignIn } from './useGoogleSignIn'
 
 /**
  * Google (lvn-backend ADR-0007) and GitHub — each shown only when the API (signInOptions) and this build's
@@ -18,52 +18,43 @@ type Provider = 'GOOGLE' | 'GITHUB'
  * later (mobile addendum → Sign-in).
  */
 export function ProviderButtons() {
+  const { theme } = useUniwind()
+  const google = useGoogleSignIn()
   const { data } = useQuery(SignInOptionsDocument)
-  const [google] = useMutation(SignInWithGoogleDocument)
   const [exchange] = useMutation(OAuthExchangeDocument)
   const finish = useFinishSignIn()
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState<Provider | null>(null)
-  const options = data?.signInOptions
-  const show = { GOOGLE: !!options?.google && googleAvailable(), GITHUB: !!options?.github && oauthAvailable('GITHUB') }
-  if (!show.GOOGLE && !show.GITHUB) return null
+  const [githubError, setGithubError] = useState<string | null>(null)
+  const [githubBusy, setGithubBusy] = useState(false)
+  const showGithub = !!data?.signInOptions.github && oauthAvailable('GITHUB')
+  if (!google.available && !showGithub) return null
 
-  const signIn = async (provider: Provider) => {
-    setError(null)
-    setBusy(provider)
+  const signInWithGithub = async () => {
+    setGithubError(null)
+    setGithubBusy(true)
     try {
-      if (provider === 'GOOGLE') {
-        const idToken = await googleIdToken()
-        if (!idToken) return
-        const { data: res } = await google({ variables: { idToken } })
-        const payload = res?.signInWithGoogle
-        if (!payload?.session) throw new Error(payload?.userErrors[0]?.message ?? copy.providers.failed)
-        await finish(payload.session)
-      } else {
-        const grant = await authorize(provider)
-        if (!grant) return
-        const { data: res } = await exchange({ variables: { input: { provider, ...grant } } })
-        const payload = res?.oauthExchange
-        if (!payload?.session) throw new Error(payload?.userErrors[0]?.message ?? copy.providers.failed)
-        await finish(payload.session)
-      }
+      const grant = await authorize('GITHUB')
+      if (!grant) return
+      const { data: res } = await exchange({ variables: { input: { provider: 'GITHUB', ...grant } } })
+      const payload = res?.oauthExchange
+      if (!payload?.session) throw new Error(payload?.userErrors[0]?.message ?? copy.providers.failed)
+      await finish(payload.session)
     } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : copy.providers.failed)
+      setGithubError(e instanceof Error && e.message ? e.message : copy.providers.failed)
     } finally {
-      setBusy(null)
+      setGithubBusy(false)
     }
   }
 
+  const busy = google.busy || githubBusy
+  const error = google.error ?? githubError
   return (
     <View className="gap-3">
       {error ? <Notice>{error}</Notice> : null}
-      {show.GOOGLE ? (
-        <Button testID="sign-in-google" variant="outline" size="lg" disabled={!!busy} onPress={() => void signIn('GOOGLE')}>
-          <Text>{copy.providers.google}</Text>
-        </Button>
+      {google.available ? (
+        <GoogleButton testID="sign-in-google" tone={theme === 'dark' ? 'light' : 'dark'} busy={google.busy} disabled={busy} onPress={() => void google.signIn()} />
       ) : null}
-      {show.GITHUB ? (
-        <Button variant="outline" size="lg" disabled={!!busy} onPress={() => void signIn('GITHUB')}>
+      {showGithub ? (
+        <Button variant="outline" size="lg" disabled={busy} onPress={() => void signInWithGithub()}>
           <Text>{copy.providers.github}</Text>
         </Button>
       ) : null}
