@@ -1,5 +1,8 @@
-import { existsSync } from 'node:fs'
 import type { ConfigContext, ExpoConfig } from 'expo/config'
+
+// This file runs in Node, but the project's types are the app's (no Node globals), so fs is typed here.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { existsSync } = require('node:fs') as { existsSync: (path: string) => boolean }
 
 /**
  * One app, three side-by-side installs (spec §13.1, §16.1). APP_VARIANT comes from env/<variant>.env via
