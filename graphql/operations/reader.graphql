@@ -1,0 +1,76 @@
+# The PDF reader on the phone (lvn-backend ADR-0040). Reading the PDF and its highlights needs a connection; cards made
+# from it are saved on the phone like any card.
+
+fragment PhoneHighlightFields on PdfHighlight {
+  id
+  fileId
+  page
+  kind
+  color
+  rects
+  quote
+  comment
+  cardId
+}
+
+query PhoneNoteFile($noteId: UUID!, $fileId: UUID!) {
+  noteFile(noteId: $noteId, fileId: $fileId) {
+    id
+    url
+    expiresAt
+    mimeType
+    fileName
+    sizeBytes
+  }
+}
+
+query PhoneNoteHighlights($id: UUID!, $fileId: UUID) {
+  note(id: $id) {
+    id
+    highlights(fileId: $fileId) {
+      ...PhoneHighlightFields
+    }
+  }
+}
+
+mutation PhoneAddHighlight($input: AddPdfHighlightInput!) {
+  addPdfHighlight(input: $input) {
+    highlight {
+      ...PhoneHighlightFields
+    }
+    userErrors {
+      message
+    }
+  }
+}
+
+mutation PhoneUpdateHighlight($input: UpdatePdfHighlightInput!) {
+  updatePdfHighlight(input: $input) {
+    highlight {
+      ...PhoneHighlightFields
+    }
+    userErrors {
+      message
+    }
+  }
+}
+
+mutation PhoneRemoveHighlight($highlightId: UUID!) {
+  removePdfHighlight(input: { highlightId: $highlightId }) {
+    ok
+    userErrors {
+      message
+    }
+  }
+}
+
+mutation PhoneStudyPdf($noteId: UUID!, $fileId: UUID!) {
+  studyPdf(input: { noteId: $noteId, fileId: $fileId }) {
+    note {
+      id
+    }
+    userErrors {
+      message
+    }
+  }
+}

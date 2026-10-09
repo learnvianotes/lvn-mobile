@@ -1,10 +1,10 @@
-import { Check, Image as ImageIcon, X } from 'lucide-react-native'
+import { Check, FileText, Image as ImageIcon, X } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import type { CardType } from '@/lib/contracts/domain/enums'
-import type { Doc, Inline } from '@/lib/contracts/validation'
+import { cardAnchor, type CardAnchor, type Doc, type Inline } from '@/lib/contracts/validation'
 import { cn } from '@/lib/utils'
 import { InlineText, RichDoc } from './RichText'
 
@@ -15,7 +15,11 @@ type Any = any
 
 const CALLOUT: Record<string, string> = { note: 'bg-secondary', info: 'bg-sky-500/10', tip: 'bg-emerald-500/10', warning: 'bg-amber-500/15', danger: 'bg-red-500/10' }
 
-export function CardView({ type, content, highlighted }: { type: CardType; content: unknown; highlighted?: boolean }) {
+/**
+ * `onOpenFile` makes a file card (a PDF) open in the reader; `onAnchor` makes the page chip of a card made from a PDF
+ * open the PDF there (ADR-0040). Without them the card only says which page it came from.
+ */
+export function CardView({ type, content, highlighted, onOpenFile, onAnchor }: { type: CardType; content: unknown; highlighted?: boolean; onOpenFile?: (fileId: string) => void; onAnchor?: (anchor: CardAnchor) => void }) {
   const c = content as Any
   const body = (() => {
     switch (type) {
@@ -83,17 +87,46 @@ export function CardView({ type, content, highlighted }: { type: CardType; conte
         return <Quiz content={c} />
       case 'flashcard':
         return <Flashcard content={c} />
+      case 'file':
+        return onOpenFile && c.fileId ? <ReadFile onPress={() => onOpenFile(String(c.fileId))} /> : <Media type={type} />
       case 'image':
       case 'video':
       case 'audio':
-      case 'file':
         return <Media type={type} />
       default:
         return null
     }
   })()
   if (!body) return null
-  return <View className={cn('rounded-xl', highlighted && 'bg-primary/10')}>{body}</View>
+  const anchor = cardAnchor(content)
+  return (
+    <View className={cn('rounded-xl', highlighted && 'bg-primary/10')}>
+      {body}
+      {anchor ? <AnchorChip anchor={anchor} onPress={onAnchor} /> : null}
+    </View>
+  )
+}
+
+/** Where a card came from in a PDF; a button to go there when the screen can open it. */
+function AnchorChip({ anchor, onPress }: { anchor: CardAnchor; onPress?: (anchor: CardAnchor) => void }) {
+  if (!onPress) return <Text className="text-muted-foreground mt-1 self-end text-xs">From page {anchor.page} of the PDF</Text>
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={`Open the PDF at page ${anchor.page}`} onPress={() => onPress(anchor)} className="border-border mt-1.5 self-end rounded-full border px-2.5 py-1">
+      <Text className="text-muted-foreground text-xs font-medium">↗ p. {anchor.page}</Text>
+    </Pressable>
+  )
+}
+
+function ReadFile({ onPress }: { onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel="Read and make notes" onPress={onPress} className="bg-primary flex-row items-center gap-3 rounded-2xl px-4 py-3">
+      <FileText size={20} color="#ffffff" />
+      <View className="flex-1">
+        <Text className="text-primary-foreground font-semibold">Read & make notes</Text>
+        <Text className="text-primary-foreground/80 text-xs">Open the PDF: highlight and add passages to this note</Text>
+      </View>
+    </Pressable>
+  )
 }
 
 function Question({ content }: { content: { prompt: Doc; answer: Doc; hint?: Doc } }) {

@@ -1,0 +1,54 @@
+# The PDF reader on the phone (lvn-backend ADR-0040): a note's PDF opens in the reader, a long press selects a word,
+# and it goes into the note as a quote with its page, which reaches the server with the anchor.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- runScript:
+    file: scripts/pdf-note.js
+    env:
+      TOKEN: ${output.token}
+- tapOn: "Notes"
+# The note was made after the app's first sync: pull to refresh.
+- retry:
+    maxRetries: 3
+    commands:
+      - swipe:
+          start: "50%, 30%"
+          end: "50%, 75%"
+      - extendedWaitUntil:
+          visible: "Biology"
+          timeout: 10000
+- tapOn: "Biology"
+- tapOn: "Read and make notes"
+- extendedWaitUntil:
+    visible: "Page 1 of 2"
+    timeout: 45000
+- extendedWaitUntil:
+    visible: "Photosynthesis"
+    timeout: 20000
+# Maestro's long press on web-view text does not select it; a long press where the heading is drawn does (the test
+# PDF is laid out the same on every run).
+- longPressOn:
+    point: "28%,17%"
+- extendedWaitUntil:
+    visible: "Add to notes"
+    timeout: 15000
+- tapOn: "Add to notes"
+- assertVisible: "Added to your notes"
+- tapOn: "Show notes"
+- assertVisible: "Open the PDF at page 1"
+- tapOn: "Hide notes"
+
+# Back on the note: the quote is there with its page, and the note is saved to the server with the anchor.
+- tapOn: "Back"
+- assertVisible: "Open the PDF at page 1"
+- extendedWaitUntil:
+    visible: "Saved"
+    timeout: 30000
+- runScript:
+    file: scripts/server-notes.js
+    env:
+      TOKEN: ${output.token}
+- assertTrue: ${output.cards.indexOf('"anchor"') >= 0 && output.cards.indexOf('"page":1') >= 0}
