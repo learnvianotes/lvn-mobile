@@ -1,5 +1,3 @@
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
 import { areaRect, quoteOf, selectionRects } from '@/features/reader/geometry'
 import { PDFJS_VERSION, readerPath } from '@/features/reader/paths'
 import { keepAnchor } from '@/features/notes/store/actions'
@@ -9,8 +7,7 @@ jest.mock('@/features/notes/store/db', () => ({}))
 /** lvn-backend ADR-0040 on the phone: places on a page, the reader's links and cards keeping their page. */
 describe('the PDF reader on the phone', () => {
   it('uses the pdf.js the app is built with, whose files the web serves', () => {
-    const pkg = JSON.parse(readFileSync(path.join(__dirname, '../../../node_modules/pdfjs-dist/package.json'), 'utf8')) as { version: string }
-    expect(PDFJS_VERSION).toBe(pkg.version)
+    expect(PDFJS_VERSION).toBe(jest.requireActual<{ version: string }>('pdfjs-dist/package.json').version)
   })
 
   it('links to a PDF of a note, at a page and a card', () => {

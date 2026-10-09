@@ -115,3 +115,45 @@ it('readers cannot highlight but can start notes of their own on the PDF', async
   fireEvent.press(await screen.findByText('Start my notes on this PDF'))
   await waitFor(() => expect(router.replace).toHaveBeenCalledWith(`/notes/read/01920000-0000-7000-8000-00000000a0ff/${FILE}`))
 })
+
+it('converts the PDF into cards: the new note opens, follows the engine and syncs the cards when done', async () => {
+  mockAccess = 'OWNER'
+  const { syncNow } = jest.requireMock('@/features/notes/sync/engine') as { syncNow: jest.Mock }
+  const NEW = '01920000-0000-7000-8000-00000000a0cc'
+  const conversion = (status: string, extra: object = {}) => ({ __typename: 'PdfConversion', id: 'c1', status, progress: status === 'DONE' ? 100 : 15, pages: 2, scannedPages: 0, cards: null, error: null, ...extra })
+  let checks = 0
+  const api = mockApi({
+    PhoneNoteFile: () => ({ data: { noteFile: file } }),
+    PhoneNoteHighlights: () => ({ data: { note: { __typename: 'Note', id: NOTE, highlights: [] } } }),
+    PhonePdfConversion: () => {
+      checks++
+      return { data: { note: { __typename: 'Note', id: NOTE, pdfConversion: checks === 1 ? null : checks < 3 ? conversion('PARSING') : conversion('DONE', { cards: 7 }) } } }
+    },
+    PhoneConvertPdf: () => ({ data: { convertPdfToNote: { __typename: 'PdfConversionPayload', conversion: { ...conversion('TRIAGE'), note: { __typename: 'Note', id: NEW } }, userErrors: [] } } }),
+  })
+  await show()
+  fireEvent.press(await screen.findByRole('button', { name: 'Show notes' }))
+  fireEvent.press(await screen.findByText('Convert this PDF into cards'))
+  await waitFor(() => expect(router.replace).toHaveBeenCalledWith(`/notes/read/${NEW}/${FILE}`))
+  expect(api.calls.find((c) => c.op === 'PhoneConvertPdf')!.variables).toEqual({ noteId: NOTE, fileId: FILE })
+  expect(syncNow).toHaveBeenCalled()
+})
+
+it('follows a conversion in progress and pulls its cards when it is done', async () => {
+  mockAccess = 'OWNER'
+  const { syncNow } = jest.requireMock('@/features/notes/sync/engine') as { syncNow: jest.Mock }
+  let checks = 0
+  mockApi({
+    PhoneNoteFile: () => ({ data: { noteFile: file } }),
+    PhoneNoteHighlights: () => ({ data: { note: { __typename: 'Note', id: NOTE, highlights: [] } } }),
+    PhonePdfConversion: () => {
+      checks++
+      const status = checks < 2 ? 'PARSING' : 'DONE'
+      return { data: { note: { __typename: 'Note', id: NOTE, pdfConversion: { __typename: 'PdfConversion', id: 'c1', status, progress: status === 'DONE' ? 100 : 15, pages: 2, scannedPages: 1, cards: status === 'DONE' ? 7 : null, error: null } } } }
+    },
+  })
+  await show()
+  expect(await screen.findByText('Reading the PDF… 15%')).toBeTruthy()
+  expect(await screen.findByText('Made 7 cards from 2 pages. Check them beside the PDF.', {}, { timeout: 8000 })).toBeTruthy()
+  await waitFor(() => expect(syncNow).toHaveBeenCalled())
+}, 15000)

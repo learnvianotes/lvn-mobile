@@ -74,3 +74,36 @@ mutation PhoneStudyPdf($noteId: UUID!, $fileId: UUID!) {
     }
   }
 }
+
+fragment PhoneConversionFields on PdfConversion {
+  id
+  status
+  progress
+  pages
+  scannedPages
+  cards
+  error
+}
+
+query PhonePdfConversion($id: UUID!) {
+  note(id: $id) {
+    id
+    pdfConversion {
+      ...PhoneConversionFields
+    }
+  }
+}
+
+mutation PhoneConvertPdf($noteId: UUID!, $fileId: UUID!) {
+  convertPdfToNote(input: { noteId: $noteId, fileId: $fileId }) {
+    conversion {
+      ...PhoneConversionFields
+      note {
+        id
+      }
+    }
+    userErrors {
+      message
+    }
+  }
+}
