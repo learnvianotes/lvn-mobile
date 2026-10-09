@@ -1,6 +1,6 @@
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { ArrowLeft, ChevronDown, ChevronUp, NotebookPen, Search, Trash2, X, ZoomIn, ZoomOut } from 'lucide-react-native'
+import { ArrowLeft, ChevronDown, ChevronUp, NotebookPen, Search, Trash2, Wand2, X, ZoomIn, ZoomOut } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -8,8 +8,10 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import {
   PhoneAddHighlightDocument,
+  PhoneConvertPdfDocument,
   PhoneNoteFileDocument,
   PhoneNoteHighlightsDocument,
+  PhonePdfConversionDocument,
   PhoneRemoveHighlightDocument,
   PhoneStudyPdfDocument,
   PhoneUpdateHighlightDocument,
@@ -102,6 +104,27 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
   const [updateHighlight] = useMutation(PhoneUpdateHighlightDocument)
   const [removeHighlight] = useMutation(PhoneRemoveHighlightDocument)
   const [study, studying] = useMutation(PhoneStudyPdfDocument)
+  const [convert, converting] = useMutation(PhoneConvertPdfDocument)
+  const conversionQuery = useQuery(PhonePdfConversionDocument, { variables: { id: noteId }, fetchPolicy: 'network-only' })
+  const conversion = conversionQuery.data?.note?.pdfConversion ?? null
+  const working = !!conversion && ['QUEUED', 'TRIAGE', 'PARSING', 'MAPPING'].includes(conversion.status)
+  const [conversionSeen, setConversionSeen] = useState(false)
+  // While the engine works, look again every three seconds; when it is done, the cards come with a sync.
+  const wasWorking = useRef(false)
+  const { startPolling, stopPolling } = conversionQuery
+  useEffect(() => {
+    if (!working) {
+      stopPolling()
+      if (wasWorking.current) {
+        wasWorking.current = false
+        void syncNow(client).catch(() => undefined)
+      }
+      return
+    }
+    wasWorking.current = true
+    startPolling(3000)
+    return () => stopPolling()
+  }, [working, startPolling, stopPolling, client])
 
   useEffect(() => {
     if (!notice) return
@@ -172,6 +195,14 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
     else setNotice('That did not save. Check your connection.')
   }
 
+  const startConvert = async () => {
+    const res = await convert({ variables: { noteId, fileId } }).catch(() => null)
+    const id = res?.data?.convertPdfToNote.conversion?.note?.id
+    if (!id) return setNotice(res?.data?.convertPdfToNote.userErrors[0]?.message ?? 'The owner does not allow copies of this note.')
+    await syncNow(client).catch(() => undefined)
+    router.replace(readerPath(id, fileId))
+  }
+
   const startStudy = async () => {
     const res = await study({ variables: { noteId, fileId } }).catch(() => null)
     const id = res?.data?.studyPdf.note?.id
@@ -212,6 +243,23 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
           <Text className="text-primary-foreground text-sm font-semibold">Notes</Text>
         </Pressable>
       </View>
+      {conversion && !conversionSeen ? (
+        <View className={cn('border-border flex-row items-center gap-2 border-b px-3 py-2', working ? 'bg-primary/10' : 'bg-card')} accessibilityLiveRegion="polite">
+          {working ? <ActivityIndicator size="small" /> : null}
+          <Text className="flex-1 text-sm">
+            {working
+              ? `${{ QUEUED: 'Waiting to start…', TRIAGE: 'Counting the pages…', PARSING: 'Reading the PDF…', MAPPING: 'Making your cards…' }[conversion.status as 'QUEUED'] ?? 'Converting…'} ${conversion.progress}%`
+              : conversion.status === 'DONE'
+                ? `Made ${conversion.cards ?? 0} cards from ${conversion.pages ?? 0} pages. Check them beside the PDF.`
+                : (conversion.error ?? 'The conversion failed.')}
+          </Text>
+          {!working ? (
+            <Pressable accessibilityRole="button" accessibilityLabel="Dismiss" onPress={() => setConversionSeen(true)} className="rounded-full p-1">
+              <X size={16} color={fg} />
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
       {finding ? (
         <View className="border-border flex-row items-center gap-1 border-b px-3 py-1.5">
           <TextInput
@@ -380,6 +428,12 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
                   <Text className="text-primary-foreground text-sm font-semibold">Start my notes on this PDF</Text>
                 </Pressable>
               </View>
+            ) : null}
+            {!working ? (
+              <Pressable accessibilityRole="button" disabled={converting.loading} onPress={() => void startConvert()} className="border-border flex-row items-center gap-2 self-start rounded-full border px-3 py-2">
+                <Wand2 size={16} color={fg} />
+                <Text className="text-sm font-semibold">{converting.loading ? 'Starting…' : 'Convert this PDF into cards'}</Text>
+              </Pressable>
             ) : null}
             {cards
               .filter((c) => !(c.type === 'file' && (c.content as { fileId?: string }).fileId === fileId))
