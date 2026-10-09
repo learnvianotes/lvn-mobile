@@ -18,6 +18,7 @@ import { CardView } from './render/CardView'
 import * as actions from './store/actions'
 import * as db from './store/db'
 import { syncSoon } from './sync/engine'
+import { readerPath } from '@/features/reader/paths'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -160,7 +161,7 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
                 <CardEditor card={card} onChange={(content) => void actions.saveCard(card, content).then(changed)} />
               ) : (
                 <Pressable accessibilityRole="button" accessibilityHint={PHONE_EDITABLE.has(card.type) ? 'Edits this card' : 'Edit this card on the web'} onPress={() => setSelected(card.id)} onLongPress={() => reader.play(card.id)}>
-                  <CardView type={card.type} content={card.content} highlighted={reader.current === card.id} />
+                  <CardView type={card.type} content={card.content} highlighted={reader.current === card.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: card.id }))} />
                   {!cardPlainText(card.type, card.content) && PHONE_EDITABLE.has(card.type) ? <Text className="text-muted-foreground text-base">Tap to write…</Text> : null}
                 </Pressable>
               )}
@@ -226,7 +227,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
         {note.ownerName ? <Text className="text-muted-foreground text-sm">By {note.ownerName}</Text> : null}
         {cards.map((c) => (
           <Pressable key={c.id} onLongPress={() => reader.play(c.id)} accessibilityHint="Long press to read aloud from here">
-            <CardView type={c.type} content={c.content} highlighted={reader.current === c.id} />
+            <CardView type={c.type} content={c.content} highlighted={reader.current === c.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: c.id }))} />
           </Pressable>
         ))}
       </ScrollView>

@@ -48,8 +48,15 @@ export async function setTitle(noteId: string, title: string): Promise<void> {
   await db.putNote({ ...note, title, titleDirty: !note.localOnly, updatedAt: now() })
 }
 
+/** The new content of a card, keeping where the card came from in a PDF (its anchor, ADR-0040) through every edit. */
+export function keepAnchor(before: unknown, after: unknown): unknown {
+  const anchor = (before as { anchor?: unknown } | null)?.anchor
+  if (!anchor || !after || typeof after !== 'object' || 'anchor' in after) return after
+  return { ...after, anchor }
+}
+
 export async function saveCard(card: LocalCard, content: unknown): Promise<void> {
-  await db.putCards([{ ...card, content, dirty: true }])
+  await db.putCards([{ ...card, content: keepAnchor(card.content, content), dirty: true }])
   await touch(card.noteId)
 }
 
@@ -60,6 +67,22 @@ export async function addCard(noteId: string, type: CardType, after: LocalCard |
   const prev = index >= 0 ? cards[index]! : null
   const next = cards[index + 1] ?? null
   const card: LocalCard = { id: newId(), noteId, type, position: positionBetween(prev?.position ?? null, next?.position ?? null), revision: null, content: emptyContent(type), dirty: true, deleted: false }
+  await db.putCards([card])
+  await touch(noteId)
+  return card
+}
+
+/**
+ * A card with its content at the end of the note — a passage from a PDF in the reader (ADR-0040). An empty text card
+ * at the end (a new note's first card) makes way for it.
+ */
+export async function appendCard(noteId: string, type: CardType, content: unknown): Promise<LocalCard> {
+  const cards = await db.getCards(noteId)
+  const last = cards.at(-1) ?? null
+  const empty = last?.type === 'text' && last.revision === null && JSON.stringify((last.content as { doc?: { content?: unknown[] } }).doc?.content ?? []) === '[]'
+  if (empty) await db.removeCards([last.id])
+  const prev = empty ? (cards.at(-2) ?? null) : last
+  const card: LocalCard = { id: newId(), noteId, type, position: positionBetween(prev?.position ?? null, null), revision: null, content, dirty: true, deleted: false }
   await db.putCards([card])
   await touch(noteId)
   return card
