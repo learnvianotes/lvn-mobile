@@ -212,7 +212,7 @@ export function ProfileScreen({ handle }: { handle: string }) {
           ) : null}
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} accessibilityRole="tablist">
+        <View className="flex-row flex-wrap gap-2" accessibilityRole="tablist">
           {kinds.map((k) => (
             <Pressable
               key={k}
@@ -226,7 +226,7 @@ export function ProfileScreen({ handle }: { handle: string }) {
               </Text>
             </Pressable>
           ))}
-        </ScrollView>
+        </View>
 
         {kind === 'SKILLS' ? (
           <>

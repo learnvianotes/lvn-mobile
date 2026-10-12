@@ -124,13 +124,13 @@ export function GroupScreen({ id }: { id: string }) {
         </View>
         {member ? (
           <>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} accessibilityRole="tablist">
+            <View className="flex-row flex-wrap gap-2" accessibilityRole="tablist">
               {tabs.map((k) => (
                 <Pressable key={k} accessibilityRole="tab" accessibilityState={{ selected: k === tab }} onPress={() => setTab(k)} className={`rounded-full px-4 py-2 ${k === tab ? 'bg-primary' : 'bg-card border-border border'}`}>
                   <Text className={k === tab ? 'text-primary-foreground font-semibold' : 'font-semibold'}>{TABS[k]}</Text>
                 </Pressable>
               ))}
-            </ScrollView>
+            </View>
             {tab === 'posts' ? <Posts group={group} /> : null}
             {tab === 'ideas' ? <Ideas group={group} /> : null}
             {tab === 'doubts' ? <Doubts group={group} /> : null}
