@@ -12,12 +12,12 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }
 jest.mock('@/features/notes/store/db', () => ({ listNotes: jest.fn(async () => [{ id: 'n1', title: 'Binary heaps' }]), subscribe: () => () => {} }))
 
 const GROUP = '01920000-0000-7000-8000-0000000a0001'
-const can = (over: Record<string, boolean> = {}) => ({ __typename: 'GroupActions', join: false, requestJoin: false, post: false, moderate: false, manage: false, delete: false, reviewRequests: false, leave: false, ...over })
-const group = (over: Record<string, unknown> = {}) => ({ __typename: 'Group', id: GROUP, name: 'Algorithms study', description: 'Weekly problems', privacy: 'PUBLIC', joinPolicy: 'APPROVAL', memberCount: 12, viewerRole: null, createdAt: '2026-10-01T10:00:00.000Z', viewerRequestId: null, owner: { __typename: 'User', id: 'o1', displayName: 'Meera Iyer' }, viewerCan: can(), ...over })
-const card = (id: string, name: string, viewerRole: string | null = null) => ({ __typename: 'Group', id, name, description: null, privacy: 'PUBLIC', joinPolicy: 'OPEN', memberCount: 3, viewerRole })
+const can = (over: Record<string, boolean> = {}) => ({ __typename: 'GroupActions', join: false, requestJoin: false, post: false, moderate: false, manage: false, delete: false, reviewRequests: false, leave: false, askDoubt: false, inviteMentor: false, acceptMentorInvite: false, ...over })
+const group = (over: Record<string, unknown> = {}) => ({ __typename: 'Group', id: GROUP, type: 'COMMUNITY', viewerMentorInviteId: null, name: 'Algorithms study', description: 'Weekly problems', privacy: 'PUBLIC', joinPolicy: 'APPROVAL', memberCount: 12, viewerRole: null, createdAt: '2026-10-01T10:00:00.000Z', viewerRequestId: null, owner: { __typename: 'User', id: 'o1', displayName: 'Meera Iyer' }, viewerCan: can(), ...over })
+const card = (id: string, name: string, viewerRole: string | null = null) => ({ __typename: 'Group', id, type: 'COMMUNITY', name, description: null, privacy: 'PUBLIC', joinPolicy: 'OPEN', memberCount: 3, viewerRole })
 const doc = (s: string) => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: s }] }] })
 const posts = (nodes: unknown[]) => ({ data: { group: { __typename: 'Group', id: GROUP, posts: { __typename: 'GroupPostConnection', pinned: [], edges: nodes.map((node) => ({ __typename: 'GroupPostEdge', node })), pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } } } } })
-const post = (id: string, text: string) => ({ __typename: 'GroupPost', id, body: doc(text), pinned: false, createdAt: new Date().toISOString(), editedAt: null, author: { __typename: 'User', id: 'o1', displayName: 'Meera Iyer', handle: 'meera' }, viewerCan: { __typename: 'GroupPostActions', edit: false, delete: false, pin: false }, discussion: { __typename: 'Discussion', commentCount: 0 } })
+const post = (id: string, text: string) => ({ __typename: 'GroupPost', id, kind: 'POST', body: doc(text), pinned: false, createdAt: new Date().toISOString(), editedAt: null, author: { __typename: 'User', id: 'o1', displayName: 'Meera Iyer', handle: 'meera' }, viewerCan: { __typename: 'GroupPostActions', edit: false, delete: false, pin: false }, discussion: { __typename: 'Discussion', commentCount: 0 } })
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 
 beforeEach(() => jest.clearAllMocks())
@@ -60,7 +60,7 @@ it('a member posts and shares a note with the group', async () => {
       list = [created, ...list]
       return { data: { createGroupPost: { __typename: 'GroupPostPayload', post: created, userErrors: [] } } }
     },
-    GroupNotes: () => ({ data: { group: { __typename: 'Group', id: GROUP, sharedNotes: { __typename: 'NoteConnection', edges: shared ? [{ __typename: 'NoteEdge', node: { __typename: 'Note', id: 'n1', title: 'Binary heaps', publishedAt: null, owner: { __typename: 'User', id: 'me', displayName: 'Ravi Kumar' } } }] : [] } } } }),
+    GroupNotes: () => ({ data: { group: { __typename: 'Group', id: GROUP, sharedNotes: { __typename: 'NoteConnection', edges: shared ? [{ __typename: 'NoteEdge', node: { __typename: 'Note', id: 'n1', title: 'Binary heaps', kind: 'NOTE', visibility: 'SHARED', publishedAt: null, owner: { __typename: 'User', id: 'me', displayName: 'Ravi Kumar' } } }] : [] } } } }),
     ShareNoteToGroup: () => ((shared = true), { data: { shareNoteToGroup: { __typename: 'NotePayload', note: { __typename: 'Note', id: 'n1', visibility: 'SHARED' }, userErrors: [] } } }),
   })
   await inApollo(<GroupScreen id={GROUP} />)

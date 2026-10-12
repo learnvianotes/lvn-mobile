@@ -28,6 +28,14 @@ describe('notification sentences (lvn-backend ADR-0042)', () => {
     expect(say({ category: 'COMMENT', actor: meera, data: { kind: 'COMMENT' } })).toBe('Meera Iyer commented on something you can no longer open')
   })
 
+  it('match the web for mentor invites and doubts (lvn-backend ADR-0048)', () => {
+    const group = { id: 'g1', name: 'Heap visualiser' }
+    expect(say({ category: 'MENTOR_INVITE', actor: meera, group })).toBe('Meera Iyer asked you to mentor Heap visualiser')
+    expect(say({ category: 'DOUBT', actor: meera, group, data: { kind: 'ASKED' } })).toBe('Meera Iyer asked a doubt in Heap visualiser')
+    expect(say({ category: 'DOUBT', actor: meera, group, data: { kind: 'ANSWERED' } })).toBe('Meera Iyer answered your doubt in Heap visualiser')
+    expect(say({ category: 'DOUBT', actor: meera, group, data: { kind: 'RESOLVED' } })).toBe('Meera Iyer marked your doubt in Heap visualiser resolved')
+  })
+
   it('match the web for classes (lvn-backend ADR-0046)', () => {
     const c = { id: 'c1', name: 'Physics 9A' }
     const path = '/classes/c1'

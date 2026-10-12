@@ -1,6 +1,6 @@
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
 import { router, type Href } from 'expo-router'
-import { ArrowLeft, BadgeCheck, Bell, CheckCheck, DoorOpen, Download, FileInput, GraduationCap, Handshake, Megaphone, MessageSquare, Share2, UserPlus, Users } from 'lucide-react-native'
+import { ArrowLeft, BadgeCheck, Bell, CheckCheck, CircleHelp, DoorOpen, Download, FileInput, GraduationCap, Handshake, Megaphone, MessageSquare, School, Share2, UserPlus, Users } from 'lucide-react-native'
 import { useState } from 'react'
 import { FlatList, Pressable, RefreshControl, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -11,7 +11,7 @@ import { ago, describeNotification } from './describe'
 import { useLive } from './live'
 
 const PAGE = 20
-const ICONS: Partial<Record<NotificationFieldsFragment['category'], typeof Bell>> = { SHARE: Share2, VERIFICATION: BadgeCheck, DATA_EXPORT: Download, NOTES_IMPORT: FileInput, FOLLOW: UserPlus, CONNECTION: Handshake, JOIN_REQUEST: DoorOpen, JOIN_DECISION: Users, CLASSROOM_INVITE: GraduationCap, CLASSROOM_POST: Megaphone, COMMENT: MessageSquare }
+const ICONS: Partial<Record<NotificationFieldsFragment['category'], typeof Bell>> = { SHARE: Share2, VERIFICATION: BadgeCheck, DATA_EXPORT: Download, NOTES_IMPORT: FileInput, FOLLOW: UserPlus, CONNECTION: Handshake, JOIN_REQUEST: DoorOpen, JOIN_DECISION: Users, CLASSROOM_INVITE: GraduationCap, CLASSROOM_POST: Megaphone, COMMENT: MessageSquare, MENTOR_INVITE: School, DOUBT: CircleHelp }
 
 /** The person's notifications, newest first (lvn-backend ADR-0042); opening one marks it read and goes where it points. */
 export function NotificationsScreen() {
