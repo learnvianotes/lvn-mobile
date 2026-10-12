@@ -1,0 +1,31 @@
+import { ago, describeNotification } from '@/features/notifications/describe'
+import { liveUrlFrom } from '@/lib/parse-env'
+
+const meera = { id: 'u1', displayName: 'Meera Iyer' }
+const say = (n: Partial<Parameters<typeof describeNotification>[0]>) => describeNotification({ category: 'SHARE', data: null, actor: null, note: null, ...n })
+
+describe('notification sentences (lvn-backend ADR-0042)', () => {
+  it('match the web: shares, verification, exports and imports', () => {
+    expect(say({ actor: meera, note: { id: 'n1', title: 'Heaps' } })).toBe('Meera Iyer shared “Heaps” with you')
+    expect(say({ actor: meera })).toBe('Meera Iyer shared a note with you that you can no longer open')
+    expect(say({ category: 'VERIFICATION', data: { kind: 'REQUESTED' }, actor: meera })).toBe('Meera Iyer asked you to verify their account')
+    expect(say({ category: 'VERIFICATION', data: { kind: 'DECIDED', decision: 'APPROVED' } })).toBe('Your account is verified')
+    expect(say({ category: 'DATA_EXPORT' })).toBe('Your data export is ready to download')
+    expect(say({ category: 'NOTES_IMPORT', data: { created: 4, skipped: 2, failed: 1 } })).toBe('Your import is done: 4 notes added, 2 skipped, 1 could not be read')
+    expect(say({ category: 'NOTES_IMPORT', data: { created: 1, skipped: 0, failed: 0 } })).toBe('Your import is done: 1 note added')
+  })
+
+  it('says how long ago', () => {
+    const now = Date.parse('2026-10-12T10:00:00Z')
+    expect(ago('2026-10-12T09:55:00Z', now)).toBe('5 minutes ago')
+    expect(ago('2026-10-11T10:00:00Z', now)).toBe('yesterday')
+  })
+})
+
+describe('liveUrlFrom', () => {
+  it('uses EXPO_PUBLIC_LIVE_URL, derives it only in development, and is off elsewhere', () => {
+    expect(liveUrlFrom({ EXPO_PUBLIC_APP_ENV: 'sandbox', EXPO_PUBLIC_API_URL: 'http://h:8080/graphql', EXPO_PUBLIC_LIVE_URL: 'ws://h:8080/graphql/live' })).toBe('ws://h:8080/graphql/live')
+    expect(liveUrlFrom({ EXPO_PUBLIC_APP_ENV: 'development', EXPO_PUBLIC_API_URL: 'http://100.70.234.41:4000/graphql', EXPO_PUBLIC_LIVE_URL: undefined })).toBe('ws://100.70.234.41:4000/graphql/live')
+    expect(liveUrlFrom({ EXPO_PUBLIC_APP_ENV: 'production', EXPO_PUBLIC_API_URL: 'https://api.example.in/graphql', EXPO_PUBLIC_LIVE_URL: undefined })).toBeNull()
+  })
+})

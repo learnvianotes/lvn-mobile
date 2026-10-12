@@ -12,6 +12,8 @@ const schema = z.object({
   EXPO_PUBLIC_WEB_URL: z.url(),
   /** The GraphQL endpoint of lvn-backend (its gateway, `/graphql`). */
   EXPO_PUBLIC_API_URL: z.url(),
+  /** Live updates while the app is open, lvn-backend's graphql-ws endpoint (ADR-0042); see `liveUrlFrom`. */
+  EXPO_PUBLIC_LIVE_URL: z.url().refine((u) => /^wss?:\/\//.test(u), 'must be a ws(s) URL').optional(),
   // GitHub sign-in (Authorization Code + PKCE, §7.1): the public client id and GitHub's consent page. LinkedIn does
   // not redirect to app schemes, so it waits for app links (docs/architecture/mobile-addendum.md → Sign-in).
   EXPO_PUBLIC_GITHUB_CLIENT_ID: optional,
@@ -38,4 +40,14 @@ export function parseEnv(raw: Record<string, string | undefined>): AppEnv {
     throw new Error(`Invalid app configuration: ${names}`)
   }
   return result.data
+}
+
+/**
+ * Where live updates come from (lvn-backend ADR-0042): EXPO_PUBLIC_LIVE_URL, or in development the API's own
+ * `/graphql/live` next to EXPO_PUBLIC_API_URL. Null elsewhere without it: the app then has no live updates.
+ */
+export function liveUrlFrom(e: Pick<AppEnv, 'EXPO_PUBLIC_APP_ENV' | 'EXPO_PUBLIC_API_URL' | 'EXPO_PUBLIC_LIVE_URL'>): string | null {
+  if (e.EXPO_PUBLIC_LIVE_URL) return e.EXPO_PUBLIC_LIVE_URL
+  if (e.EXPO_PUBLIC_APP_ENV !== 'development') return null
+  return `${e.EXPO_PUBLIC_API_URL.replace(/^http/, 'ws').replace(/\/$/, '')}/live`
 }

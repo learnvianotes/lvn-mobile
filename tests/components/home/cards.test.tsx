@@ -1,3 +1,4 @@
+import { ApolloProvider } from '@apollo/client/react'
 import { render, screen } from '@testing-library/react-native'
 import { ContinueCard } from '@/features/home/ContinueCard'
 import { ExamReadiness } from '@/features/home/ExamReadiness'
@@ -6,6 +7,11 @@ import { HomeHeader } from '@/features/home/HomeHeader'
 import { QuickActions } from '@/features/home/QuickActions'
 import { Recommended } from '@/features/home/Recommended'
 import { continueLearning, exam, recommended } from '@/features/home/mock'
+import { createApolloClient } from '@/lib/apollo'
+import { mockApi } from '../../support/api'
+
+// The bell asks for the unread count (lvn-backend ADR-0042); no live socket in tests.
+jest.mock('@/features/notifications/live', () => ({ useLive: jest.fn() }))
 
 describe('HeroCard', () => {
   it('greets the learner by first name', async () => {
@@ -17,9 +23,14 @@ describe('HeroCard', () => {
 
 describe('HomeHeader', () => {
   it('has the wordmark, notifications and search', async () => {
-    await render(<HomeHeader />)
+    mockApi({ UnreadNotificationCount: () => ({ data: { unreadNotificationCount: 2 } }) })
+    await render(
+      <ApolloProvider client={createApolloClient()}>
+        <HomeHeader />
+      </ApolloProvider>,
+    )
     expect(screen.getByLabelText('LearnViaNotes')).toBeOnTheScreen()
-    expect(screen.getByRole('button', { name: 'Notifications, 2 new' })).toBeOnTheScreen()
+    expect(await screen.findByRole('button', { name: 'Notifications, 2 unread' })).toBeOnTheScreen()
     expect(screen.getByLabelText('Search notes, topics and people')).toBeOnTheScreen()
   })
 })
