@@ -7,12 +7,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ClassesSection } from '@/features/classes/ClassesSection'
+import { ActivityFeed, FollowingFeed } from '@/features/feeds/Feeds'
 import { AnswerMentorInviteDocument, DiscoverGroupsDocument, MyGroupsDocument, MyMentorInvitesDocument, type GroupCardFragment } from '@/graphql/generated/graphql'
 import { attempt, ROLE } from './shared'
 
+type Section = 'activity' | 'following' | 'places'
+const SECTIONS: Record<Section, string> = { activity: 'Activity', following: 'Following', places: 'Groups & classes' }
+
 /**
- * The Community tab (spec §13.1, lvn-backend ADR-0045, ADR-0046): your classes and a class code to enter, your groups, and
- * public groups to find. Classes and groups start on the web.
+ * The Community tab (spec §13.1, lvn-backend ADR-0045, ADR-0046, ADR-0049): the activity of your groups and classes,
+ * the Following feed, and your classes (with a class code to enter), your groups and public groups to find. Classes
+ * and groups start on the web.
  */
 export function CommunityScreen() {
   const insets = useSafeAreaInsets()
@@ -27,11 +32,23 @@ export function CommunityScreen() {
   const found = useQuery(DiscoverGroupsDocument, { variables: { query: settled || null }, fetchPolicy: 'cache-and-network' })
   const myIds = new Set(mine.data?.myGroups.map((g) => g.id))
   const discover = (found.data?.discoverGroups ?? []).filter((g) => !myIds.has(g.id))
+  const [section, setSection] = useState<Section>('activity')
   return (
     <ScrollView className="bg-background flex-1" contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 100, gap: 16 }} keyboardShouldPersistTaps="handled">
       <Text className="text-2xl font-extrabold" accessibilityRole="header">
         Community
       </Text>
+      <View accessibilityRole="tablist" className="flex-row flex-wrap gap-2">
+        {(Object.keys(SECTIONS) as Section[]).map((k) => (
+          <Pressable key={k} accessibilityRole="tab" accessibilityState={{ selected: k === section }} onPress={() => setSection(k)} className={`rounded-full px-4 py-2 ${k === section ? 'bg-primary' : 'bg-card border-border border'}`}>
+            <Text className={k === section ? 'text-primary-foreground font-semibold' : 'font-semibold'}>{SECTIONS[k]}</Text>
+          </Pressable>
+        ))}
+      </View>
+      {section === 'activity' ? <ActivityFeed /> : null}
+      {section === 'following' ? <FollowingFeed /> : null}
+      {section === 'places' ? (
+        <>
       <ClassesSection />
       <MentorInvites onAnswered={() => void mine.refetch()} />
       <Text className="text-muted-foreground text-sm font-semibold">Your groups</Text>
@@ -42,6 +59,8 @@ export function CommunityScreen() {
         <TextInput accessibilityLabel="Search public groups" value={query} onChangeText={setQuery} placeholder="Search public groups…" placeholderTextColor={muted} className="text-foreground flex-1 py-3 text-base" autoCorrect={false} />
       </View>
       {discover.length ? discover.map((g) => <GroupRow key={g.id} group={g} />) : found.data ? <Text className="text-muted-foreground text-sm">No public groups match.</Text> : null}
+        </>
+      ) : null}
     </ScrollView>
   )
 }

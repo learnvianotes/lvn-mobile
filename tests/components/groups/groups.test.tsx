@@ -28,6 +28,7 @@ it('the Community tab lists your groups and public ones to find', async () => {
     DiscoverGroups: () => ({ data: { discoverGroups: [card(GROUP, 'Algorithms study'), card('g2', 'Compilers club', 'OWNER')] } }),
   })
   await inApollo(<CommunityScreen />)
+  await fireEvent.press(screen.getByText('Groups & classes'))
   expect(await screen.findByText('Compilers club')).toBeOnTheScreen()
   expect(screen.getAllByText('Compilers club')).toHaveLength(1)
   await fireEvent.press(await screen.findByLabelText('Algorithms study'))

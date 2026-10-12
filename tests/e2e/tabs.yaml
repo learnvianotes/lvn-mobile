@@ -8,6 +8,8 @@ env:
 - assertVisible: "Search notes, people and topics"
 - assertVisible: "Type to search notes, people and topics."
 - tapOn: "Community"
+- assertVisible: "Activity"
+- tapOn: "Groups & classes"
 - assertVisible: "Your groups"
 - tapOn: "Profile"
 - assertVisible: "Your account"
