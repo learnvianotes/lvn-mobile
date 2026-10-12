@@ -44,9 +44,10 @@ it('a member reports someone else’s post, and appeals once against hiding thei
   await inApollo(<GroupScreen id={GROUP} />)
   expect(await screen.findByText('You are all hopeless')).toBeOnTheScreen()
   expect(screen.queryByText('Reports')).toBeNull()
-  // The flag is on others' posts only (and on the group, owned by someone else).
-  await waitFor(() => expect(screen.getAllByLabelText('Report')).toHaveLength(2))
-  await fireEvent.press(screen.getAllByLabelText('Report')[1]!)
+  // The flag is on others' posts only; the group, owned by someone else, can be reported too.
+  await waitFor(() => expect(screen.getAllByLabelText('Report this post')).toHaveLength(1))
+  expect(screen.getByLabelText('Report this group')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByLabelText('Report this post'))
   expect(await screen.findByText('Report this post')).toBeOnTheScreen()
   await fireEvent.press(screen.getByLabelText('Bullying or harassment'))
   await fireEvent.changeText(screen.getByLabelText('Anything moderators should know (optional)'), 'Rude to everyone')
@@ -103,7 +104,7 @@ it('the owner reads the platform moderators’ warning on the group', async () =
   await inApollo(<GroupScreen id={GROUP} />)
   expect(await screen.findByText('A warning from the moderators')).toBeOnTheScreen()
   expect(screen.getByText('Rename the group, please.')).toBeOnTheScreen()
-  expect(screen.queryByLabelText('Report')).toBeNull()
+  expect(screen.queryByLabelText('Report this group')).toBeNull()
 })
 
 it('class staff put back a held comment from the class’s reports', async () => {

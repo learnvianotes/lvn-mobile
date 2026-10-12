@@ -23,7 +23,7 @@ export function ReportLink({ entityType, entityId, authorId, icon }: { entityTyp
   if (!viewer.data?.viewer || viewer.data.viewer.id === authorId) return null
   return (
     <>
-      <Pressable accessibilityRole="button" accessibilityLabel="Report" onPress={() => setOpen(true)} className={icon ? 'p-1.5' : undefined}>
+      <Pressable accessibilityRole="button" accessibilityLabel={REPORT_TITLE[entityType]} onPress={() => setOpen(true)} className={icon ? 'p-1.5' : undefined}>
         {icon ? <Flag size={16} color={muted} /> : <Text className="text-muted-foreground text-xs font-semibold">Report</Text>}
       </Pressable>
       <ReportSheet entityType={entityType} entityId={entityId} open={open} onClose={() => setOpen(false)} />
