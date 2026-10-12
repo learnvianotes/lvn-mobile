@@ -12,6 +12,7 @@ import { NotesSync } from '@/features/notes/NotesSync'
 import { createApolloClient } from '@/lib/apollo'
 import { restoreSession, useSession } from '@/lib/auth/session'
 import { startErrorReporting } from '@/lib/observability'
+import { PushSetup } from '@/features/push/push'
 
 // First, so a crash during start-up is reported too (when this build has a Sentry DSN).
 startErrorReporting()
@@ -76,6 +77,7 @@ export default function RootLayout() {
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="notes" />
                 <Stack.Screen name="notifications" />
+                <Stack.Screen name="notification-settings" />
                 <Stack.Screen name="people" />
                 <Stack.Screen name="u/[handle]" />
                 <Stack.Screen name="groups/[id]" />
@@ -94,6 +96,7 @@ export default function RootLayout() {
             {/* Sheets and dialogs render here, above every screen (react-native-reusables convention). */}
             <PortalHost />
             {signedIn && registered ? <NotesSync /> : null}
+            {signedIn && registered ? <PushSetup /> : null}
           </View>
         </ThemeProvider>
       </SafeAreaProvider>

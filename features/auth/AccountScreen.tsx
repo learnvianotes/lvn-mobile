@@ -14,6 +14,7 @@ import { env } from '@/lib/env'
 import { YourDataCard } from '@/features/data/YourDataCard'
 import { copy } from './copy'
 import { Notice } from './Notice'
+import { forgetPushToken } from '@/features/push/push'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
 
@@ -100,7 +101,9 @@ function SignOutButton() {
       disabled={busy}
       onPress={async () => {
         setBusy(true)
-        // The API revokes this device's refresh-token family; offline, the tokens are still removed here.
+        // This phone stops getting the account's pushes; the API revokes this device's refresh-token family; offline,
+        // the tokens are still removed here.
+        await forgetPushToken(client)
         await signOut().catch(() => undefined)
         await client.clearStore()
         await signedOut()
@@ -121,6 +124,10 @@ function PeopleLinks({ handle }: { handle: string }) {
       </Pressable>
       <Pressable accessibilityRole="link" onPress={() => router.push('/people')} className="flex-row items-center justify-between">
         <Text className="font-semibold">Followers, following and blocked people</Text>
+        <Text className="text-muted-foreground">›</Text>
+      </Pressable>
+      <Pressable accessibilityRole="link" onPress={() => router.push('/notification-settings')} className="flex-row items-center justify-between">
+        <Text className="font-semibold">Notification settings</Text>
         <Text className="text-muted-foreground">›</Text>
       </Pressable>
     </View>
