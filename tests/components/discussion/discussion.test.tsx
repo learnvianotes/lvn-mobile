@@ -120,3 +120,13 @@ it('someone else’s comment has no Edit', async () => {
   await screen.findByText('Why halve it?')
   expect(screen.queryByRole('button', { name: 'Edit comment' })).toBeNull()
 })
+
+it('@handle in a comment opens that person; an email address is plain text (lvn-backend ADR-0054)', async () => {
+  const { router } = jest.requireMock('expo-router') as { router: { push: jest.Mock } }
+  mockApi({ Discussion: () => discussion([comment('c1', 'Thanks @AshaRao! Mail me at ravi@example.com')]) })
+  await inApollo(<Discussion target={target} />)
+  await fireEvent.press(await screen.findByRole('link', { name: '@AshaRao' }))
+  expect(router.push).toHaveBeenCalledWith('/u/asharao')
+  expect(screen.queryByRole('link', { name: /example/ })).toBeNull()
+  expect(screen.getByText('Type @ and someone’s handle to mention them.')).toBeOnTheScreen()
+})
