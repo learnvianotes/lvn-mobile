@@ -14,16 +14,17 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }
 
 const MEERA = '01920000-0000-7000-8000-0000000000e1'
 const ME = '01920000-0000-7000-8000-00000000aaaa'
-const can = (over: Record<string, boolean> = {}) => ({ __typename: 'RelationActions', follow: true, unfollow: false, removeFollower: false, block: true, unblock: false, restrict: true, unrestrict: false, ...over })
-const relation = (over: Record<string, unknown> = {}, actions: Record<string, boolean> = {}) => ({ __typename: 'Relation', following: false, followedBy: false, blocked: false, restricted: false, viewerCan: can(actions), ...over })
-const profile = (rel: unknown, viewerId = ME) => ({
+const can = (over: Record<string, boolean> = {}) => ({ __typename: 'RelationActions', follow: true, unfollow: false, removeFollower: false, block: true, unblock: false, restrict: true, unrestrict: false, requestConnection: false, respondToConnection: false, removeConnection: false, ...over })
+const relation = (over: Record<string, unknown> = {}, actions: Record<string, boolean> = {}) => ({ __typename: 'Relation', following: false, followedBy: false, blocked: false, restricted: false, connected: false, pendingConnection: null, viewerCan: can(actions), ...over })
+const SKILLS = { __typename: 'TeacherProfile', headline: 'Teaches algorithms', bio: null, skills: [{ __typename: 'TeacherSkill', id: 's1', kind: 'QUALIFICATION', name: 'M.Tech, Computer Science', detail: 'IIT Madras, 2014' }] }
+const profile = (rel: unknown, viewerId = ME, verified = true) => ({
   data: {
     userByHandle: {
       __typename: 'User', id: MEERA, handle: 'meera', displayName: 'Meera Iyer', globalRole: 'TEACHER', verified: true, followerMilestone: 1000,
-      followerCount: viewerId === MEERA ? 1200 : null, followingCount: viewerId === MEERA ? 4 : null, profile: null, relation: rel,
+      followerCount: viewerId === MEERA ? 1200 : null, followingCount: viewerId === MEERA ? 4 : null, profile: null, relation: rel, teacherProfile: SKILLS,
       publicNotes: { __typename: 'NoteConnection', edges: [{ __typename: 'NoteEdge', node: { __typename: 'Note', id: 'n1', title: 'Heaps, explained', kind: 'NOTE', publishedAt: '2026-10-02T10:00:00.000Z' } }] },
     },
-    viewer: { __typename: 'User', id: viewerId },
+    viewer: { __typename: 'User', id: viewerId, verified },
   },
 })
 const payload = (name: string, rel: unknown) => ({ data: { [name]: { __typename: 'PersonPayload', user: { __typename: 'User', id: MEERA, relation: rel }, userErrors: [] } } })
@@ -77,6 +78,16 @@ it('shows a refusal in the API’s words', async () => {
   expect(await screen.findByText('Verify your account to follow people.')).toBeOnTheScreen()
 })
 
+it('an unverified viewer still sees Follow, and learns why it needs verification', async () => {
+  mockApi({
+    Profile: () => profile(relation({}, { follow: false }), ME, false),
+    FollowUser: () => ({ data: null, errors: [{ message: 'Verify your account to follow people.', extensions: { code: 'FORBIDDEN' } }] }),
+  })
+  await inApollo(<ProfileScreen handle="meera" />)
+  await fireEvent.press(await screen.findByText('Follow'))
+  expect(await screen.findByText('Verify your account to follow people.')).toBeOnTheScreen()
+})
+
 it('on one’s own profile: exact counts, leading to the lists', async () => {
   mockApi({ Profile: () => profile(null, MEERA) })
   await inApollo(<ProfileScreen handle="meera" />)
@@ -91,7 +102,9 @@ it('lists followers, counting young learners without naming them, and removes on
   const api = mockApi({
     MyPeople: () => ({
       data: {
-        viewer: { __typename: 'User', id: ME, handle: 'ravi', followerCount: followers.length + 1, followingCount: 0 },
+        viewer: { __typename: 'User', id: ME, handle: 'ravi', globalRole: 'STUDENT', followerCount: followers.length + 1, followingCount: 0 },
+        myConnections: [],
+        myConnectionRequests: [],
         myFollowers: { __typename: 'PersonConnection', edges: followers.map((node) => ({ __typename: 'PersonEdge', since: '2026-10-10T10:00:00.000Z', node })), pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } },
         myFollowing: { __typename: 'PersonConnection', edges: [], pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } },
         myBlocked: [],
@@ -116,4 +129,43 @@ it('Explore finds people and opens their profile', async () => {
   await fireEvent.changeText(screen.getByLabelText('Search notes, people and topics'), 'meera')
   await fireEvent.press(await screen.findByLabelText('Meera Iyer, @meera'))
   expect(router.push).toHaveBeenCalledWith('/u/meera')
+})
+
+it('a teacher’s Skills tab, and connecting: Connect, then Requested', async () => {
+  let rel = relation({}, { requestConnection: true })
+  const api = mockApi({
+    Profile: () => profile(rel),
+    RequestConnection: () => ((rel = relation({ pendingConnection: { __typename: 'PendingConnection', direction: 'OUTGOING', requestId: 'r1' } })), payload('requestConnection', rel)),
+  })
+  await inApollo(<ProfileScreen handle="meera" />)
+  await fireEvent.press(await screen.findByText('Skills'))
+  expect(screen.getByText('Teaches algorithms')).toBeOnTheScreen()
+  expect(screen.getByText('IIT Madras, 2014')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByText('Connect'))
+  expect(await screen.findByLabelText('Connection requested, tap to withdraw')).toBeOnTheScreen()
+  expect(api.calls.find((c) => c.op === 'RequestConnection')?.variables).toEqual({ input: { userId: MEERA } })
+})
+
+it('a teacher accepts a connection request from the people screen', async () => {
+  const meera = { __typename: 'User', id: MEERA, handle: 'meera', displayName: 'Meera Iyer', globalRole: 'TEACHER', verified: true }
+  let pending = true
+  const api = mockApi({
+    MyPeople: () => ({
+      data: {
+        viewer: { __typename: 'User', id: ME, handle: 'asha', globalRole: 'TEACHER', followerCount: 0, followingCount: 0 },
+        myFollowers: { __typename: 'PersonConnection', edges: [], pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } },
+        myFollowing: { __typename: 'PersonConnection', edges: [], pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } },
+        myConnections: pending ? [] : [{ __typename: 'PersonEdge', since: '2026-10-12T10:00:00.000Z', node: meera }],
+        myConnectionRequests: pending ? [{ __typename: 'ConnectionRequestItem', id: 'r9', direction: 'INCOMING', createdAt: '2026-10-12T10:00:00.000Z', person: meera }] : [],
+        myBlocked: [],
+        myRestricted: [],
+      },
+    }),
+    RespondToConnectionRequest: () => ((pending = false), { data: { respondToConnectionRequest: { __typename: 'PersonPayload', user: { __typename: 'User', id: MEERA, relation: relation({ connected: true }) }, userErrors: [] } } }),
+  })
+  await inApollo(<PeopleScreen />)
+  await fireEvent.press(await screen.findByText('Requests 1'))
+  await fireEvent.press(screen.getByLabelText('Accept Meera Iyer'))
+  await waitFor(() => expect(api.calls.find((c) => c.op === 'RespondToConnectionRequest')?.variables).toEqual({ input: { requestId: 'r9', accept: true } }))
+  expect(await screen.findByText('Connections 1')).toBeOnTheScreen()
 })

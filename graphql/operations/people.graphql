@@ -1,4 +1,4 @@
-# People (lvn-backend ADR-0043): profiles, follows, blocks, restrictions.
+# People (lvn-backend ADR-0043, ADR-0044): profiles, follows, blocks, restrictions, connections, the Skills tab.
 
 fragment PersonFields on User {
   id
@@ -13,6 +13,11 @@ fragment RelationFields on Relation {
   followedBy
   blocked
   restricted
+  connected
+  pendingConnection {
+    direction
+    requestId
+  }
   viewerCan {
     follow
     unfollow
@@ -21,6 +26,9 @@ fragment RelationFields on Relation {
     unblock
     restrict
     unrestrict
+    requestConnection
+    respondToConnection
+    removeConnection
   }
 }
 
@@ -35,6 +43,7 @@ query ProfileRelation($handle: String!) {
   }
   viewer {
     id
+    verified
   }
 }
 
@@ -140,8 +149,23 @@ query MyPeople($first: Int, $after: String) {
   viewer {
     id
     handle
+    globalRole
     followerCount
     followingCount
+  }
+  myConnections {
+    since
+    node {
+      ...PersonFields
+    }
+  }
+  myConnectionRequests {
+    id
+    direction
+    createdAt
+    person {
+      ...PersonFields
+    }
   }
   myFollowers(first: $first, after: $after) {
     edges {
@@ -181,6 +205,97 @@ query MyPeople($first: Int, $after: String) {
   }
 }
 
+mutation RequestConnection($input: PersonInput!) {
+  requestConnection(input: $input) {
+    user {
+      id
+      relation {
+        ...RelationFields
+      }
+    }
+    userErrors {
+      message
+    }
+  }
+}
+
+mutation RespondToConnectionRequest($input: RespondToConnectionRequestInput!) {
+  respondToConnectionRequest(input: $input) {
+    user {
+      id
+      relation {
+        ...RelationFields
+      }
+    }
+    userErrors {
+      message
+    }
+  }
+}
+
+mutation WithdrawConnectionRequest($input: ConnectionRequestInput!) {
+  withdrawConnectionRequest(input: $input) {
+    user {
+      id
+      relation {
+        ...RelationFields
+      }
+    }
+    userErrors {
+      message
+    }
+  }
+}
+
+mutation RemoveConnection($input: PersonInput!) {
+  removeConnection(input: $input) {
+    user {
+      id
+      relation {
+        ...RelationFields
+      }
+    }
+    userErrors {
+      message
+    }
+  }
+}
+
+# The Skills tab (lvn-backend ADR-0012, ADR-0044): read on profiles, edited by the teacher.
+fragment TeacherProfileFields on TeacherProfile {
+  headline
+  bio
+  skills {
+    id
+    kind
+    name
+    detail
+  }
+}
+
+query MyTeacherProfile {
+  viewer {
+    id
+    handle
+    globalRole
+    teacherProfile {
+      ...TeacherProfileFields
+    }
+  }
+}
+
+mutation UpdateTeacherProfile($input: UpdateTeacherProfileInput!) {
+  updateTeacherProfile(input: $input) {
+    profile {
+      ...TeacherProfileFields
+    }
+    userErrors {
+      message
+      field
+    }
+  }
+}
+
 query Profile($handle: String!) {
   userByHandle(handle: $handle) {
     ...PersonFields
@@ -193,6 +308,9 @@ query Profile($handle: String!) {
     }
     relation {
       ...RelationFields
+    }
+    teacherProfile {
+      ...TeacherProfileFields
     }
     publicNotes(first: 60) {
       edges {
@@ -207,5 +325,6 @@ query Profile($handle: String!) {
   }
   viewer {
     id
+    verified
   }
 }

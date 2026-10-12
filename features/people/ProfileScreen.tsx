@@ -1,7 +1,7 @@
 import { CombinedGraphQLErrors } from '@apollo/client/errors'
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { ArrowLeft, BadgeCheck, Ellipsis, FileText, GraduationCap, UserCheck, UserPlus } from 'lucide-react-native'
+import { ArrowLeft, BadgeCheck, Ellipsis, FileText, GraduationCap, Handshake, UserCheck, UserPlus } from 'lucide-react-native'
 import { useState } from 'react'
 import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -11,15 +11,20 @@ import {
   BlockUserDocument,
   FollowUserDocument,
   ProfileDocument,
+  RemoveConnectionDocument,
   RemoveFollowerDocument,
+  RequestConnectionDocument,
+  RespondToConnectionRequestDocument,
   RestrictUserDocument,
   UnblockUserDocument,
   UnfollowUserDocument,
   UnrestrictUserDocument,
+  WithdrawConnectionRequestDocument,
 } from '@/graphql/generated/graphql'
 
 const YEAR: Record<string, string> = { YEAR_1: '1st year', YEAR_2: '2nd year', YEAR_3: '3rd year', YEAR_4: '4th year', YEAR_5: '5th year', POSTGRADUATE: 'Postgraduate', GRADUATED: 'Graduated', SCHOOL: 'At school', NOT_STUDYING: 'Not studying' }
-const KINDS = { NOTE: 'Notes', BLOG: 'Blog', PROJECT: 'Projects', POST: 'Posts' } as const
+const KINDS = { NOTE: 'Notes', BLOG: 'Blog', PROJECT: 'Projects', POST: 'Posts', SKILLS: 'Skills' } as const
+const SKILL_KINDS = { QUALIFICATION: 'Qualifications', EXPERIENCE: 'Experience', SKILL: 'Skills' } as const
 type Kind = keyof typeof KINDS
 
 /**
@@ -41,14 +46,20 @@ export function ProfileScreen({ handle }: { handle: string }) {
   const [unblock] = useMutation(UnblockUserDocument)
   const [restrict] = useMutation(RestrictUserDocument)
   const [unrestrict] = useMutation(UnrestrictUserDocument)
+  const [connect] = useMutation(RequestConnectionDocument)
+  const [disconnect] = useMutation(RemoveConnectionDocument)
+  const [respond] = useMutation(RespondToConnectionRequestDocument)
+  const [withdraw] = useMutation(WithdrawConnectionRequestDocument)
   const person = data?.userByHandle
 
-  const act = async (run: (o: { variables: { input: { userId: string } } }) => Promise<{ data?: unknown }>) => {
-    if (!person) return
+  const act = (run: (o: { variables: { input: { userId: string } } }) => Promise<{ data?: unknown }>) => (person ? attempt(() => run({ variables: { input: { userId: person.id } } })) : Promise.resolve())
+
+  /** Runs one change and shows what went wrong in the API's words. */
+  const attempt = async (call: () => Promise<{ data?: unknown }>) => {
     setBusy(true)
     setError(null)
     try {
-      const res = (await run({ variables: { input: { userId: person.id } } })) as { data?: Record<string, { userErrors: { message: string }[] }> }
+      const res = (await call()) as { data?: Record<string, { userErrors: { message: string }[] }> }
       const problem = Object.values(res.data ?? {})[0]?.userErrors[0]?.message
       if (problem) setError(problem)
     } catch (e) {
@@ -77,7 +88,7 @@ export function ProfileScreen({ handle }: { handle: string }) {
   const own = data?.viewer?.id === person.id
   const r = person.relation
   const teacher = person.globalRole === 'TEACHER'
-  const kinds: Kind[] = teacher ? ['NOTE', 'BLOG', 'PROJECT', 'POST'] : ['NOTE', 'PROJECT']
+  const kinds: Kind[] = teacher ? ['NOTE', 'BLOG', 'PROJECT', 'POST', 'SKILLS'] : ['NOTE', 'PROJECT']
   const notes = person.publicNotes.edges.map((e) => e.node)
   const shown = notes.filter((n) => n.kind === kind)
   const study = [person.profile?.department, person.profile?.yearOfStudy ? YEAR[person.profile.yearOfStudy] : null].filter(Boolean).join(' · ')
@@ -85,6 +96,7 @@ export function ProfileScreen({ handle }: { handle: string }) {
   const menu = () => {
     if (!r) return
     const options: { text: string; style?: 'destructive' | 'cancel'; onPress?: () => void }[] = []
+    if (r.viewerCan.removeConnection) options.push({ text: 'Remove connection', onPress: () => void act(disconnect) })
     if (r.viewerCan.removeFollower) options.push({ text: 'Remove follower', onPress: () => void act(removeFollower) })
     if (r.viewerCan.restrict) options.push({ text: 'Restrict', onPress: () => void act(restrict) })
     if (r.viewerCan.unrestrict) options.push({ text: 'Unrestrict', onPress: () => void act(unrestrict) })
@@ -151,10 +163,35 @@ export function ProfileScreen({ handle }: { handle: string }) {
                   <UserCheck size={16} color={fg} />
                   <Text className="font-semibold">Following</Text>
                 </Pressable>
-              ) : r.viewerCan.follow ? (
+              ) : r.viewerCan.follow || (!data?.viewer?.verified && !r.blocked) ? (
+                // Unverified, Follow stays: pressing it says why it needs verification (ADR-0017).
                 <Pressable accessibilityRole="button" disabled={busy} onPress={() => void act(follow)} className="bg-primary flex-row items-center gap-2 rounded-full px-5 py-2.5">
                   <UserPlus size={16} color="#ffffff" />
                   <Text className="text-primary-foreground font-semibold">Follow</Text>
+                </Pressable>
+              ) : null}
+              {r.connected ? (
+                <View className="bg-secondary flex-row items-center gap-1.5 rounded-full px-4 py-2.5">
+                  <Handshake size={16} color={accent} />
+                  <Text className="text-primary font-semibold">Connected</Text>
+                </View>
+              ) : r.pendingConnection?.direction === 'INCOMING' ? (
+                <>
+                  <Pressable accessibilityRole="button" disabled={busy} onPress={() => void attempt(() => respond({ variables: { input: { requestId: r.pendingConnection!.requestId, accept: true } } }))} className="bg-primary rounded-full px-4 py-2.5">
+                    <Text className="text-primary-foreground font-semibold">Accept</Text>
+                  </Pressable>
+                  <Pressable accessibilityRole="button" disabled={busy} onPress={() => void attempt(() => respond({ variables: { input: { requestId: r.pendingConnection!.requestId, accept: false } } }))} className="border-border rounded-full border px-4 py-2.5">
+                    <Text className="font-semibold">Decline</Text>
+                  </Pressable>
+                </>
+              ) : r.pendingConnection?.direction === 'OUTGOING' ? (
+                <Pressable accessibilityRole="button" accessibilityLabel="Connection requested, tap to withdraw" disabled={busy} onPress={() => void attempt(() => withdraw({ variables: { input: { requestId: r.pendingConnection!.requestId } } }))} className="border-border rounded-full border px-4 py-2.5">
+                  <Text className="font-semibold">Requested</Text>
+                </Pressable>
+              ) : r.viewerCan.requestConnection ? (
+                <Pressable accessibilityRole="button" disabled={busy} onPress={() => void act(connect)} className="border-border flex-row items-center gap-1.5 rounded-full border px-4 py-2.5">
+                  <Handshake size={16} color={fg} />
+                  <Text className="font-semibold">Connect</Text>
                 </Pressable>
               ) : null}
               <Pressable accessibilityRole="button" accessibilityLabel="More options" onPress={menu} className="border-border rounded-full border p-2.5">
@@ -180,13 +217,15 @@ export function ProfileScreen({ handle }: { handle: string }) {
               className={`rounded-full px-4 py-2 ${k === kind ? 'bg-primary' : 'bg-card border-border border'}`}
             >
               <Text className={k === kind ? 'text-primary-foreground font-semibold' : 'font-semibold'}>
-                {KINDS[k]} {notes.filter((n) => n.kind === k).length}
+                {KINDS[k]}{k === 'SKILLS' ? '' : ` ${notes.filter((n) => n.kind === k).length}`}
               </Text>
             </Pressable>
           ))}
         </ScrollView>
 
-        {shown.length ? (
+        {kind === 'SKILLS' ? (
+          <SkillsTab profile={person.teacherProfile} />
+        ) : shown.length ? (
           shown.map((n) => (
             <Pressable key={n.id} accessibilityRole="button" onPress={() => router.push(`/notes/${n.id}`)} className="bg-card border-border flex-row items-start gap-3 rounded-2xl border p-4">
               <FileText size={18} color={accent} />
@@ -197,6 +236,34 @@ export function ProfileScreen({ handle }: { handle: string }) {
           <Text className="text-muted-foreground py-8 text-center">{kind === 'NOTE' ? 'No public notes yet.' : kind === 'PROJECT' ? 'No projects yet.' : kind === 'BLOG' ? 'No blog posts yet.' : 'No posts yet.'}</Text>
         )}
       </ScrollView>
+    </View>
+  )
+}
+
+/** A teacher's Skills tab (ADR-0012): headline, about, and items grouped by kind. */
+function SkillsTab({ profile }: { profile: { headline: string | null; bio: string | null; skills: { id: string; kind: keyof typeof SKILL_KINDS; name: string; detail: string | null }[] } | null }) {
+  if (!profile || (!profile.headline && !profile.bio && !profile.skills.length)) return <Text className="text-muted-foreground py-8 text-center">Nothing here yet.</Text>
+  return (
+    <View className="gap-4">
+      {profile.headline ? <Text className="text-lg font-semibold">{profile.headline}</Text> : null}
+      {profile.bio ? <Text className="text-muted-foreground">{profile.bio}</Text> : null}
+      {(Object.keys(SKILL_KINDS) as (keyof typeof SKILL_KINDS)[]).map((k) => {
+        const items = profile.skills.filter((s) => s.kind === k)
+        if (!items.length) return null
+        return (
+          <View key={k} className="gap-2">
+            <Text className="text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
+              {SKILL_KINDS[k]}
+            </Text>
+            {items.map((s) => (
+              <View key={s.id} className="bg-card border-border rounded-2xl border px-4 py-3">
+                <Text className="font-semibold">{s.name}</Text>
+                {s.detail ? <Text className="text-muted-foreground text-sm">{s.detail}</Text> : null}
+              </View>
+            ))}
+          </View>
+        )
+      })}
     </View>
   )
 }

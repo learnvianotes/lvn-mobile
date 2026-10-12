@@ -12,6 +12,8 @@ describe('notification sentences (lvn-backend ADR-0042)', () => {
     expect(say({ category: 'VERIFICATION', data: { kind: 'DECIDED', decision: 'APPROVED' } })).toBe('Your account is verified')
     expect(say({ category: 'DATA_EXPORT' })).toBe('Your data export is ready to download')
     expect(say({ category: 'FOLLOW', actor: meera })).toBe('Meera Iyer started following you')
+    expect(say({ category: 'CONNECTION', actor: meera, data: { kind: 'REQUESTED' } })).toBe('Meera Iyer wants to connect with you')
+    expect(say({ category: 'CONNECTION', actor: meera, data: { kind: 'ACCEPTED' } })).toBe('Meera Iyer accepted your connection request')
     expect(say({ category: 'NOTES_IMPORT', data: { created: 4, skipped: 2, failed: 1 } })).toBe('Your import is done: 4 notes added, 2 skipped, 1 could not be read')
     expect(say({ category: 'NOTES_IMPORT', data: { created: 1, skipped: 0, failed: 0 } })).toBe('Your import is done: 1 note added')
   })

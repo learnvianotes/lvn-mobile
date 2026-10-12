@@ -18,6 +18,8 @@ export function describeNotification(n: Described): string {
       return 'Your verification was not accepted. You can try again from your profile.'
     case 'FOLLOW':
       return `${actor} started following you`
+    case 'CONNECTION':
+      return data.kind === 'ACCEPTED' ? `${actor} accepted your connection request` : `${actor} wants to connect with you`
     case 'DATA_EXPORT':
       return 'Your data export is ready to download'
     case 'NOTES_IMPORT': {
