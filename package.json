@@ -96,6 +96,9 @@
     "node": ">=22"
   },
   "pnpm": {
+    "overrides": {
+      "@grpc/grpc-js": "^1.13.6"
+    },
     "auditConfig": {
       "ignoreGhsas": [
         "GHSA-86w9-cpqp-85rv",
