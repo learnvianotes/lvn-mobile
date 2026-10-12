@@ -82,6 +82,7 @@ export default function RootLayout() {
                 <Stack.Screen name="people" />
                 <Stack.Screen name="skills" />
                 <Stack.Screen name="admin/moderation" />
+                <Stack.Screen name="admin/verification" />
                 <Stack.Screen name="u/[handle]" />
                 <Stack.Screen name="groups/new" />
                 <Stack.Screen name="groups/[id]" />
