@@ -9,6 +9,8 @@ import { Text } from '@/components/ui/text'
 import { cn } from '@/lib/utils'
 import { PressScale } from '@/features/shell/PressScale'
 import { useLocal, useSyncStatus } from './hooks'
+import type { LocalNote } from './model/types'
+import { KIND_LABEL } from './publishing/NoteActions'
 import * as actions from './store/actions'
 import * as db from './store/db'
 import { syncNow } from './sync/engine'
@@ -24,12 +26,50 @@ function ago(iso: string): string {
   return new Date(iso).toLocaleDateString()
 }
 
-/** My notes on the phone (§13.2): readable and writable offline, sent when the connection allows. */
+type Filter = { by: 'all' } | { by: 'shared' } | { by: 'kind'; kind: LocalNote['kind'] } | { by: 'folder'; id: string } | { by: 'tag'; name: string }
+const KIND_PLURAL: Record<LocalNote['kind'], string> = { NOTE: 'Notes', PROJECT: 'Projects', BLOG: 'Blog', POST: 'Posts' }
+const same = (a: Filter, b: Filter) => JSON.stringify(a) === JSON.stringify(b)
+
+/** The kinds, folders and tags this phone's notes have, as chips; a filter is offered only when it would show something. */
+function filtersOf(notes: LocalNote[]): { filter: Filter; label: string }[] {
+  const out: { filter: Filter; label: string }[] = [{ filter: { by: 'all' }, label: 'All' }]
+  if (notes.some((n) => n.access !== 'OWNER')) out.push({ filter: { by: 'shared' }, label: 'Shared with me' })
+  for (const kind of ['PROJECT', 'BLOG', 'POST'] as const) if (notes.some((n) => n.kind === kind)) out.push({ filter: { by: 'kind', kind }, label: KIND_PLURAL[kind] })
+  const folders = new Map(notes.filter((n) => n.folderId).map((n) => [n.folderId!, n.folderName ?? 'Folder']))
+  for (const [id, name] of [...folders].sort((a, b) => a[1].localeCompare(b[1]))) out.push({ filter: { by: 'folder', id }, label: name })
+  for (const name of [...new Set(notes.flatMap((n) => n.tags))].sort()) out.push({ filter: { by: 'tag', name }, label: `#${name}` })
+  return out
+}
+
+function matches(n: LocalNote, f: Filter): boolean {
+  switch (f.by) {
+    case 'all':
+      return true
+    case 'shared':
+      return n.access !== 'OWNER'
+    case 'kind':
+      return n.kind === f.kind
+    case 'folder':
+      return n.folderId === f.id
+    case 'tag':
+      return n.tags.includes(f.name)
+  }
+}
+
+/**
+ * My notes on the phone (§13.2): readable and writable offline, sent when the connection allows; filtered by what
+ * they are, their folder or a tag (lvn-backend ADR-0052), all from the phone's copy.
+ */
 export function NotesListScreen() {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
   const [trash, setTrash] = useState(false)
-  const notes = useLocal(() => db.listNotes(trash), [trash])
+  const [filter, setFilter] = useState<Filter>({ by: 'all' })
+  const all = useLocal(() => db.listNotes(trash), [trash])
+  const chips = trash || !all ? [] : filtersOf(all)
+  // A filter whose last note went away falls back to everything.
+  const active = chips.some((c) => same(c.filter, filter)) ? filter : { by: 'all' as const }
+  const notes = all?.filter((n) => trash || matches(n, active))
   const excerpts = useLocal(() => db.excerpts(), [])
   const unsent = useLocal(() => db.unsentNoteIds(), [])
   const attention = useLocal(() => db.outbox('ATTENTION'), [])
@@ -65,6 +105,26 @@ export function NotesListScreen() {
           <Text className="flex-1 text-sm font-medium">{attention.length === 1 ? 'One change could not be saved' : `${attention.length} changes could not be saved`} — tap to see</Text>
         </Pressable>
       ) : null}
+      {chips.length > 1 ? (
+        <View>
+          <FlatList
+            horizontal
+            data={chips}
+            keyExtractor={(c) => c.label}
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 16, gap: 8, paddingBottom: 4 }}
+            accessibilityRole="tablist"
+            renderItem={({ item: c }) => {
+              const on = same(c.filter, active)
+              return (
+                <Pressable accessibilityRole="tab" accessibilityState={{ selected: on }} onPress={() => setFilter(c.filter)} className={`rounded-full px-3.5 py-1.5 ${on ? 'bg-primary' : 'bg-card border-border border'}`}>
+                  <Text className={`text-sm font-semibold ${on ? 'text-primary-foreground' : ''}`}>{c.label}</Text>
+                </Pressable>
+              )
+            }}
+          />
+        </View>
+      ) : null}
       <FlatList
         data={notes ?? []}
         keyExtractor={(n) => n.id}
@@ -93,6 +153,7 @@ export function NotesListScreen() {
                   {excerpts?.get(item.id) ?? 'Nothing written yet'}
                 </Text>
                 <View className="flex-row flex-wrap items-center gap-2">
+                  {item.kind !== 'NOTE' ? <Text className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-[11px] font-semibold">{KIND_LABEL[item.kind]}</Text> : null}
                   <Text className="text-muted-foreground text-xs">{ago(item.updatedAt)}</Text>
                   {item.access !== 'OWNER' ? <Text className="text-primary text-xs font-semibold">{item.access === 'EDITOR' ? `Shared by ${item.ownerName} · can edit` : `Shared by ${item.ownerName}`}</Text> : null}
                   {unsent?.has(item.id) ? (

@@ -1,0 +1,51 @@
+# Publishing from the phone, end to end (P3l; lvn-backend ADR-0052): a verified teacher starts a blog post from the
+# Create sheet, writes its title, lets it sync, publishes it from the note's menu and makes it public. The account needs
+# the database: scripts/e2e-android.mjs makes it when run with --vm; without it this flow does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof TEACHER_EMAIL !== 'undefined' && TEACHER_EMAIL !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${TEACHER_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${TEACHER_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Create"
+      - tapOn: "Blog post"
+      - tapOn: "Title"
+      - inputText: "Phone blog ${STAMP}"
+      - hideKeyboard
+      # Sent to the server, then its standing is read from there.
+      - extendedWaitUntil:
+          visible: "Blog post · Private · Draft, not published"
+          timeout: 40000
+      - tapOn: "Note actions"
+      - tapOn: "Publish"
+      - extendedWaitUntil:
+          visible: "Published as version 1."
+          timeout: 15000
+      - tapOn: "Note actions"
+      - tapOn: "Share and who can read it"
+      - tapOn: "Public"
+      - extendedWaitUntil:
+          visible: "Send the link"
+          timeout: 15000
+      - tapOn: "Back"
+      - extendedWaitUntil:
+          visible: "Blog post · Public · Published: version 1"
+          timeout: 15000

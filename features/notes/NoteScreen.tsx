@@ -21,6 +21,7 @@ import { syncSoon } from './sync/engine'
 import { readerPath } from '@/features/reader/paths'
 import { Discussion } from '@/features/discussion/Discussion'
 import { NoteCredits } from '@/features/workspaces/Credits'
+import { MakeCopyButton, NoteStatus, useNoteActions } from './publishing/NoteActions'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -133,17 +134,16 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
       },
     ])
 
+  const owner = useNoteActions(note, trash)
+
   return (
     <KeyboardAvoidingView className="bg-background flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Header>
         <SyncBadge unsent={unsent} />
         <ReadAloudButton reader={reader} />
-        {note.access === 'OWNER' ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Move to trash" onPress={trash} className="rounded-full p-2">
-            <Trash2 size={20} color={fg} />
-          </Pressable>
-        ) : null}
+        {note.access === 'OWNER' ? owner.button : null}
       </Header>
+      {note.access === 'OWNER' ? owner.sheet : null}
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120, gap: 12 }} keyboardShouldPersistTaps="handled">
         <TextInput
           accessibilityLabel="Title"
@@ -155,6 +155,7 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
           multiline
         />
         {note.access === 'EDITOR' ? <Text className="text-muted-foreground text-xs">Editing {note.ownerName}’s note</Text> : null}
+        {note.access === 'OWNER' ? <NoteStatus status={owner.status} message={owner.message} verifyToPublish={owner.verifyToPublish} /> : null}
         {cards.map((card, i) => {
           const editing = selected === card.id && PHONE_EDITABLE.has(card.type)
           return (
@@ -216,6 +217,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
   return (
     <View className="bg-background flex-1">
       <Header>
+        {note.deletedAt ? null : <MakeCopyButton noteId={note.id} />}
         <ReadAloudButton reader={reader} />
       </Header>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40, gap: 14 }}>

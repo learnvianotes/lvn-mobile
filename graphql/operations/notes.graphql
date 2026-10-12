@@ -3,6 +3,15 @@
 fragment SyncedNoteFields on Note {
   id
   title
+  kind
+  folder {
+    id
+    name
+  }
+  tags {
+    id
+    name
+  }
   visibility
   viewerAccess
   draftRevision

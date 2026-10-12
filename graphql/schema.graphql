@@ -2658,6 +2658,11 @@ input SyncOpInput {
   """For CREATE_NOTE, the id the device gave the note"""
   noteId: UUID!
 
+  """
+  CREATE_NOTE: what the note is (NOTE when left out). Blogs and posts are for teachers, as in createNote (ADR-0052)
+  """
+  noteKind: NoteKind
+
   """UPDATE_NOTE: card changes, as in updateNoteDraft"""
   ops: [CardOpInput!]
 

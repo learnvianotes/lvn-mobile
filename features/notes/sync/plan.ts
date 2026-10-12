@@ -14,7 +14,7 @@ export function freeze(note: LocalNote, cards: LocalCard[], newId: () => string)
   const valid = (c: LocalCard) => parseCardContent(c.type, c.content).ok
   if (note.localOnly) {
     const live = cards.filter((c) => !c.deleted && valid(c))
-    ops.push({ clientOpId: newId(), kind: 'CREATE_NOTE', noteId: note.id, title: note.title, cards: live.map((c) => ({ id: c.id, type: c.type, position: c.position, content: c.content })) })
+    ops.push({ clientOpId: newId(), kind: 'CREATE_NOTE', noteId: note.id, title: note.title, cards: live.map((c) => ({ id: c.id, type: c.type, position: c.position, content: c.content })), ...(note.kind !== 'NOTE' ? { noteKind: note.kind } : {}) })
     frozen.push(...live.map((c) => c.id), ...cards.filter((c) => c.deleted).map((c) => c.id))
   } else {
     const changed = cards.filter((c) => (c.dirty || c.deleted) && (c.deleted || valid(c)))
