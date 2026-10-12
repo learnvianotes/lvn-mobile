@@ -37,3 +37,26 @@ jest.mock('expo-notifications', () => ({
   addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
   addPushTokenListener: jest.fn(() => ({ remove: jest.fn() })),
 }))
+
+// Media (lvn-backend P3m): no native players or pickers in Node. The players are stand-ins tests can drive; the pickers
+// cancel unless a test says otherwise.
+jest.mock('expo-video', () => {
+  const { createElement } = require('react')
+  const { View } = require('react-native')
+  return { useVideoPlayer: jest.fn((source: unknown) => ({ source, play: jest.fn(), pause: jest.fn() })), VideoView: (props: { accessibilityLabel?: string }) => createElement(View, { accessibilityLabel: props.accessibilityLabel, testID: 'video-view' }) }
+})
+jest.mock('expo-audio', () => {
+  const player = { play: jest.fn(), pause: jest.fn(), seekTo: jest.fn(async () => undefined) }
+  return { useAudioPlayer: jest.fn(() => player), useAudioPlayerStatus: jest.fn(() => ({ playing: false, currentTime: 0, duration: 95 })) }
+})
+jest.mock('expo-image', () => {
+  const { createElement } = require('react')
+  const { View } = require('react-native')
+  return { Image: (props: { accessibilityLabel?: string; source: { uri: string } }) => createElement(View, { accessibilityRole: 'image', accessibilityLabel: props.accessibilityLabel, testID: `image:${props.source.uri}` }) }
+})
+jest.mock('expo-image-picker', () => ({
+  requestCameraPermissionsAsync: jest.fn(async () => ({ granted: true })),
+  launchCameraAsync: jest.fn(async () => ({ canceled: true, assets: null })),
+  launchImageLibraryAsync: jest.fn(async () => ({ canceled: true, assets: null })),
+}))
+jest.mock('expo-document-picker', () => ({ getDocumentAsync: jest.fn(async () => ({ canceled: true, assets: null })) }))
