@@ -1,0 +1,29 @@
+# People on the phone (lvn-backend ADR-0043): Explore finds a person and opens their profile; following needs a verified
+# account, so this new one is told why in the API's words; one's own profile and lists.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- runScript:
+    file: scripts/second-account.js
+- tapOn: "Explore"
+- tapOn: "Search notes, people and topics"
+- inputText: ${output.otherName}
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "${output.otherName}, @.*"
+    timeout: 15000
+- tapOn: "${output.otherName}, @.*"
+- extendedWaitUntil:
+    visible: "Follow"
+    timeout: 15000
+- tapOn: "Follow"
+- assertVisible: "Verify your account to follow people."
+- tapOn: "Back"
+- tapOn: "Profile"
+- tapOn: "See your profile"
+- assertVisible: "0 followers · 0 following"
+- tapOn: "Back"
+- tapOn: "Followers, following and blocked people"
+- assertVisible: "Nobody follows you yet."

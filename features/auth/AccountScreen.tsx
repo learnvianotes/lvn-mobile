@@ -1,9 +1,9 @@
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
-import { Link } from 'expo-router'
+import { Link, router } from 'expo-router'
 import * as WebBrowser from 'expo-web-browser'
 import { BadgeCheck } from 'lucide-react-native'
 import { useState } from 'react'
-import { ActivityIndicator, ScrollView, View } from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Button } from '@/components/ui/button'
 import { SafeAreaView } from '@/components/ui/safe-area-view'
@@ -26,6 +26,7 @@ export function AccountScreen() {
       <ScrollView contentContainerClassName="gap-5 px-5 pb-32 pt-4">
         <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">{copy.account.title}</Text>
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
+        {viewer ? <PeopleLinks handle={viewer.handle} /> : null}
         {viewer ? <YourDataCard /> : null}
         <SignOutButton />
       </ScrollView>
@@ -107,5 +108,21 @@ function SignOutButton() {
     >
       <Text className="text-destructive">{copy.account.signOut}</Text>
     </Button>
+  )
+}
+
+/** Your profile as others see it, and your followers, following and blocked people (lvn-backend ADR-0043). */
+function PeopleLinks({ handle }: { handle: string }) {
+  return (
+    <View className={card}>
+      <Pressable accessibilityRole="link" onPress={() => router.push(`/u/${handle}`)} className="flex-row items-center justify-between">
+        <Text className="font-semibold">See your profile</Text>
+        <Text className="text-muted-foreground">›</Text>
+      </Pressable>
+      <Pressable accessibilityRole="link" onPress={() => router.push('/people')} className="flex-row items-center justify-between">
+        <Text className="font-semibold">Followers, following and blocked people</Text>
+        <Text className="text-muted-foreground">›</Text>
+      </Pressable>
+    </View>
   )
 }

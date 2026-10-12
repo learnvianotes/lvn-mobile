@@ -27,7 +27,7 @@ beforeEach(() => jest.clearAllMocks())
 it('the home bell shows the unread count and opens the notifications', async () => {
   mockApi({ UnreadNotificationCount: () => ({ data: { unreadNotificationCount: 3 } }) })
   await inApollo(<HomeHeader />)
-  fireEvent.press(await screen.findByLabelText('Notifications, 3 unread'))
+  await fireEvent.press(await screen.findByLabelText('Notifications, 3 unread'))
   expect(router.push).toHaveBeenCalledWith('/notifications')
 })
 
@@ -36,7 +36,7 @@ it('lists notifications in words; opening one marks it read and goes where it po
   await inApollo(<NotificationsScreen />)
   expect(await screen.findByText('Meera Iyer shared “Binary heaps” with you')).toBeOnTheScreen()
   expect(screen.getByText('Your data export is ready to download')).toBeOnTheScreen()
-  fireEvent.press(screen.getByLabelText('Unread: Meera Iyer shared “Binary heaps” with you'))
+  await fireEvent.press(screen.getByLabelText('Unread: Meera Iyer shared “Binary heaps” with you'))
   expect(router.push).toHaveBeenCalledWith(`/notes/${NOTE}`)
   await waitFor(() => expect(api.calls.find((c) => c.op === 'MarkNotificationsRead')?.variables).toEqual({ input: { ids: [LIST[0]!.id] } }))
 })
@@ -44,7 +44,7 @@ it('lists notifications in words; opening one marks it read and goes where it po
 it('marks everything read at once', async () => {
   const api = mockApi({ Notifications: () => page(1), MarkNotificationsRead: () => marked(0) })
   await inApollo(<NotificationsScreen />)
-  fireEvent.press(await screen.findByText('Mark all as read'))
+  await fireEvent.press(await screen.findByText('Mark all as read'))
   await waitFor(() => expect(api.calls.find((c) => c.op === 'MarkNotificationsRead')?.variables).toEqual({ input: { all: true } }))
   await waitFor(() => expect(screen.queryByText('Mark all as read')).toBeNull())
 })

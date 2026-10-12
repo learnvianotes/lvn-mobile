@@ -16,6 +16,8 @@ export function describeNotification(n: Described): string {
       if (data.kind === 'REQUESTED') return `${actor} asked you to verify their account`
       if (data.decision === 'APPROVED') return n.actor ? `${actor} verified your account` : 'Your account is verified'
       return 'Your verification was not accepted. You can try again from your profile.'
+    case 'FOLLOW':
+      return `${actor} started following you`
     case 'DATA_EXPORT':
       return 'Your data export is ready to download'
     case 'NOTES_IMPORT': {
