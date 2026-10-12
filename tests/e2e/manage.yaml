@@ -1,13 +1,14 @@
-# Running places from the phone, end to end (P3k; lvn-backend ADR-0045, ADR-0046): a verified learner starts a group,
-# renames it in Settings and deletes it; a teacher starts a class and makes it a new code. The accounts need the
-# database: scripts/e2e-android.mjs makes them when run with --vm; without it this flow does nothing.
+# Running places from the phone, end to end (P3k; lvn-backend ADR-0045, ADR-0046): a verified teacher starts a group,
+# describes it in Settings and deletes it, then starts a class and makes it a new code. Its own account, so a failure
+# here leaves nothing in community.yaml's way. The account needs the database: scripts/e2e-android.mjs makes it when
+# run with --vm; without it this flow does nothing.
 appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
 ---
 - runFlow:
     when:
-      true: ${typeof COMMUNITY_EMAIL !== 'undefined' && COMMUNITY_EMAIL !== ''}
+      true: ${typeof TEACHER_EMAIL !== 'undefined' && TEACHER_EMAIL !== ''}
     commands:
       - launchApp:
           clearState: true
@@ -15,10 +16,10 @@ env:
           id: "welcome-sign-in"
       - tapOn:
           id: "sign-in-email"
-      - inputText: ${COMMUNITY_EMAIL}
+      - inputText: ${TEACHER_EMAIL}
       - tapOn:
           id: "sign-in-password"
-      - inputText: ${COMMUNITY_PASSWORD}
+      - inputText: ${TEACHER_PASSWORD}
       - hideKeyboard
       - tapOn:
           id: "sign-in-submit"
@@ -53,29 +54,9 @@ env:
       - extendedWaitUntil:
           visible: "Groups & classes"
           timeout: 15000
-      - assertNotVisible: "Phone group ${STAMP}"
-- runFlow:
-    when:
-      true: ${typeof TEACHER_EMAIL !== 'undefined' && TEACHER_EMAIL !== ''}
-    commands:
-      - launchApp:
-          clearState: true
-      - tapOn:
-          id: "welcome-sign-in"
-      - tapOn:
-          id: "sign-in-email"
-      - inputText: ${TEACHER_EMAIL}
-      - tapOn:
-          id: "sign-in-password"
-      - inputText: ${TEACHER_PASSWORD}
-      - hideKeyboard
-      - tapOn:
-          id: "sign-in-submit"
-      - extendedWaitUntil:
-          visible: "Make it happen"
-          timeout: 20000
-      - tapOn: "Community"
+      # Back on Community, which opens on its first section.
       - tapOn: "Groups & classes"
+      - assertNotVisible: "Phone group ${STAMP}"
       - tapOn: "New class"
       - tapOn: "Name"
       - inputText: "Phone class ${STAMP}"
