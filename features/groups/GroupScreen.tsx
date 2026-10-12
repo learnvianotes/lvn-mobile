@@ -6,6 +6,7 @@ import { Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { PostComments } from '@/features/discussion/PostComments'
 import { ago } from '@/features/notifications/describe'
 import { useLocal } from '@/features/notes/hooks'
 import { RichDoc } from '@/features/notes/render/RichText'
@@ -198,6 +199,7 @@ function Posts({ group }: { group: GroupDetailFragment }) {
               ) : null}
             </View>
             <RichDoc doc={p.body as Doc} />
+            <PostComments type="GROUP_POST" id={p.id} count={p.discussion.commentCount} />
           </View>
         ))
       ) : data ? (

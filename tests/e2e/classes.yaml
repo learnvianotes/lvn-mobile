@@ -1,0 +1,21 @@
+# Classes on the phone (lvn-backend ADR-0046): Community has your classes and takes a class code; a code that names no
+# class says so, from the real API. Joining a real class needs a teacher, whose role only the database gives: that path
+# is covered by lvn-web's live test and lvn-backend's lifecycle check on the same environment.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Community"
+- assertVisible: "Your classes"
+- assertVisible: "You're not in a class yet. Ask your teacher for the class code."
+- tapOn: "Class code"
+- inputText: "zzzz-2222"
+- hideKeyboard
+- tapOn: "Find class"
+- extendedWaitUntil:
+    visible: "No class has that code. Check it with your teacher."
+    timeout: 15000
+- assertVisible: "Join a class"
+- tapOn: "Back"
+- assertVisible: "Your groups"
