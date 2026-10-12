@@ -7,9 +7,7 @@ env:
 - tapOn: "Profile"
 - scrollUntilVisible:
     element: "Department"
-- tapOn:
-    text: "Department"
-    index: 1
+- tapOn: "Department"
 - inputText: "CSE"
 - hideKeyboard
 - scrollUntilVisible:
