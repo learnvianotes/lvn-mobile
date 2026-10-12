@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text'
 import { MarkNotificationsReadDocument, NotificationsDocument, type NotificationFieldsFragment } from '@/graphql/generated/graphql'
 import { ago, describeNotification } from './describe'
 import { useLive } from './live'
+import { TurnOnPush } from '@/features/push/TurnOnPush'
 
 const PAGE = 20
 const ICONS: Partial<Record<NotificationFieldsFragment['category'], typeof Bell>> = { SHARE: Share2, VERIFICATION: BadgeCheck, DATA_EXPORT: Download, NOTES_IMPORT: FileInput, FOLLOW: UserPlus, CONNECTION: Handshake, JOIN_REQUEST: DoorOpen, JOIN_DECISION: Users, CLASSROOM_INVITE: GraduationCap, CLASSROOM_POST: Megaphone, COMMENT: MessageSquare, MENTOR_INVITE: School, DOUBT: CircleHelp }
@@ -65,6 +66,7 @@ export function NotificationsScreen() {
       <FlatList
         data={items}
         keyExtractor={(n) => n.id}
+        ListHeaderComponent={<TurnOnPush />}
         contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: insets.bottom + 24 }}
         refreshControl={
           <RefreshControl

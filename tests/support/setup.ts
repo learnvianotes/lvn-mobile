@@ -26,3 +26,14 @@ jest.mock('expo-splash-screen', () => ({ preventAutoHideAsync: jest.fn(async () 
 // No network state in Node: a listener that never fires. Notes sync (features/notes) stays idle in component tests,
 // which hold no real access token; its logic is tested in tests/unit/notes.
 jest.mock('expo-network', () => ({ addNetworkStateListener: () => ({ remove: () => undefined }), getNetworkStateAsync: async () => ({ isConnected: true, isInternetReachable: true }) }))
+
+// Push (ADR-0050): no native module under Jest; tests that need it override these.
+jest.mock('expo-notifications', () => ({
+  setNotificationHandler: jest.fn(),
+  getPermissionsAsync: jest.fn(async () => ({ granted: false, canAskAgain: false })),
+  requestPermissionsAsync: jest.fn(async () => ({ granted: false })),
+  getDevicePushTokenAsync: jest.fn(async () => ({ type: 'android', data: '' })),
+  getLastNotificationResponseAsync: jest.fn(async () => null),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  addPushTokenListener: jest.fn(() => ({ remove: jest.fn() })),
+}))
