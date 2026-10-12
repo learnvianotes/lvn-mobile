@@ -1,5 +1,5 @@
 import { ApolloProvider } from '@apollo/client/react'
-import { fireEvent, screen, waitFor, within } from '@testing-library/react-native'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react-native'
 import { router } from 'expo-router'
 import { Alert, Share } from 'react-native'
 import { NoteScreen } from '@/features/notes/NoteScreen'
@@ -21,6 +21,8 @@ const NOTE = '01920000-0000-7000-8000-00000000a001'
 const ME = '01920000-0000-7000-8000-00000000aaaa'
 let mockNotes: LocalNote[] = []
 let mockUnsent = new Set<string>()
+/** What the phone's store tells its readers after a write or a sync. */
+const changed = () => mockListeners.forEach((l) => l())
 const local = (over: Partial<LocalNote> = {}): LocalNote => ({ id: NOTE, title: 'Binary heaps', kind: 'NOTE', folderId: null, folderName: null, tags: [], ownerId: ME, ownerName: 'Asha Rao', access: 'OWNER', visibility: 'PRIVATE', publishedAt: null, deletedAt: null, updatedAt: new Date().toISOString(), localOnly: false, titleDirty: false, pendingTrash: null, ...over })
 const doc = (s: string) => ({ doc: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: s }] }] } })
 
@@ -31,8 +33,9 @@ jest.mock('@/features/notes/store/db', () => ({
   excerpts: jest.fn(async () => new Map()),
   unsentNoteIds: jest.fn(async () => mockUnsent),
   outbox: jest.fn(async () => []),
-  subscribe: () => () => {},
+  subscribe: (listener: () => void) => (mockListeners.add(listener), () => mockListeners.delete(listener)),
 }))
+const mockListeners = new Set<() => void>()
 jest.mock('@/features/notes/store/actions', () => ({ trashNote: jest.fn(async () => {}), createNote: jest.fn(async () => 'n-new') }))
 jest.mock('@/features/notes/sync/engine', () => {
   const idle = { state: 'idle', lastSyncedAt: null }
@@ -87,6 +90,20 @@ it('changes still on the phone are sent before anything is published', async () 
   expect(await screen.findByText('Your latest changes are still on this phone. They are being sent; publish again in a moment.')).toBeOnTheScreen()
   expect(syncNow).toHaveBeenCalled()
   expect(api.ops()).not.toContain('PublishNote')
+})
+
+it('a new note asks for its standing again once it has been sent (it was queued before the server had it)', async () => {
+  mockUnsent = new Set([NOTE])
+  let onServer = false
+  const api = mockApi({ PhoneNoteMeta: () => ({ data: { note: onServer ? meta({ kind: 'BLOG' }) : null } }) })
+  await inApollo(<NoteScreen id={NOTE} />)
+  await waitFor(() => expect(api.ops()).toContain('PhoneNoteMeta'))
+  expect(screen.getByLabelText('Status: Note · Private')).toBeOnTheScreen()
+  onServer = true
+  mockUnsent = new Set()
+  await act(async () => changed())
+  expect(await screen.findByLabelText('Status: Blog post · Private · Draft, not published')).toBeOnTheScreen()
+  expect(api.ops().filter((o) => o === 'PhoneNoteMeta')).toHaveLength(2)
 })
 
 it('a note made here and not sent yet says its other actions need a connection; the trash works offline', async () => {

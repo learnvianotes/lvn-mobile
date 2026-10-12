@@ -1,7 +1,7 @@
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { CopyPlus, MoreHorizontal } from 'lucide-react-native'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Alert, Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
@@ -28,6 +28,13 @@ export function useNoteActions(note: LocalNote, onTrash: () => void) {
   const [publish, publishing] = useMutation(PublishNoteDocument)
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  // A new note stops being local-only when it is queued, before the server has it: ask again once it has been sent.
+  const refetch = meta.refetch
+  const wasUnsent = useRef(unsent)
+  useEffect(() => {
+    if (wasUnsent.current && !unsent && !note.localOnly && note.access === 'OWNER') void refetch().catch(() => undefined)
+    wasUnsent.current = unsent
+  }, [unsent, note.localOnly, note.access, refetch])
   const m = meta.data?.note
   const online = (go: () => void) => () => {
     if (note.localOnly || !m) return Alert.alert('This needs a connection', note.localOnly ? 'The note is still only on this phone. It is sent as soon as you are online.' : 'Connect to the internet and try again.')
