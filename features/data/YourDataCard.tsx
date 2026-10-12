@@ -13,7 +13,7 @@ const size = (n: number) => (n < 1024 ** 2 ? `${Math.max(1, Math.round(n / 1024)
 
 /**
  * Your data on the phone (lvn-backend ADR-0018): prepare the archive of everything about you and download it in the
- * browser; importing notes from files happens on the web.
+ * browser; importing notes is the next card (ImportCard).
  */
 export function YourDataCard() {
   const exports = useQuery(MyDataExportsDocument, { fetchPolicy: 'cache-and-network' })

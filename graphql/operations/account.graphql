@@ -1,0 +1,128 @@
+# The account on the phone beyond sign-in (lvn-backend P3n): the terms when they change, study details, a college
+# email to add or replace, data from the old site, and importing notes.
+
+query TermsStatus {
+  termsVersion
+  viewer {
+    id
+    termsAccepted
+  }
+}
+
+mutation AcceptTerms($version: String!) {
+  acceptTerms(input: { version: $version }) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+query PhoneAccountDetails {
+  viewer {
+    id
+    profile {
+      department
+      yearOfStudy
+      showOnProfile
+    }
+    legacyImport {
+      status
+      claimedAt
+      counts {
+        notes
+        completedTopics
+        markedProblems
+        studyDays
+        studyMinutes
+      }
+    }
+  }
+}
+
+mutation UpdateProfile($input: UpdateProfileInput!) {
+  updateProfile(input: $input) {
+    profile {
+      department
+      yearOfStudy
+      showOnProfile
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation SetInstitutionalEmail($email: String!) {
+  setInstitutionalEmail(input: { email: $email }) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation ClaimLegacyData {
+  claimLegacyData {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation DeclineLegacyData {
+  declineLegacyData {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+fragment NoteImportFields on NoteImport {
+  id
+  fileName
+  status
+  progress
+  created
+  notes {
+    id
+    title
+  }
+  skipped {
+    path
+    reason
+  }
+  error
+  createdAt
+  finishedAt
+}
+
+query NoteImports {
+  noteImports {
+    ...NoteImportFields
+  }
+}
+
+mutation ImportNotes($fileId: UUID!) {
+  importNotes(input: { fileId: $fileId }) {
+    noteImport {
+      ...NoteImportFields
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation ConfirmNoteImport($id: UUID!) {
+  confirmNoteImport(input: { noteId: $id }) {
+    noteImport {
+      ...NoteImportFields
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
