@@ -90,8 +90,6 @@ export const copy = {
       PENDING_REVIEW: (email: string) => `Confirmed, waiting for our review: ${email}`,
     } as Record<string, (email: string) => string>,
     enterCode: 'Enter the code',
-    more: 'Study details, your old-site data and document verification are on the website for now.',
-    openWeb: 'Open account on the web',
   },
   errors: {
     generic: 'Something went wrong. Check your connection and try again.',

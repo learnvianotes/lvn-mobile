@@ -1,6 +1,5 @@
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
-import { Link, router } from 'expo-router'
-import * as WebBrowser from 'expo-web-browser'
+import { router } from 'expo-router'
 import { BadgeCheck } from 'lucide-react-native'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
@@ -10,8 +9,9 @@ import { SafeAreaView } from '@/components/ui/safe-area-view'
 import { Text } from '@/components/ui/text'
 import { SignOutDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { signedOut } from '@/lib/auth/session'
-import { env } from '@/lib/env'
+import { ImportCard } from '@/features/data/ImportCard'
 import { YourDataCard } from '@/features/data/YourDataCard'
+import { InstitutionalEmailCard, LegacyDataCard, StudyDetailsCard } from './AccountDetails'
 import { copy } from './copy'
 import { Notice } from './Notice'
 import { forgetPushToken } from '@/features/push/push'
@@ -19,7 +19,10 @@ import { AccountStanding } from '@/features/moderation/Standing'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
 
-/** Phase 1 account screen: who is signed in, verification, the college email, sign-out. */
+/**
+ * The account on the phone: who is signed in, standing, verification, the college email, study details, old-site
+ * data, your data and imports, sign-out (Phase 1, lvn-backend P3n).
+ */
 export function AccountScreen() {
   const { data, loading } = useQuery(ViewerDocument)
   const viewer = data?.viewer
@@ -30,7 +33,10 @@ export function AccountScreen() {
         {viewer ? <AccountStanding userId={viewer.id} /> : null}
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {viewer ? <PeopleLinks viewer={viewer} /> : null}
+        {viewer ? <StudyDetailsCard /> : null}
+        {viewer ? <LegacyDataCard /> : null}
         {viewer ? <YourDataCard /> : null}
+        {viewer ? <ImportCard /> : null}
         <SignOutButton />
       </ScrollView>
     </SafeAreaView>
@@ -40,7 +46,6 @@ export function AccountScreen() {
 function Account({ viewer }: { viewer: ViewerFieldsFragment }) {
   const t = copy.account
   const success = String(useCSSVariable('--color-success') ?? '#15803d')
-  const status = viewer.institutionalEmailStatus
   return (
     <>
       <View className="flex-row items-center gap-4">
@@ -66,27 +71,7 @@ function Account({ viewer }: { viewer: ViewerFieldsFragment }) {
         {viewer.restrictedMinor ? <Notice tone="info">{t.minor}</Notice> : null}
       </View>
 
-      {status && status !== 'NONE' ? (
-        <View className={card}>
-          <Text className="text-base font-semibold" accessibilityRole="header">{t.institution}</Text>
-          <Text className="text-sm">{t.status[status]?.(viewer.institutionalEmail ?? '')}</Text>
-          {viewer.institution ? <Text className="text-muted-foreground text-sm">{viewer.institution.name}</Text> : null}
-          {status === 'CODE_SENT' ? (
-            <Link href="/verify" asChild>
-              <Button size="sm" className="self-start">
-                <Text>{t.enterCode}</Text>
-              </Button>
-            </Link>
-          ) : null}
-        </View>
-      ) : null}
-
-      <View className={card}>
-        <Text className="text-muted-foreground text-sm">{t.more}</Text>
-        <Button variant="outline" className="self-start" onPress={() => void WebBrowser.openBrowserAsync(new URL('/profile', env.EXPO_PUBLIC_WEB_URL).toString())}>
-          <Text>{t.openWeb}</Text>
-        </Button>
-      </View>
+      <InstitutionalEmailCard viewer={viewer} />
     </>
   )
 }

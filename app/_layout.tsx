@@ -12,6 +12,7 @@ import { NotesSync } from '@/features/notes/NotesSync'
 import { createApolloClient } from '@/lib/apollo'
 import { restoreSession, useSession } from '@/lib/auth/session'
 import { startErrorReporting } from '@/lib/observability'
+import { TermsGate } from '@/features/auth/TermsGate'
 import { PushSetup } from '@/features/push/push'
 
 // First, so a crash during start-up is reported too (when this build has a Sentry DSN).
@@ -101,6 +102,7 @@ export default function RootLayout() {
             <PortalHost />
             {signedIn && registered ? <NotesSync /> : null}
             {signedIn && registered ? <PushSetup /> : null}
+            {signedIn && registered ? <TermsGate /> : null}
           </View>
         </ThemeProvider>
       </SafeAreaProvider>

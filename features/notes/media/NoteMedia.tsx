@@ -75,12 +75,12 @@ export function cardTypeFor(mime: string): 'image' | 'video' | 'audio' | 'file' 
 export class UploadError extends Error {}
 
 /**
- * Uploads a file picked on the phone to a note (§8.1): an intent from the API, a PUT straight to storage with exactly
- * the headers it asked for, then the API checks the file. Returns the file id for the card.
+ * Uploads a file picked on the phone (§8.1): an intent from the API, a PUT straight to storage with exactly the headers
+ * it asked for, then the API checks the file. Returns the file id.
  */
-export async function uploadToNote(client: ApolloClient, noteId: string, picked: { uri: string; name: string; mimeType: string; size?: number | null }): Promise<string> {
+export async function uploadFile(client: ApolloClient, picked: { uri: string; name: string; mimeType: string; size?: number | null }, purpose: { purpose: 'ATTACHMENT' | 'IMPORT'; parentId?: string }): Promise<string> {
   const body = await (await fetch(picked.uri)).blob()
-  const res = await client.mutate({ mutation: CreateNoteUploadDocument, variables: { input: { fileName: picked.name || 'file', mimeType: picked.mimeType, sizeBytes: picked.size ?? body.size, purpose: 'ATTACHMENT', parentId: noteId } } })
+  const res = await client.mutate({ mutation: CreateNoteUploadDocument, variables: { input: { fileName: picked.name || 'file', mimeType: picked.mimeType, sizeBytes: picked.size ?? body.size, purpose: purpose.purpose, ...(purpose.parentId ? { parentId: purpose.parentId } : {}) } } })
   const intent = res.data?.createUploadIntent.intent
   if (!intent) throw new UploadError(res.data?.createUploadIntent.userErrors[0]?.message ?? 'The file could not be uploaded.')
   const headers: Record<string, string> = {}
@@ -90,7 +90,13 @@ export async function uploadToNote(client: ApolloClient, noteId: string, picked:
   const done = await client.mutate({ mutation: CompleteNoteUploadDocument, variables: { fileId: intent.fileId } })
   const problem = done.data?.completeUpload.userErrors[0]?.message
   if (problem) throw new UploadError(problem)
-  uploadedHere.set(intent.fileId, picked.uri)
-  listeners.forEach((l) => l())
   return intent.fileId
+}
+
+/** A picture, video, recording or PDF for a note's card; shown from the phone until the server's copy is there. */
+export async function uploadToNote(client: ApolloClient, noteId: string, picked: { uri: string; name: string; mimeType: string; size?: number | null }): Promise<string> {
+  const fileId = await uploadFile(client, picked, { purpose: 'ATTACHMENT', parentId: noteId })
+  uploadedHere.set(fileId, picked.uri)
+  listeners.forEach((l) => l())
+  return fileId
 }
