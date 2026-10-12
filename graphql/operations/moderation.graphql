@@ -1,0 +1,85 @@
+# Moderation on the phone (lvn-backend §15.1, ADR-0037, ADR-0051): reports, appeals, and a group's or a class's queue
+# for its moderators. The platform's queue is on the web.
+
+mutation ReportContent($input: ReportContentInput!) {
+  reportContent(input: $input) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation AppealModeration($input: AppealModerationInput!) {
+  appealModeration(input: $input) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+query ModerationQueue($after: String, $scope: ModerationScopeInput) {
+  moderationQueue(first: 30, after: $after, scope: $scope) {
+    edges {
+      node {
+        entityType
+        entityId
+        scope
+        scopeId
+        openedAt
+        content {
+          entityType
+          id
+          excerpt
+          moderation
+          moderationReason
+          deleted
+          path
+          author {
+            id
+            displayName
+            handle
+          }
+        }
+        note {
+          id
+          title
+          excerpt
+          moderation
+          owner {
+            id
+            displayName
+            handle
+          }
+        }
+        reports {
+          reason
+          details
+          createdAt
+          reporter {
+            id
+            displayName
+          }
+        }
+        appeal {
+          message
+          createdAt
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}
+
+mutation ModerateContent($input: ModerateContentInput!) {
+  moderateContent(input: $input) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}

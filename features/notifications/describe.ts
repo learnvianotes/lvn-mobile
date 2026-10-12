@@ -1,5 +1,7 @@
 import type { NotificationFieldsFragment } from '@/graphql/generated/graphql'
 
+const MODERATED: Record<string, string> = { COMMENT: 'your comment', GROUP_POST: 'your post', CLASSROOM_POST: 'your announcement', DOUBT: 'your doubt', GROUP: 'your group' }
+
 type Described = Pick<NotificationFieldsFragment, 'category' | 'data' | 'actor' | 'note' | 'path'> & { group?: NotificationFieldsFragment['group']; classroom?: NotificationFieldsFragment['classroom'] }
 
 /**
@@ -43,6 +45,16 @@ export function describeNotification(n: Described): string {
       return `${actor} invited you to ${place ?? 'a class'}`
     case 'CLASSROOM_POST':
       return `${actor} posted an announcement in ${place ?? 'a class'}`
+    case 'MODERATION': {
+      // What a moderator decided about the viewer's own content (lvn-backend ADR-0051); the reason is shown with it.
+      const type = typeof data.entityType === 'string' ? data.entityType : ''
+      const thing = MODERATED[type] ?? 'something you posted'
+      const what = type === 'GROUP' ? (place ? `your group ${place}` : thing) : n.note ? `${thing} on “${n.note.title || 'Untitled note'}”` : place ? `${thing} in ${place}` : thing
+      if (data.kind === 'REMOVED') return type === 'GROUP' ? `Moderators removed ${what}.` : `Moderators removed ${what}. Open it to see why.`
+      if (data.kind === 'WARNED') return `Moderators left a warning on ${what}.`
+      if (data.kind === 'RESTORED') return `Moderators put ${what} back.`
+      return `Moderators hid ${what}. Open it to see why.`
+    }
     case 'CONNECTION':
       return data.kind === 'ACCEPTED' ? `${actor} accepted your connection request` : `${actor} wants to connect with you`
     case 'DATA_EXPORT':

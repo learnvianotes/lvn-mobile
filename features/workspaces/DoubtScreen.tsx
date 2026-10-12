@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt, textToDoc } from '@/features/groups/shared'
+import { ContentModeration } from '@/features/moderation/ModerationNotice'
+import { ReportLink } from '@/features/moderation/ReportSheet'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
 import { AnswerDoubtDocument, DoubtDocument, ReopenDoubtDocument, ResolveDoubtDocument } from '@/graphql/generated/graphql'
@@ -44,10 +46,12 @@ export function DoubtScreen({ id }: { id: string }) {
           <View className="bg-card border-border gap-2 rounded-3xl border p-5">
             <View className="flex-row flex-wrap items-center gap-2">
               <StatusChip status={d.status} />
-              <Text className="text-muted-foreground text-xs">
+              <Text className="text-muted-foreground flex-1 text-xs">
                 {d.author.displayName} · {ago(d.createdAt)}
               </Text>
+              <ReportLink icon entityType="DOUBT" entityId={d.id} authorId={d.author.id} />
             </View>
+            <ContentModeration entityType="DOUBT" item={d} onAppealed={() => void refetch()} />
             <Text className="text-2xl font-extrabold" accessibilityRole="header">
               {d.title}
             </Text>

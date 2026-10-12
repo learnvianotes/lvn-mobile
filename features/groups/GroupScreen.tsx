@@ -7,6 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { PostComments } from '@/features/discussion/PostComments'
+import { ContentModeration, ModerationNotice } from '@/features/moderation/ModerationNotice'
+import { ModerationQueue } from '@/features/moderation/ModerationQueue'
+import { ReportLink } from '@/features/moderation/ReportSheet'
 import { ago } from '@/features/notifications/describe'
 import { useLocal } from '@/features/notes/hooks'
 import { RichDoc } from '@/features/notes/render/RichText'
@@ -31,8 +34,8 @@ import type { Doc } from '@/lib/contracts/validation'
 import { Doubts, Ideas, WorkspaceHeader } from '@/features/workspaces/WorkspaceParts'
 import { attempt, ROLE, textToDoc } from './shared'
 
-type Tab = 'posts' | 'ideas' | 'doubts' | 'notes' | 'members' | 'requests'
-const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Doubts', notes: 'Notes', members: 'Members', requests: 'Requests' }
+type Tab = 'posts' | 'ideas' | 'doubts' | 'notes' | 'members' | 'requests' | 'reports'
+const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Doubts', notes: 'Notes', members: 'Members', requests: 'Requests', reports: 'Reports' }
 
 /**
  * One group on the phone (lvn-backend ADR-0045): joining or asking to; for members, posts (write, and pin or delete as a
@@ -67,7 +70,7 @@ export function GroupScreen({ id }: { id: string }) {
   if (!group) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This group is not available.</Text>}</View>
   const member = !!group.viewerRole
   const project = group.type === 'PROJECT'
-  const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : [])] : []
+  const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : []), ...(group.viewerCan.moderate ? (['reports'] as const) : [])] : []
   const Icon = group.privacy === 'PRIVATE' ? Lock : Globe
   return (
     <View className="bg-background flex-1">
@@ -86,12 +89,16 @@ export function GroupScreen({ id }: { id: string }) {
             {group.name}
           </Text>
           {group.description ? <Text className="text-muted-foreground">{group.description}</Text> : null}
+          {group.moderationWarning ? <ModerationNotice entityType="GROUP" entityId={group.id} state="OK" reason={group.moderationWarning} canAppeal={false} /> : null}
           {project ? <WorkspaceHeader group={group} onChanged={() => void refetch()} /> : null}
           <View className="flex-row flex-wrap gap-2">
             {group.viewerCan.join ? <Action label="Join" primary onPress={() => void run(() => join({ variables: { groupId: group.id } }))} /> : null}
             {group.viewerCan.requestJoin && !asking ? <Action label="Ask to join" primary onPress={() => setAsking(true)} /> : null}
             {group.viewerRequestId ? <Action label="Withdraw request" onPress={() => void run(() => withdraw({ variables: { requestId: group.viewerRequestId! } }))} /> : null}
             {group.viewerCan.leave ? <Action label="Leave group" onPress={() => void run(() => leave({ variables: { groupId: group.id } }))} /> : null}
+            <View className="ml-auto self-center">
+              <ReportLink entityType="GROUP" entityId={group.id} authorId={group.owner.id} />
+            </View>
           </View>
           {group.viewerRequestId ? <Text className="text-muted-foreground text-sm">Your request is waiting for an answer.</Text> : null}
           {asking && group.viewerCan.requestJoin ? (
@@ -128,6 +135,7 @@ export function GroupScreen({ id }: { id: string }) {
             {tab === 'notes' ? <Notes group={group} /> : null}
             {tab === 'members' ? <Members group={group} /> : null}
             {tab === 'requests' ? <Requests group={group} onChanged={() => void refetch()} /> : null}
+            {tab === 'reports' ? <ModerationQueue scope={{ scope: 'GROUP', id: group.id }} groupId={group.id} /> : null}
           </>
         ) : (
           <Text className="text-muted-foreground text-center">Posts, notes and members are for members. Join to see them.</Text>
@@ -203,7 +211,9 @@ function Posts({ group }: { group: GroupDetailFragment }) {
                   <Trash2 size={16} color={muted} />
                 </Pressable>
               ) : null}
+              <ReportLink icon entityType="GROUP_POST" entityId={p.id} authorId={p.author.id} />
             </View>
+            <ContentModeration entityType="GROUP_POST" item={p} onAppealed={() => void refetch()} />
             <RichDoc doc={p.body as Doc} />
             <PostComments type="GROUP_POST" id={p.id} count={p.discussion.commentCount} />
           </View>

@@ -7,6 +7,8 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { ReportSheet } from '@/features/moderation/ReportSheet'
+import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
 import {
   BlockUserDocument,
   FollowUserDocument,
@@ -29,7 +31,7 @@ type Kind = keyof typeof KINDS
 
 /**
  * A person's profile on the phone (lvn-backend ADR-0043): who they are, what they made public by kind, and the viewer's
- * buttons — Follow or Following, and a menu to remove a follower, restrict or block — from `relation.viewerCan`.
+ * buttons — Follow or Following, and a menu to remove a follower, restrict, block or report — from `relation.viewerCan`.
  */
 export function ProfileScreen({ handle }: { handle: string }) {
   const insets = useSafeAreaInsets()
@@ -39,6 +41,8 @@ export function ProfileScreen({ handle }: { handle: string }) {
   const [kind, setKind] = useState<Kind>('NOTE')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [reporting, setReporting] = useState(false)
   const [follow] = useMutation(FollowUserDocument)
   const [unfollow] = useMutation(UnfollowUserDocument)
   const [removeFollower] = useMutation(RemoveFollowerDocument)
@@ -93,17 +97,17 @@ export function ProfileScreen({ handle }: { handle: string }) {
   const shown = notes.filter((n) => n.kind === kind)
   const study = [person.profile?.department, person.profile?.yearOfStudy ? YEAR[person.profile.yearOfStudy] : null].filter(Boolean).join(' · ')
 
-  const menu = () => {
-    if (!r) return
-    const options: { text: string; style?: 'destructive' | 'cancel'; onPress?: () => void }[] = []
-    if (r.viewerCan.removeConnection) options.push({ text: 'Remove connection', onPress: () => void act(disconnect) })
-    if (r.viewerCan.removeFollower) options.push({ text: 'Remove follower', onPress: () => void act(removeFollower) })
-    if (r.viewerCan.restrict) options.push({ text: 'Restrict', onPress: () => void act(restrict) })
-    if (r.viewerCan.unrestrict) options.push({ text: 'Unrestrict', onPress: () => void act(unrestrict) })
+  // The menu: Android's native alert holds three buttons, more than that needs a sheet.
+  const menuActions: SheetAction[] = []
+  if (r) {
+    if (r.viewerCan.removeConnection) menuActions.push({ text: 'Remove connection', onPress: () => void act(disconnect) })
+    if (r.viewerCan.removeFollower) menuActions.push({ text: 'Remove follower', onPress: () => void act(removeFollower) })
+    if (r.viewerCan.restrict) menuActions.push({ text: 'Restrict', onPress: () => void act(restrict) })
+    if (r.viewerCan.unrestrict) menuActions.push({ text: 'Unrestrict', onPress: () => void act(unrestrict) })
     if (r.viewerCan.block) {
-      options.push({
+      menuActions.push({
         text: 'Block',
-        style: 'destructive',
+        destructive: true,
         onPress: () =>
           Alert.alert(
             'Block this person?',
@@ -115,9 +119,8 @@ export function ProfileScreen({ handle }: { handle: string }) {
           ),
       })
     }
-    if (r.viewerCan.unblock) options.push({ text: 'Unblock', onPress: () => void act(unblock) })
-    options.push({ text: 'Cancel', style: 'cancel' })
-    Alert.alert(person.displayName, undefined, options)
+    if (r.viewerCan.unblock) menuActions.push({ text: 'Unblock', onPress: () => void act(unblock) })
+    menuActions.push({ text: 'Report', onPress: () => setReporting(true) })
   }
 
   return (
@@ -194,12 +197,14 @@ export function ProfileScreen({ handle }: { handle: string }) {
                   <Text className="font-semibold">Connect</Text>
                 </Pressable>
               ) : null}
-              <Pressable accessibilityRole="button" accessibilityLabel="More options" onPress={menu} className="border-border rounded-full border p-2.5">
+              <Pressable accessibilityRole="button" accessibilityLabel="More options" onPress={() => setMenuOpen(true)} className="border-border rounded-full border p-2.5">
                 <Ellipsis size={18} color={fg} />
               </Pressable>
             </View>
           ) : null}
           {r?.restricted ? <Text className="text-muted-foreground text-center text-xs">Restricted: their comments wait for your approval and they don&apos;t notify you.</Text> : null}
+          {r ? <ActionSheet name="profile-menu" title={person.displayName} actions={menuActions} open={menuOpen} onClose={() => setMenuOpen(false)} /> : null}
+          {r ? <ReportSheet entityType="USER" entityId={person.id} open={reporting} onClose={() => setReporting(false)} /> : null}
           {error ? (
             <Text accessibilityRole="alert" className="text-destructive text-center text-sm">
               {error}

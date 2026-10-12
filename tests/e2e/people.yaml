@@ -1,5 +1,6 @@
-# People on the phone (lvn-backend ADR-0043): Explore finds a person and opens their profile; following needs a verified
-# account, so this new one is told why in the API's words; one's own profile and lists.
+# People on the phone (lvn-backend ADR-0043, ADR-0051): Explore finds a person and opens their profile; following needs
+# a verified account, so this new one is told why in the API's words; anyone signed in can report a person; one's own
+# profile and lists.
 appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
@@ -20,6 +21,15 @@ env:
     timeout: 15000
 - tapOn: "Follow"
 - assertVisible: "Verify your account to follow people."
+- tapOn: "More options"
+- tapOn: "Report"
+- assertVisible: "Report this person"
+- tapOn: "Spam or advertising"
+- tapOn: "Send report"
+- extendedWaitUntil:
+    visible: "Thank you for telling us"
+    timeout: 15000
+- tapOn: "Done"
 - tapOn: "Back"
 - tapOn: "Profile"
 - tapOn: "See your profile"
