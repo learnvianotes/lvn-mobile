@@ -3,6 +3,7 @@
  * Runs the Maestro flows in tests/e2e on an Android emulator (spec §17) — no Expo account or cloud.
  *
  *   node scripts/e2e-android.mjs [development|sandbox|production] [--avd <name>] [--apk <path>] [--flow <file>]
+ *                                [--vm <lvn-backend/infra/local-vm/vm.sh>]
  *
  * 1. Uses a running emulator, or boots --avd (default: $LVN_AVD or lvn_pixel_7) headless and waits for it.
  * 2. Installs the newest x86_64 APK for the variant from dist/ (build one with
@@ -10,6 +11,11 @@
  * 3. Runs `maestro test tests/e2e` against that emulator with APP_ID set to the variant's application id, API_URL
  *    to the variant's API (the flows make accounts through it) and MAILPIT_URL to the mail sink of lvn-backend's
  *    dev services (default http://localhost:58025) for the codes the API mails.
+ *
+ * With --vm (the local environment, lvn-backend ADR-0036), community.yaml runs too: joining and posting need a verified
+ * account, which only the database gives, so the script makes a verified learner and a public group with a post
+ * through the API and the VM's database, and hands them to Maestro as COMMUNITY_EMAIL, COMMUNITY_PASSWORD and
+ * COMMUNITY_GROUP.
  *
  * Maestro's adb client stops listing devices if any device is "offline" (for example a phone whose wireless debugging
  * dropped), so the script refuses to start until offline devices are disconnected.
@@ -79,5 +85,44 @@ const flows = opt('flow') ?? 'tests/e2e'
 const { EXPO_PUBLIC_API_URL: apiUrl } = variantEnv(variant)
 const mailpitUrl = process.env.MAILPIT_URL ?? 'http://localhost:58025'
 const vars = [`APP_ID=${APP_IDS[variant]}`, `API_URL=${apiUrl}`, `MAILPIT_URL=${mailpitUrl}`].flatMap((v) => ['-e', v])
+const vm = opt('vm') ?? process.env.LVN_VM
+if (vm) {
+  const community = await seedCommunity(apiUrl, vm)
+  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`].flatMap((v) => ['-e', v]))
+  console.log(`Community: ${community.email} and the group "${community.group}"`)
+}
 const run = spawnSync(maestroBin, ['--device', emulator, 'test', flows, ...vars, '--format', 'junit', '--output', 'dist/e2e/report.xml', '--test-output-dir', 'dist/e2e'], { cwd: root, stdio: 'inherit' })
 process.exit(run.status ?? 1)
+
+/**
+ * A verified learner for the phone, and a public group someone else owns with a post in it, on the local environment:
+ * accounts through the API, verification through the VM's database (as lvn-backend's lifecycle check does).
+ */
+async function seedCommunity(api, vmScript) {
+  const gql = async (query, variables = {}, token) => {
+    const res = await fetch(api, { method: 'POST', headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify({ query, variables }) })
+    const body = await res.json()
+    if (body.errors?.length) throw new Error(body.errors[0].message)
+    return body.data
+  }
+  const stamp = Date.now()
+  const { termsVersion } = await gql('{ termsVersion }')
+  const account = async (who, displayName) => {
+    const email = `e2e-${who}-${stamp}@example.com`
+    const password = `lvn e2e passphrase ${stamp}`
+    const up = await gql('mutation ($input: SignUpInput!) { signUp(input: $input) { session { accessToken user { id } } userErrors { message } } }', { input: { email, password, displayName, dateOfBirth: '2002-04-10', acceptedTermsVersion: termsVersion } })
+    if (!up.signUp.session) throw new Error(`sign-up failed: ${up.signUp.userErrors[0]?.message}`)
+    return { email, password, id: up.signUp.session.user.id, token: up.signUp.session.accessToken }
+  }
+  const learner = await account('learner', 'Ravi Kumar')
+  const owner = await account('owner', 'Meera Iyer')
+  const sql = `UPDATE users.\\"User\\" SET \\"verifiedAt\\" = now(), \\"verificationMethod\\" = 'INSTITUTIONAL_EMAIL' WHERE id IN ('${learner.id}', '${owner.id}')`
+  const verified = spawnSync(vmScript, ['ssh', `docker exec lvn-local-postgres psql -U lvn -d lvn -c "${sql}"`], { encoding: 'utf8' })
+  if (verified.status !== 0) throw new Error(`verifying the accounts failed: ${verified.stderr}`)
+  const group = `Maestro club ${stamp}`
+  const made = await gql('mutation ($input: CreateGroupInput!) { createGroup(input: $input) { group { id } userErrors { message } } }', { input: { name: group, privacy: 'PUBLIC', joinPolicy: 'OPEN' } }, owner.token)
+  if (!made.createGroup.group) throw new Error(`createGroup failed: ${made.createGroup.userErrors[0]?.message}`)
+  const body = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Welcome to the club' }] }] }
+  await gql('mutation ($input: CreateGroupPostInput!) { createGroupPost(input: $input) { post { id } } }', { input: { groupId: made.createGroup.group.id, body } }, owner.token)
+  return { email: learner.email, password: learner.password, group }
+}

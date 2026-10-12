@@ -1,0 +1,58 @@
+# Community on the phone, end to end (Phase 3 exit; lvn-backend ADR-0045, ADR-0051): a verified learner finds a public
+# group, joins it, posts, and reports the owner's post. Joining and posting need a verified account, which only the
+# database gives: scripts/e2e-android.mjs makes the learner and the group when run with --vm; without it this flow
+# does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof COMMUNITY_EMAIL !== 'undefined' && COMMUNITY_EMAIL !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${COMMUNITY_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${COMMUNITY_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Community"
+      - tapOn: "Groups & classes"
+      - tapOn: "Search public groups"
+      - inputText: ${COMMUNITY_GROUP}
+      - hideKeyboard
+      # The search box holds the same words as the group's name; the card alone says how many are in it.
+      - extendedWaitUntil:
+          visible: "1 member"
+          timeout: 15000
+      - tapOn: "1 member"
+      - tapOn: "Join"
+      - extendedWaitUntil:
+          visible: "Welcome to the club"
+          timeout: 15000
+      - tapOn: "Write a post"
+      - inputText: "Hello from the phone"
+      - hideKeyboard
+      - tapOn: "Post"
+      - extendedWaitUntil:
+          visible: "Hello from the phone"
+          timeout: 15000
+      # One's own post has no flag; the owner's has.
+      - tapOn: "Report this post"
+      - tapOn: "Something else"
+      - tapOn: "Send report"
+      - extendedWaitUntil:
+          visible: "Thank you for telling us"
+          timeout: 15000
+      - tapOn: "Done"
+      - assertVisible: "Hello from the phone"
