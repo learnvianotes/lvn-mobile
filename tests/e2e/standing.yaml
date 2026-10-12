@@ -1,0 +1,40 @@
+# Account standing on the phone, end to end (P3o; lvn-backend ADR-0053): a learner a platform admin suspended reads
+# until when and why on the Profile tab and appeals once. The accounts and the suspension need the database:
+# scripts/e2e-android.mjs makes them when run with --vm; without it this flow does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof SUSPENDED_EMAIL !== 'undefined' && SUSPENDED_EMAIL !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${SUSPENDED_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${SUSPENDED_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Profile"
+      - extendedWaitUntil:
+          visible: "Your account is suspended until.*"
+          timeout: 15000
+      - assertVisible: "Posting the same link everywhere."
+      - tapOn: "Appeal"
+      - tapOn: "Tell the moderators why"
+      - inputText: "It was a class announcement."
+      - hideKeyboard
+      - tapOn: "Send appeal"
+      - extendedWaitUntil:
+          visible: "You have used your one appeal."
+          timeout: 15000
