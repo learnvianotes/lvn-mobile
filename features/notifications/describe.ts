@@ -25,6 +25,12 @@ export function describeNotification(n: Described): string {
     case 'JOIN_DECISION':
       if (!place && n.path.startsWith('/classes/')) return data.decision === 'APPROVED' ? "You're in: your request to join a class was accepted" : "Your request to join a class wasn't accepted"
       return data.decision === 'APPROVED' ? `You're in: ${place ?? 'a group'} accepted your request` : `${place ?? 'A group'} didn't accept your request`
+    case 'COMMENT': {
+      const reply = data.kind === 'REPLY'
+      if (n.note) return reply ? `${actor} replied to your comment on “${n.note.title || 'Untitled note'}”` : `${actor} commented on “${n.note.title || 'Untitled note'}”`
+      if (place) return reply ? `${actor} replied to your comment in ${place}` : `${actor} commented in ${place}`
+      return `${actor} commented on something you can no longer open`
+    }
     case 'CLASSROOM_INVITE':
       return `${actor} invited you to ${place ?? 'a class'}`
     case 'CLASSROOM_POST':

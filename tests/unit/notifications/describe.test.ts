@@ -20,6 +20,14 @@ describe('notification sentences (lvn-backend ADR-0042)', () => {
     expect(say({ category: 'NOTES_IMPORT', data: { created: 1, skipped: 0, failed: 0 } })).toBe('Your import is done: 1 note added')
   })
 
+  it('match the web for comments and replies (lvn-backend ADR-0047)', () => {
+    const note = { id: 'n1', title: 'Heaps' }
+    expect(say({ category: 'COMMENT', actor: meera, note, data: { kind: 'COMMENT' } })).toBe('Meera Iyer commented on “Heaps”')
+    expect(say({ category: 'COMMENT', actor: meera, note, data: { kind: 'REPLY' } })).toBe('Meera Iyer replied to your comment on “Heaps”')
+    expect(say({ category: 'COMMENT', path: '/groups/g1', actor: meera, group: { id: 'g1', name: 'Algorithms study' }, data: { kind: 'COMMENT' } })).toBe('Meera Iyer commented in Algorithms study')
+    expect(say({ category: 'COMMENT', actor: meera, data: { kind: 'COMMENT' } })).toBe('Meera Iyer commented on something you can no longer open')
+  })
+
   it('match the web for classes (lvn-backend ADR-0046)', () => {
     const c = { id: 'c1', name: 'Physics 9A' }
     const path = '/classes/c1'

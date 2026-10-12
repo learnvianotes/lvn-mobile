@@ -19,6 +19,7 @@ import * as actions from './store/actions'
 import * as db from './store/db'
 import { syncSoon } from './sync/engine'
 import { readerPath } from '@/features/reader/paths'
+import { Discussion } from '@/features/discussion/Discussion'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -199,6 +200,8 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
             <Text className="text-primary font-semibold">Add a card</Text>
           </Pressable>
         )}
+        {/* What readers said about the published note (lvn-backend ADR-0047); notes made on the phone have none yet. */}
+        {note.publishedAt && !note.localOnly ? <Discussion target={{ type: 'NOTE', id: note.id }} /> : null}
       </ScrollView>
     </KeyboardAvoidingView>
   )
@@ -230,6 +233,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
             <CardView type={c.type} content={c.content} highlighted={reader.current === c.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: c.id }))} />
           </Pressable>
         ))}
+        {note.deletedAt ? null : <Discussion target={{ type: 'NOTE', id: note.id }} />}
       </ScrollView>
     </View>
   )

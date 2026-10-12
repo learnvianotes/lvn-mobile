@@ -19,7 +19,7 @@ const can = (over: Record<string, boolean> = {}) => ({ __typename: 'ClassroomAct
 const classroom = (over: Record<string, unknown> = {}) => ({ __typename: 'Classroom', id: CLASS, name: 'Physics 9A', description: null, memberCount: 31, viewerRole: null, teacher: teacherRef, createdAt: '2026-10-01T10:00:00.000Z', joinCode: null, viewerRequestId: null, viewerInviteId: null, viewerCan: can(), ...over })
 const asTeacher = () => classroom({ viewerRole: 'TEACHER', joinCode: 'K7PQ2MXA', viewerCan: can({ review: true, post: true, manage: true }) })
 const doc = (s: string) => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: s }] }] })
-const post = (id: string, text: string, over: Record<string, unknown> = {}) => ({ __typename: 'ClassroomPost', id, body: doc(text), createdAt: new Date().toISOString(), viewerCanDelete: false, author: { __typename: 'User', id: 't1', displayName: 'Meera Iyer', handle: 'meera' }, ...over })
+const post = (id: string, text: string, over: Record<string, unknown> = {}) => ({ __typename: 'ClassroomPost', id, body: doc(text), createdAt: new Date().toISOString(), viewerCanDelete: false, author: { __typename: 'User', id: 't1', displayName: 'Meera Iyer', handle: 'meera' }, discussion: { __typename: 'Discussion', commentCount: 0 }, ...over })
 const posts = (nodes: unknown[]) => ({ data: { classroom: { __typename: 'Classroom', id: CLASS, posts: { __typename: 'ClassroomPostConnection', edges: nodes.map((node) => ({ __typename: 'ClassroomPostEdge', node })), pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } } } } })
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 
