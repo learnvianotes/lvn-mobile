@@ -2,14 +2,13 @@ import { ApolloProvider } from '@apollo/client/react'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native'
 import { router } from 'expo-router'
 import { Alert } from 'react-native'
-import { ExploreScreen } from '@/features/explore/ExploreScreen'
 import { PeopleScreen } from '@/features/people/PeopleScreen'
 import { ProfileScreen } from '@/features/people/ProfileScreen'
 import { createApolloClient } from '@/lib/apollo'
 import { mockApi } from '../../support/api'
 import { renderInApp } from '../../support/render'
 
-/** People on the phone (lvn-backend ADR-0043): profiles, follow and block, the viewer's lists, people in search. */
+/** People on the phone (lvn-backend ADR-0043): profiles, follow and block, the viewer's lists (search: explore.test). */
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }))
 
 const MEERA = '01920000-0000-7000-8000-0000000000e1'
@@ -120,16 +119,6 @@ it('lists followers, counting young learners without naming them, and removes on
   await fireEvent.press(screen.getByLabelText('Remove Meera Iyer'))
   await waitFor(() => expect(api.ops()).toContain('RemoveFollower'))
   expect(await screen.findByText('Followers 1')).toBeOnTheScreen()
-})
-
-it('Explore finds people and opens their profile', async () => {
-  mockApi({
-    SearchNotes: () => ({ data: { search: { __typename: 'SearchResults', notes: [], topics: [], people: [{ __typename: 'User', id: MEERA, handle: 'meera', displayName: 'Meera Iyer', globalRole: 'TEACHER' }] } } }),
-  })
-  await inApollo(<ExploreScreen />)
-  await fireEvent.changeText(screen.getByLabelText('Search notes, people and topics'), 'meera')
-  await fireEvent.press(await screen.findByLabelText('Meera Iyer, @meera'))
-  expect(router.push).toHaveBeenCalledWith('/u/meera')
 })
 
 it('a teacher’s Skills tab, and connecting: Connect, then Requested', async () => {
