@@ -34,7 +34,7 @@ export function AccountScreen() {
         {viewer ? <AccountStanding userId={viewer.id} /> : null}
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
-        {viewer && !viewer.verified && viewer.emailVerified ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
+        {viewer && !viewer.verified ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
         {viewer?.globalRole === 'TEACHER' && viewer.verified ? <ReviewRequests /> : null}
         {viewer ? <PeopleLinks viewer={viewer} /> : null}
         {viewer ? <StudyDetailsCard /> : null}
