@@ -1,5 +1,3 @@
-import { ComingSoon } from '@/features/shell/ComingSoon'
+import { CommunityScreen } from '@/features/groups/CommunityScreen'
 
-export default function Screen() {
-  return <ComingSoon title="Community" phase="Phase 3" />
-}
+export default CommunityScreen
