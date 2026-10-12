@@ -91,3 +91,10 @@ it('tells a person about their own account: a warning, a suspension, and a suspe
   expect(say({ category: 'MODERATION', path, data: { kind: 'SUSPENDED', entityType: 'USER' } })).toBe('Moderators suspended your account. Open your account to see until when and why.')
   expect(say({ category: 'MODERATION', path, data: { kind: 'RESTORED', entityType: 'USER' } })).toBe('Your account’s suspension has ended early.')
 })
+
+it('says who mentioned the viewer and where, never what they wrote (lvn-backend ADR-0054)', () => {
+  const meera = { __typename: 'User', id: 'u1', displayName: 'Meera Iyer' }
+  expect(say({ category: 'MENTION', actor: meera, note: { id: 'n1', title: 'Heaps' }, data: { entityType: 'COMMENT' } } as never)).toBe('Meera Iyer mentioned you in a comment on “Heaps”')
+  expect(say({ category: 'MENTION', actor: meera, group: { id: 'g1', name: 'Heaps club' }, path: '/groups/g1', data: { entityType: 'GROUP_POST' } } as never)).toBe('Meera Iyer mentioned you in a post in Heaps club')
+  expect(say({ category: 'MENTION', actor: meera, path: '/groups/g1', data: { entityType: 'GROUP_POST' } } as never)).toBe('Meera Iyer mentioned you somewhere you can no longer open')
+})

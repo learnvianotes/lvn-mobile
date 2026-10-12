@@ -229,7 +229,7 @@ function Posts({ group }: { group: GroupDetailFragment }) {
               <ReportLink icon entityType="GROUP_POST" entityId={p.id} authorId={p.author.id} />
             </View>
             <ContentModeration entityType="GROUP_POST" item={p} onAppealed={() => void refetch()} />
-            <RichDoc doc={p.body as Doc} />
+            <RichDoc doc={p.body as Doc} mentions />
             <PostComments type="GROUP_POST" id={p.id} count={p.discussion.commentCount} />
           </View>
         ))

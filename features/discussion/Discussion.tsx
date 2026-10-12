@@ -88,9 +88,12 @@ export function Discussion({ target, compact }: { target: { type: CommentTargetT
             maxLength={5000}
             className="border-border text-foreground min-h-12 rounded-xl border px-3 py-2"
           />
-          <Pressable accessibilityRole="button" disabled={!text.trim()} onPress={() => void send()} className={`self-end rounded-full px-4 py-2 ${text.trim() ? 'bg-primary' : 'bg-muted'}`}>
-            <Text className="text-primary-foreground font-semibold">{replyTo ? 'Reply' : 'Comment'}</Text>
-          </Pressable>
+          <View className="flex-row items-center justify-between gap-2">
+            <Text className="text-muted-foreground flex-1 text-xs">Type @ and someone’s handle to mention them.</Text>
+            <Pressable accessibilityRole="button" disabled={!text.trim()} onPress={() => void send()} className={`rounded-full px-4 py-2 ${text.trim() ? 'bg-primary' : 'bg-muted'}`}>
+              <Text className="text-primary-foreground font-semibold">{replyTo ? 'Reply' : 'Comment'}</Text>
+            </Pressable>
+          </View>
         </View>
       ) : d.whyNot ? (
         <Text className="text-muted-foreground text-sm">{d.whyNot}</Text>
@@ -153,7 +156,7 @@ function CommentView({ comment: c, onChanged, onReply }: { comment: CommentField
           </View>
         </View>
       ) : (
-        <RichDoc doc={c.body as Doc} />
+        <RichDoc doc={c.body as Doc} mentions />
       )}
       <View className="flex-row flex-wrap items-center gap-3">
         <ReactionBar target={{ type: 'COMMENT', id: c.id }} reactions={c.reactions} disabled={c.pendingApproval} onChanged={onChanged} />

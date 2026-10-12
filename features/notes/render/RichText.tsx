@@ -1,3 +1,5 @@
+import { router } from 'expo-router'
+import type { ReactNode } from 'react'
 import { Linking, View, type TextStyle } from 'react-native'
 import { Text } from '@/components/ui/text'
 import type { BlockNode, Doc, Inline, Mark } from '@/lib/contracts/validation'
@@ -19,15 +21,38 @@ const markStyle = (marks: readonly Mark[] | undefined): TextStyle => {
   return s
 }
 
-export function InlineText({ content, className }: { content: Inline | undefined; className?: string }) {
+/** Comments and posts link `@handle` to the person's profile (lvn-backend ADR-0054); note content does not. */
+const MENTION = /(^|[^A-Za-z0-9@.])@([A-Za-z0-9]{3,40})\b/g
+
+function withMentions(text: string, key: number): ReactNode {
+  const parts: ReactNode[] = []
+  let last = 0
+  for (const m of text.matchAll(MENTION)) {
+    const at = m.index! + m[1]!.length
+    parts.push(text.slice(last, at))
+    const handle = m[2]!.toLowerCase()
+    parts.push(
+      <Text key={`${key}-${at}`} accessibilityRole="link" className="text-primary font-semibold" onPress={() => router.push(`/u/${handle}`)}>
+        @{m[2]}
+      </Text>,
+    )
+    last = at + 1 + m[2]!.length
+  }
+  if (!parts.length) return text
+  parts.push(text.slice(last))
+  return parts
+}
+
+export function InlineText({ content, className, mentions = false }: { content: Inline | undefined; className?: string; mentions?: boolean }) {
   return (
     <Text className={className}>
       {(content ?? []).map((n, i) => {
         if (n.type === 'hardBreak') return '\n'
         const link = n.marks?.find((m) => m.type === 'link') as { attrs?: { href?: string } } | undefined
+        const plain = mentions && !link && !n.marks?.some((m) => m.type === 'code')
         return (
           <Text key={i} style={markStyle(n.marks)} className={link ? 'text-primary underline' : undefined} onPress={link?.attrs?.href ? () => void Linking.openURL(link.attrs!.href!) : undefined}>
-            {n.text}
+            {plain ? withMentions(n.text, i) : n.text}
           </Text>
         )
       })}
@@ -35,8 +60,8 @@ export function InlineText({ content, className }: { content: Inline | undefined
   )
 }
 
-function Block({ node, depth }: { node: BlockNode; depth: number }) {
-  if (node.type === 'paragraph') return <InlineText content={node.content} className="text-base leading-6" />
+function Block({ node, depth, mentions }: { node: BlockNode; depth: number; mentions: boolean }) {
+  if (node.type === 'paragraph') return <InlineText content={node.content} className="text-base leading-6" mentions={mentions} />
   const ordered = node.type === 'orderedList'
   return (
     <View className="gap-1" style={{ paddingLeft: depth ? 16 : 4 }}>
@@ -45,7 +70,7 @@ function Block({ node, depth }: { node: BlockNode; depth: number }) {
           <Text className="text-muted-foreground w-5 text-base leading-6">{ordered ? `${i + 1}.` : '•'}</Text>
           <View className="flex-1 gap-1">
             {item.content.map((b, j) => (
-              <Block key={j} node={b} depth={depth + 1} />
+              <Block key={j} node={b} depth={depth + 1} mentions={mentions} />
             ))}
           </View>
         </View>
@@ -54,11 +79,11 @@ function Block({ node, depth }: { node: BlockNode; depth: number }) {
   )
 }
 
-export function RichDoc({ doc }: { doc: Doc | undefined }) {
+export function RichDoc({ doc, mentions = false }: { doc: Doc | undefined; mentions?: boolean }) {
   return (
     <View className="gap-2">
       {(doc?.content ?? []).map((b, i) => (
-        <Block key={i} node={b} depth={0} />
+        <Block key={i} node={b} depth={0} mentions={mentions} />
       ))}
     </View>
   )

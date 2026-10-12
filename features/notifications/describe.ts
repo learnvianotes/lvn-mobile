@@ -45,6 +45,13 @@ export function describeNotification(n: Described): string {
       return `${actor} invited you to ${place ?? 'a class'}`
     case 'CLASSROOM_POST':
       return `${actor} posted an announcement in ${place ?? 'a class'}`
+    case 'MENTION': {
+      // Someone named the viewer with @handle (lvn-backend ADR-0054); where, never what they wrote.
+      const thing = data.entityType === 'GROUP_POST' ? 'a post' : 'a comment'
+      if (n.note) return `${actor} mentioned you in a comment on “${n.note.title || 'Untitled note'}”`
+      if (place) return `${actor} mentioned you in ${thing} in ${place}`
+      return `${actor} mentioned you somewhere you can no longer open`
+    }
     case 'MODERATION': {
       // What a moderator decided about the viewer's own content (lvn-backend ADR-0051); the reason is shown with it.
       const type = typeof data.entityType === 'string' ? data.entityType : ''

@@ -192,7 +192,7 @@ export function Ideas({ group }: { group: GroupDetailFragment }) {
               <ReportLink icon entityType="GROUP_POST" entityId={idea.id} authorId={idea.author.id} />
             </View>
             <ContentModeration entityType="GROUP_POST" item={idea} onAppealed={() => void refetch()} />
-            <RichDoc doc={idea.body as Doc} />
+            <RichDoc doc={idea.body as Doc} mentions />
             <PostComments type="GROUP_POST" id={idea.id} count={idea.discussion.commentCount} />
           </View>
         ))
