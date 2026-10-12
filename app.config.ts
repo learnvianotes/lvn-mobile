@@ -81,6 +81,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // Development builds talk to the API on the dev machine over plain HTTP (env/development.env); Android blocks
       // that unless allowed. Sandbox and production use HTTPS only.
       ['expo-build-properties', { android: { usesCleartextTraffic: current === 'development' } }],
+      // Pictures and files added to notes (lvn-backend P3m): the photo library and the camera, asked when first used.
+      ['expo-image-picker', { photosPermission: 'LearnViaNotes adds the photos you choose to your notes.', cameraPermission: 'LearnViaNotes takes photos for your notes.', microphonePermission: false }],
+      // Video and audio cards play in the note; nothing is recorded, so no microphone permission.
+      ['expo-video', { supportsPictureInPicture: false }],
+      ['expo-audio', { microphonePermission: false }],
       [
         'expo-splash-screen',
         {

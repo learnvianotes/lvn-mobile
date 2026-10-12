@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text'
 import type { CardType } from '@/lib/contracts/domain/enums'
 import { cardAnchor, type CardAnchor, type Doc, type Inline } from '@/lib/contracts/validation'
 import { cn } from '@/lib/utils'
+import { MediaView } from './MediaView'
 import { InlineText, RichDoc } from './RichText'
 
 /** One card, read-only and native (lvn-backend §4.1; the web's render/CardView). Unknown types are skipped. */
@@ -88,11 +89,11 @@ export function CardView({ type, content, highlighted, onOpenFile, onAnchor }: {
       case 'flashcard':
         return <Flashcard content={c} />
       case 'file':
-        return onOpenFile && c.fileId ? <ReadFile onPress={() => onOpenFile(String(c.fileId))} /> : <Media type={type} />
+        return onOpenFile && c.fileId ? <ReadFile onPress={() => onOpenFile(String(c.fileId))} /> : <MediaView type="file" content={c} />
       case 'image':
       case 'video':
       case 'audio':
-        return <Media type={type} />
+        return <MediaView type={type} content={c} />
       default:
         return null
     }
@@ -185,17 +186,6 @@ function Flashcard({ content }: { content: { front: Doc; back: Doc } }) {
       <RichDoc doc={back ? content.back : content.front} />
       <Text className="text-muted-foreground text-xs">{back ? 'Tap to see the front' : 'Tap to see the back'}</Text>
     </Pressable>
-  )
-}
-
-function Media({ type }: { type: CardType }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const label = { image: 'A picture', video: 'A video', audio: 'A recording', file: 'A file' }[type as 'image']
-  return (
-    <View className="border-border flex-row items-center gap-2 rounded-2xl border border-dashed p-4">
-      <ImageIcon size={18} color={muted} />
-      <Text className="text-muted-foreground flex-1 text-sm">{label} — open the note on the web to see it.</Text>
-    </View>
   )
 }
 

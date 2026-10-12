@@ -7,13 +7,16 @@ import { inlineText } from '@/lib/contracts/validation'
 import { cn } from '@/lib/utils'
 import { newId } from '../model/ids'
 import type { LocalCard } from '../model/types'
+import { MediaView } from '../render/MediaView'
 import RichTextEditor from './RichTextEditor'
+import { FlashcardEditor, MediaDetailsEditor, QuestionEditor, QuizEditor, SourceEditor, TableEditor } from './StructuredEditors'
 
 /**
- * Editing one card on the phone. Rich text (text, quote, callout) uses the DOM editor; headings, code and checklists
- * are native fields. Other card types are edited on the web for now; the phone shows them as they read.
+ * Editing one card on the phone. Rich text (text, quote, callout) uses the DOM editor; headings, code, checklists and
+ * the structured cards (tables, questions, quizzes, flashcards, diagrams, Markdown) are native fields, and media cards
+ * take a description and a caption (lvn-backend P3m). Every card type is edited here.
  */
-export const PHONE_EDITABLE = new Set(['text', 'heading', 'quote', 'callout', 'checklist', 'code'])
+export const PHONE_EDITABLE = new Set(['text', 'heading', 'quote', 'callout', 'checklist', 'code', 'table', 'question', 'quiz', 'flashcard', 'diagram', 'markdown', 'image', 'video', 'audio', 'file'])
 
 const toInline = (s: string): Inline => (s ? [{ type: 'text', text: s }] : [])
 
@@ -96,6 +99,28 @@ export function CardEditor({ card, onChange }: { card: LocalCard; onChange: (con
         </View>
       )
     }
+    case 'table':
+      return <TableEditor content={c} onChange={onChange} theme={theme} />
+    case 'question':
+      return <QuestionEditor content={c} onChange={onChange} theme={theme} />
+    case 'quiz':
+      return <QuizEditor content={c} onChange={onChange} theme={theme} />
+    case 'flashcard':
+      return <FlashcardEditor content={c} onChange={onChange} theme={theme} />
+    case 'diagram':
+      return <SourceEditor label="Mermaid diagram" content={c} onChange={(next) => onChange({ ...c, ...next })} theme={theme} caption />
+    case 'markdown':
+      return <SourceEditor label="Markdown" content={c} onChange={(next) => onChange({ ...c, ...next })} theme={theme} />
+    case 'image':
+    case 'video':
+    case 'audio':
+    case 'file':
+      return (
+        <View className="gap-2">
+          <MediaView type={card.type} content={c} />
+          <MediaDetailsEditor image={card.type === 'image'} content={c} onChange={onChange} theme={theme} />
+        </View>
+      )
     default:
       return null
   }

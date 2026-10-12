@@ -3,9 +3,10 @@
  * Runs the Maestro flows in tests/e2e on an Android emulator (spec §17) — no Expo account or cloud.
  *
  *   node scripts/e2e-android.mjs [development|sandbox|production] [--avd <name>] [--apk <path>] [--flow <file>]
- *                                [--vm <lvn-backend/infra/local-vm/vm.sh>]
+ *                                [--device <serial>] [--vm <lvn-backend/infra/local-vm/vm.sh>]
  *
- * 1. Uses a running emulator, or boots --avd (default: $LVN_AVD or lvn_pixel_7) headless and waits for it.
+ * 1. Uses --device, or the running emulator of --avd (default: $LVN_AVD or lvn_pixel_7; other projects may run
+ *    emulators of their own), or boots that AVD headless and waits for it.
  * 2. Installs the newest x86_64 APK for the variant from dist/ (build one with
  *    `pnpm build:android <variant> --abi x86_64`), or --apk.
  * 3. Runs `maestro test tests/e2e` against that emulator with APP_ID set to the variant's application id, API_URL
@@ -53,15 +54,17 @@ if (offline.length) {
   process.exit(1)
 }
 
-let emulator = devices().find(([serial]) => serial.startsWith('emulator-'))?.[0]
+// Other projects may run emulators on this machine too: use --device, else the emulator running our AVD.
+const avd = opt('avd') ?? process.env.LVN_AVD ?? 'lvn_pixel_7'
+const avdOf = (serial) => adb('-s', serial, 'emu', 'avd', 'name').stdout.split('\n')[0]?.trim()
+let emulator = opt('device') ?? devices().find(([serial]) => serial.startsWith('emulator-') && avdOf(serial) === avd)?.[0]
 if (!emulator) {
-  const avd = opt('avd') ?? process.env.LVN_AVD ?? 'lvn_pixel_7'
   console.log(`Booting ${avd} headless…`)
   const child = spawn(path.join(sdk, 'emulator/emulator'), ['-avd', avd, '-no-window', '-no-audio', '-no-boot-anim', '-gpu', 'swiftshader_indirect', '-no-snapshot-save'], { detached: true, stdio: 'ignore' })
   child.unref()
   for (let i = 0; i < 120 && !emulator; i++) {
     await sleep(2000)
-    const serial = devices().find(([s, st]) => s.startsWith('emulator-') && st === 'device')?.[0]
+    const serial = devices().find(([s, st]) => s.startsWith('emulator-') && st === 'device' && avdOf(s) === avd)?.[0]
     if (serial && adb('-s', serial, 'shell', 'getprop', 'sys.boot_completed').stdout.trim() === '1') emulator = serial
   }
   if (!emulator) throw new Error(`${avd} did not boot within 4 minutes`)

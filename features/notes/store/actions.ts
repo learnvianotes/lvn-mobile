@@ -29,6 +29,20 @@ export function emptyContent(type: CardType): unknown {
       return { doc: { type: 'doc', content: [] } }
     case 'callout':
       return { variant: 'note', doc: { type: 'doc', content: [] } }
+    case 'table':
+      return { hasHeaderRow: true, rows: [[[], []], [[], []]] }
+    case 'question':
+      return { prompt: { type: 'doc', content: [] }, answer: { type: 'doc', content: [] } }
+    case 'quiz': {
+      const a = newId()
+      return { question: { type: 'doc', content: [] }, choices: [{ id: a, content: [] }, { id: newId(), content: [] }], correct: [a], multiple: false }
+    }
+    case 'flashcard':
+      return { front: { type: 'doc', content: [] }, back: { type: 'doc', content: [] } }
+    case 'diagram':
+      return { syntax: 'mermaid', source: 'flowchart LR\n  A --> B' }
+    case 'markdown':
+      return { source: '' }
     default:
       return { doc: { type: 'doc', content: [] } }
   }
@@ -61,13 +75,13 @@ export async function saveCard(card: LocalCard, content: unknown): Promise<void>
   await touch(card.noteId)
 }
 
-/** A new card after `after` (or at the end); returns it. */
-export async function addCard(noteId: string, type: CardType, after: LocalCard | null): Promise<LocalCard> {
+/** A new card after `after` (or at the end), empty unless its content is given; returns it. */
+export async function addCard(noteId: string, type: CardType, after: LocalCard | null, content?: unknown): Promise<LocalCard> {
   const cards = await db.getCards(noteId)
   const index = after ? cards.findIndex((c) => c.id === after.id) : cards.length - 1
   const prev = index >= 0 ? cards[index]! : null
   const next = cards[index + 1] ?? null
-  const card: LocalCard = { id: newId(), noteId, type, position: positionBetween(prev?.position ?? null, next?.position ?? null), revision: null, content: emptyContent(type), dirty: true, deleted: false }
+  const card: LocalCard = { id: newId(), noteId, type, position: positionBetween(prev?.position ?? null, next?.position ?? null), revision: null, content: content ?? emptyContent(type), dirty: true, deleted: false }
   await db.putCards([card])
   await touch(noteId)
   return card

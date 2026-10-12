@@ -1,0 +1,61 @@
+# Pictures, video, audio and files in notes on the phone (lvn-backend §8.1, ADR-0041): short-lived read URLs per card,
+# and uploads straight to storage with a pre-signed PUT.
+
+fragment PhoneMediaFields on MediaFile {
+  id
+  url
+  expiresAt
+  mimeType
+  fileName
+  sizeBytes
+  width
+  height
+  durationMs
+  thumbUrl
+  mediumUrl
+  largeUrl
+  posterUrl
+  playbackUrl
+}
+
+query PhoneNoteMedia($id: UUID!) {
+  note(id: $id) {
+    id
+    cards(first: 200) {
+      edges {
+        node {
+          id
+          content
+          media {
+            ...PhoneMediaFields
+          }
+        }
+      }
+    }
+  }
+}
+
+mutation CreateNoteUpload($input: CreateUploadIntentInput!) {
+  createUploadIntent(input: $input) {
+    intent {
+      fileId
+      uploadUrl
+      uploadHeaders {
+        name
+        value
+      }
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation CompleteNoteUpload($fileId: UUID!) {
+  completeUpload(fileId: $fileId) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}

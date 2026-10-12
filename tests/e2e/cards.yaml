@@ -1,0 +1,43 @@
+# Structured cards on the phone, end to end (P3m): a quiz and a table written on the phone reach the server as the
+# web would write them.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Notes"
+- tapOn: "New note"
+- tapOn: "Title"
+- inputText: "Plants"
+- hideKeyboard
+# The first card opens in the rich-text editor; close it.
+- tapOn: "Done"
+- tapOn: "Add a card"
+- tapOn: "Quiz"
+- tapOn: "Question"
+- inputText: "Which part makes food?"
+- tapOn: "Choice 1"
+- inputText: "Roots"
+- tapOn: "Choice 2"
+- inputText: "Leaves"
+- hideKeyboard
+- tapOn: "Choice 2 is right"
+- tapOn: "Done"
+- tapOn: "Add a card"
+- tapOn: "Table"
+- tapOn: "Row 1, column 1"
+- inputText: "Plant"
+- hideKeyboard
+- tapOn: "Done"
+- extendedWaitUntil:
+    visible: "Saved"
+    timeout: 20000
+# The quiz reads as a quiz: pick an answer and check it.
+- tapOn: "Leaves"
+- tapOn: "Check"
+- assertVisible: "Correct!"
+- runScript:
+    file: scripts/server-notes.js
+    env:
+      TOKEN: ${output.token}
+- assertTrue: ${output.cards.indexOf('Which part makes food?') >= 0 && output.cards.indexOf('Leaves') >= 0 && output.cards.indexOf('"Plant"') >= 0}

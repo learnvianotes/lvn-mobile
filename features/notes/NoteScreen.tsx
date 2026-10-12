@@ -21,6 +21,8 @@ import { syncSoon } from './sync/engine'
 import { readerPath } from '@/features/reader/paths'
 import { Discussion } from '@/features/discussion/Discussion'
 import { NoteCredits } from '@/features/workspaces/Credits'
+import { cardTypeFor, MediaProvider, UploadError, uploadToNote } from './media/NoteMedia'
+import { pickMedia, type MediaSource } from './media/pickMedia'
 import { MakeCopyButton, NoteStatus, useNoteActions } from './publishing/NoteActions'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
@@ -30,6 +32,18 @@ const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'code', label: 'Code' },
   { type: 'quote', label: 'Quote' },
   { type: 'callout', label: 'Callout' },
+  { type: 'table', label: 'Table' },
+  { type: 'question', label: 'Question' },
+  { type: 'quiz', label: 'Quiz' },
+  { type: 'flashcard', label: 'Flashcard' },
+  { type: 'diagram', label: 'Diagram' },
+  { type: 'markdown', label: 'Markdown' },
+]
+/** Media come from the phone's photos, its camera or its files, and are uploaded at once (lvn-backend §8.1). */
+const NEW_MEDIA: { source: MediaSource; label: string }[] = [
+  { source: 'library', label: 'Picture or video' },
+  { source: 'camera', label: 'Photo' },
+  { source: 'files', label: 'File' },
 ]
 
 /** A note on the phone: the editor for its owner and editors, the reader for others, offline either way (§13.2). */
@@ -38,7 +52,12 @@ export function NoteScreen({ id }: { id: string }) {
   const cards = useLocal(() => db.getCards(id), [id])
   if (note === undefined || cards === undefined) return <Loading />
   if (note === null) return <RemoteNote id={id} />
-  return note.access === 'READER' || note.deletedAt ? <Reader note={note} cards={cards} /> : <Editor note={note} cards={cards} />
+  // Media URLs are asked for again whenever a card is added or sent (its revision changes).
+  return (
+    <MediaProvider noteId={note.id} cardIds={cards.map((c) => `${c.id}:${c.revision ?? 'new'}`).join()}>
+      {note.access === 'READER' || note.deletedAt ? <Reader note={note} cards={cards} /> : <Editor note={note} cards={cards} />}
+    </MediaProvider>
+  )
 }
 
 function Loading() {
@@ -120,6 +139,29 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
     setSelected(card.id)
     changed()
   }
+  // A picture, video, recording or PDF goes to storage at once; its card then holds the file's id (§8.1).
+  const [uploading, setUploading] = useState(false)
+  const addMedia = async (source: MediaSource) => {
+    setAdding(false)
+    if (note.localOnly) return Alert.alert('Not sent yet', 'The note is still only on this phone. Once it has been sent, add pictures and files to it.')
+    const picked = await pickMedia(source)
+    if (picked === 'denied') return Alert.alert('No camera', 'Allow LearnViaNotes to use the camera in the phone’s settings to take photos for notes.')
+    if (!picked) return
+    const type = cardTypeFor(picked.mimeType)
+    if (!type) return Alert.alert('Not for notes', 'Notes take pictures, videos, recordings and PDFs.')
+    setUploading(true)
+    try {
+      const fileId = await uploadToNote(client, note.id, picked)
+      const after = cards.find((c) => c.id === selected) ?? cards.at(-1) ?? null
+      const card = await actions.addCard(note.id, type, after, type === 'image' ? { fileId, alt: '' } : { fileId })
+      setSelected(card.id)
+      changed()
+    } catch (e) {
+      Alert.alert('Not uploaded', e instanceof UploadError ? e.message : 'The file could not be uploaded. Check the connection and try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
   const trash = () =>
     Alert.alert('Move to trash?', 'You can restore it from the trash for 30 days.', [
       { text: 'Cancel', style: 'cancel' },
@@ -195,11 +237,16 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
                 <Text className="text-secondary-foreground text-sm font-semibold">{t.label}</Text>
               </Pressable>
             ))}
+            {NEW_MEDIA.map((m) => (
+              <Pressable key={m.source} accessibilityRole="button" onPress={() => void addMedia(m.source)} className="border-primary/40 bg-primary/10 rounded-full border px-3 py-2">
+                <Text className="text-primary text-sm font-semibold">{m.label}</Text>
+              </Pressable>
+            ))}
           </View>
         ) : (
-          <Pressable accessibilityRole="button" onPress={() => setAdding(true)} className="border-border flex-row items-center gap-2 self-start rounded-full border border-dashed px-4 py-2.5">
-            <Plus size={18} color={primary} />
-            <Text className="text-primary font-semibold">Add a card</Text>
+          <Pressable accessibilityRole="button" disabled={uploading} onPress={() => setAdding(true)} className="border-border flex-row items-center gap-2 self-start rounded-full border border-dashed px-4 py-2.5">
+            {uploading ? <ActivityIndicator size="small" /> : <Plus size={18} color={primary} />}
+            <Text className="text-primary font-semibold">{uploading ? 'Uploading…' : 'Add a card'}</Text>
           </Pressable>
         )}
         {/* What readers said about the published note (lvn-backend ADR-0047); notes made on the phone have none yet. */}
@@ -259,5 +306,9 @@ function RemoteNote({ id }: { id: string }) {
       </View>
     )
   }
-  return <Reader note={{ id: note.id, title: note.title, ownerName: note.owner.displayName, deletedAt: null, access: 'READER' }} cards={note.cards.edges.map((e) => ({ id: e.node.id, type: e.node.type, content: e.node.content as unknown }))} />
+  return (
+    <MediaProvider noteId={note.id} cardIds="">
+      <Reader note={{ id: note.id, title: note.title, ownerName: note.owner.displayName, deletedAt: null, access: 'READER' }} cards={note.cards.edges.map((e) => ({ id: e.node.id, type: e.node.type, content: e.node.content as unknown }))} />
+    </MediaProvider>
+  )
 }

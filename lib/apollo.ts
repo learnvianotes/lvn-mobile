@@ -27,7 +27,8 @@ export const authFetch: typeof fetch = async (input, init) => {
 export function createApolloClient(): ApolloClient {
   return new ApolloClient({
     link: new HttpLink({ uri: env.EXPO_PUBLIC_API_URL, fetch: authFetch }),
-    cache: new InMemoryCache(),
+    // A note's people and tags are whole lists: the server's answer replaces what was cached (after an unshare, say).
+    cache: new InMemoryCache({ typePolicies: { Note: { fields: { shares: { merge: false }, tags: { merge: false }, topics: { merge: false } } } } }),
     defaultOptions: { watchQuery: { fetchPolicy: 'cache-and-network' } },
   })
 }
