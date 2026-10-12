@@ -6,10 +6,14 @@ import { Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { ClassesSection } from '@/features/classes/ClassesSection'
 import { DiscoverGroupsDocument, MyGroupsDocument, type GroupCardFragment } from '@/graphql/generated/graphql'
 import { ROLE } from './shared'
 
-/** The Community tab (spec §13.1, lvn-backend ADR-0045): your groups, and public groups to find. Groups start on the web. */
+/**
+ * The Community tab (spec §13.1, lvn-backend ADR-0045, ADR-0046): your classes and a class code to enter, your groups, and
+ * public groups to find. Classes and groups start on the web.
+ */
 export function CommunityScreen() {
   const insets = useSafeAreaInsets()
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
@@ -28,6 +32,7 @@ export function CommunityScreen() {
       <Text className="text-2xl font-extrabold" accessibilityRole="header">
         Community
       </Text>
+      <ClassesSection />
       <Text className="text-muted-foreground text-sm font-semibold">Your groups</Text>
       {mine.data?.myGroups.length ? mine.data.myGroups.map((g) => <GroupRow key={g.id} group={g} />) : mine.data ? <Text className="text-muted-foreground">You&apos;re not in any group yet. Find one below.</Text> : null}
       <Text className="text-muted-foreground text-sm font-semibold">Find a group</Text>

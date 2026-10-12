@@ -1,6 +1,6 @@
 import type { NotificationFieldsFragment } from '@/graphql/generated/graphql'
 
-type Described = Pick<NotificationFieldsFragment, 'category' | 'data' | 'actor' | 'note'> & { group?: NotificationFieldsFragment['group'] }
+type Described = Pick<NotificationFieldsFragment, 'category' | 'data' | 'actor' | 'note' | 'path'> & { group?: NotificationFieldsFragment['group']; classroom?: NotificationFieldsFragment['classroom'] }
 
 /**
  * The sentence for a notification (lvn-backend ADR-0042), written here from its category, the actor's name and the
@@ -9,6 +9,8 @@ type Described = Pick<NotificationFieldsFragment, 'category' | 'data' | 'actor' 
 export function describeNotification(n: Described): string {
   const actor = n.actor?.displayName ?? 'Someone'
   const data = (n.data ?? {}) as Record<string, unknown>
+  // Join requests and answers are about a group or a class (lvn-backend ADR-0046); a class may be gone from view.
+  const place = n.classroom?.name ?? n.group?.name ?? null
   switch (n.category) {
     case 'SHARE':
       return n.note ? `${actor} shared “${n.note.title || 'Untitled note'}” with you` : `${actor} shared a note with you that you can no longer open`
@@ -19,9 +21,14 @@ export function describeNotification(n: Described): string {
     case 'FOLLOW':
       return `${actor} started following you`
     case 'JOIN_REQUEST':
-      return `${actor} asked to join ${n.group?.name ?? 'a group'}`
+      return `${actor} asked to join ${place ?? 'a group'}`
     case 'JOIN_DECISION':
-      return data.decision === 'APPROVED' ? `You're in: ${n.group?.name ?? 'a group'} accepted your request` : `${n.group?.name ?? 'A group'} didn't accept your request`
+      if (!place && n.path.startsWith('/classes/')) return data.decision === 'APPROVED' ? "You're in: your request to join a class was accepted" : "Your request to join a class wasn't accepted"
+      return data.decision === 'APPROVED' ? `You're in: ${place ?? 'a group'} accepted your request` : `${place ?? 'A group'} didn't accept your request`
+    case 'CLASSROOM_INVITE':
+      return `${actor} invited you to ${place ?? 'a class'}`
+    case 'CLASSROOM_POST':
+      return `${actor} posted an announcement in ${place ?? 'a class'}`
     case 'CONNECTION':
       return data.kind === 'ACCEPTED' ? `${actor} accepted your connection request` : `${actor} wants to connect with you`
     case 'DATA_EXPORT':
