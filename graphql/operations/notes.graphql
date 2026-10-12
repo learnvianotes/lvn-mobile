@@ -55,7 +55,7 @@ mutation SyncPush($ops: [SyncOpInput!]!) {
 }
 
 query SearchNotes($query: String!) {
-  search(query: $query, scopes: [NOTES, TOPICS], first: 15) {
+  search(query: $query, scopes: [NOTES, PEOPLE, TOPICS], first: 15) {
     notes {
       snippet
       note {
@@ -67,6 +67,12 @@ query SearchNotes($query: String!) {
           displayName
         }
       }
+    }
+    people {
+      id
+      handle
+      displayName
+      globalRole
     }
     topics {
       id

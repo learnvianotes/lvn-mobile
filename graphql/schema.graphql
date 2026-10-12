@@ -155,6 +155,27 @@ input CompleteRegistrationInput {
   institutionalEmail: String
 }
 
+enum ConnectionDirection {
+  """They asked the viewer"""
+  INCOMING
+
+  """The viewer asked them"""
+  OUTGOING
+}
+
+input ConnectionRequestInput {
+  requestId: UUID!
+}
+
+type ConnectionRequestItem {
+  createdAt: DateTime!
+  direction: ConnectionDirection!
+  id: UUID!
+
+  """Who asked (INCOMING) or was asked (OUTGOING)"""
+  person: User!
+}
+
 input ConvertPdfInput {
   """A PDF of the note the viewer can read"""
   fileId: UUID!
@@ -421,6 +442,19 @@ enum LimitKey {
   STORAGE_BYTES
 }
 
+input MarkNotificationsReadInput {
+  all: Boolean
+
+  """These notifications; ignored when all is true"""
+  ids: [UUID!]
+}
+
+type MarkNotificationsReadPayload {
+  """What stays unread"""
+  unreadCount: Int!
+  userErrors: [UserError!]!
+}
+
 """
 A file a media card shows. The url works for 15 minutes (until expiresAt); load the card again for a new one.
 """
@@ -430,8 +464,22 @@ type MediaFile {
   fileName: String!
   height: Int
   id: UUID!
+  largeUrl: String
+  mediumUrl: String
   mimeType: String!
+  pageCount: Int
+
+  """The 720p H.264 transcode of a video, or the loudness-normalised audio"""
+  playbackUrl: String
+
+  """A frame of a video (WebP)"""
+  posterUrl: String
   sizeBytes: Int!
+
+  """
+  Made after the upload (ADR-0041); null until made: pictures 320, 960 and 1920 pixels wide (WebP)
+  """
+  thumbUrl: String
   url: String!
   width: Int
 }
@@ -525,6 +573,11 @@ type Mutation {
   appealModeration(input: AppealModerationInput!): OkPayload!
 
   """
+  Ends follows both ways and stops new interaction both ways; they are not told
+  """
+  blockUser(input: PersonInput!): PersonPayload!
+
+  """
   PRIVATE, SHARED or PUBLIC (owner, verified account); PUBLIC needs a published version
   """
   changeNoteVisibility(input: ChangeNoteVisibilityInput!): NotePayload!
@@ -563,6 +616,7 @@ type Mutation {
 
   """Removes the tag from every note"""
   deleteTag(input: IdInput!): OkPayload!
+  followUser(input: PersonInput!): PersonPayload!
 
   """
   A PRIVATE copy of a note you may fork, credited to its origin; returns the copy
@@ -571,6 +625,7 @@ type Mutation {
 
   """Import notes; everything arrives PRIVATE. Five imports a day"""
   importNotes(input: ImportNotesInput!): NoteImportPayload!
+  markNotificationsRead(input: MarkNotificationsReadInput!): MarkNotificationsReadPayload!
 
   """A moderator's decision on a case (PLATFORM_ADMIN)"""
   moderateContent(input: ModerateContentInput!): OkPayload!
@@ -582,6 +637,10 @@ type Mutation {
   """
   publishNote(input: NoteIdInput!): NotePayload!
   refreshSession(input: RefreshSessionInput!): AuthPayload!
+  removeConnection(input: PersonInput!): PersonPayload!
+
+  """Stops someone following you; they are not told"""
+  removeFollower(input: PersonInput!): PersonPayload!
   removePdfHighlight(input: PdfHighlightIdInput!): OkPayload!
   renameTag(input: RenameTagInput!): TagPayload!
 
@@ -589,6 +648,9 @@ type Mutation {
   Report a note or a person you can see; reporting again updates your report
   """
   reportContent(input: ReportContentInput!): OkPayload!
+
+  """Teacher to teacher; the other accepts or declines (ADR-0013)"""
+  requestConnection(input: PersonInput!): PersonPayload!
 
   """
   Ask for an archive of everything about you: notes as Markdown and JSON with their files, and your account data. One a day; you are emailed when it is ready
@@ -603,12 +665,20 @@ type Mutation {
 
   """Sets the password and signs out every device"""
   resetPassword(input: ResetPasswordInput!): OkPayload!
+
+  """Returns the person who asked"""
+  respondToConnectionRequest(input: RespondToConnectionRequestInput!): PersonPayload!
   restoreNote(input: NoteIdInput!): NotePayload!
 
   """
   Make an old version the draft again; the current draft is kept as a DRAFT version
   """
   restoreNoteVersion(input: RestoreNoteVersionInput!): NotePayload!
+
+  """
+  Their comments wait for your approval and they cause you no notifications; they are not told
+  """
+  restrictUser(input: PersonInput!): PersonPayload!
 
   """
   Teachers: requests addressed to them. Platform admins: all, including documents.
@@ -629,6 +699,11 @@ type Mutation {
   setNoteForking(input: SetNoteForkingInput!): NotePayload!
 
   """
+  Teachers: share with all your connections, live, or stop (people shared with directly keep their access)
+  """
+  setNoteSharedWithConnections(input: SetNoteSharedWithConnectionsInput!): NotePayload!
+
+  """
   Share with one person, or change their role; a PRIVATE note becomes SHARED
   """
   shareNote(input: ShareNoteInput!): NotePayload!
@@ -647,19 +722,25 @@ type Mutation {
 
   """Apply a device's outbox in order (at most 100 operations)"""
   syncPush(ops: [SyncOpInput!]!): SyncPushPayload!
+  unblockUser(input: PersonInput!): PersonPayload!
+  unfollowUser(input: PersonInput!): PersonPayload!
+  unrestrictUser(input: PersonInput!): PersonPayload!
   unshareNote(input: UnshareNoteInput!): NotePayload!
   updateFolder(input: UpdateFolderInput!): FolderPayload!
   updateNoteDraft(input: UpdateNoteDraftInput!): UpdateNoteDraftPayload!
   updatePdfHighlight(input: UpdatePdfHighlightInput!): PdfHighlightPayload!
   updateProfile(input: UpdateProfileInput!): ProfilePayload!
+  updateTeacherProfile(input: UpdateTeacherProfileInput!): TeacherProfilePayload!
   verifyEmail(input: VerifyEmailInput!): OkPayload!
   verifyInstitutionalEmail(input: VerifyInstitutionalEmailInput!): OkPayload!
+
+  """Returns the person who was asked"""
+  withdrawConnectionRequest(input: ConnectionRequestInput!): PersonPayload!
   withdrawVerificationRequest(requestId: UUID!): OkPayload!
 }
 
 """
-A note (§4.1). Load it in two steps (§6.3): these fields and the outline first, then `cards` page by page. Editors get
-the draft; readers get the published version. Notes the viewer cannot read are null, exactly as if they did not exist.
+A note, owned by the notes subgraph: null when the viewer can no longer read it
 """
 type Note {
   cardCount: Int!
@@ -709,6 +790,11 @@ type Note {
   pdfConversion: PdfConversion
   publishedAt: DateTime
   publishedVersion: NoteVersion
+
+  """
+  Owner only: every connection of the owner reads it, and new connections will too (teachers, ADR-0013)
+  """
+  sharedWithConnections: Boolean
 
   """Owner only: the people the note is shared with; null for anyone else"""
   shares: [NoteShare!]
@@ -861,12 +947,21 @@ A person a note is shared with; EDITORs work on the draft, VIEWERs read the publ
 type NoteShare {
   createdAt: DateTime!
   role: NoteShareRole!
+  source: NoteShareSource!
   user: User!
 }
 
 enum NoteShareRole {
   EDITOR
   VIEWER
+}
+
+"""
+DIRECT: shared with this person; CONNECTIONS: a connection of the owner, who shares with all of them (ADR-0044)
+"""
+enum NoteShareSource {
+  CONNECTIONS
+  DIRECT
 }
 
 """An immutable snapshot of a note's cards (§4.3)"""
@@ -897,6 +992,61 @@ enum NoteVersionKind {
   CONFLICT
   DRAFT
   PUBLISHED
+}
+
+"""
+Something that happened for the viewer. Ids only: the client writes the sentence from the category, the actor and the
+note, which resolve through their own subgraphs with their own permission checks.
+"""
+type Notification {
+  """Who did it; null for the system, platform admins and deleted accounts"""
+  actor: User
+  category: NotificationCategory!
+  createdAt: DateTime!
+
+  """
+  Facts of the category that are not user content: VERIFICATION { kind: REQUESTED | DECIDED, decision }, NOTES_IMPORT { created, skipped, failed }
+  """
+  data: JSON
+  id: UUID!
+
+  """
+  The note it is about; null when there is none or the viewer can no longer read it
+  """
+  note: Note
+
+  """In-app path to open, the same on web and phone, e.g. /notes/<id>"""
+  path: String!
+  readAt: DateTime
+}
+
+enum NotificationCategory {
+  CLASSROOM_POST
+  COMMENT
+  CONNECTION
+  DATA_EXPORT
+  DOUBT
+  FOLLOW
+  FORK_PUBLISHED
+  JOIN_DECISION
+  JOIN_REQUEST
+  MENTOR_INVITE
+  NOTES_IMPORT
+  QUIZ_PUBLISHED
+  REVISION_REMINDER
+  SHARE
+  STREAK_AT_RISK
+  VERIFICATION
+}
+
+type NotificationConnection {
+  edges: [NotificationEdge!]!
+  pageInfo: PageInfo!
+}
+
+type NotificationEdge {
+  cursor: String!
+  node: Notification!
 }
 
 """
@@ -1019,6 +1169,34 @@ type PdfPagesUsage {
   used: Int!
 }
 
+type PendingConnection {
+  direction: ConnectionDirection!
+  requestId: UUID!
+}
+
+type PersonConnection {
+  edges: [PersonEdge!]!
+  pageInfo: PageInfo!
+}
+
+type PersonEdge {
+  cursor: String!
+  node: User!
+
+  """Since when (followed, blocked, restricted)"""
+  since: DateTime!
+}
+
+input PersonInput {
+  userId: UUID!
+}
+
+type PersonPayload {
+  """The person, as the viewer now stands with them"""
+  user: User
+  userErrors: [UserError!]!
+}
+
 enum ProblemMark {
   REVISIT
   SOLVED
@@ -1051,13 +1229,27 @@ type Query {
 
   """Open cases, oldest first (PLATFORM_ADMIN)"""
   moderationQueue(after: String, first: Int): ModerationCaseConnection!
+  myBlocked: [PersonEdge!]!
+
+  """Pending connection requests to and from the viewer, newest first"""
+  myConnectionRequests: [ConnectionRequestItem!]!
+
+  """The teachers the viewer is connected with (ADR-0013)"""
+  myConnections: [PersonEdge!]!
 
   """Your latest data exports, newest first"""
   myDataExports: [DataExport!]!
   myFolders: [Folder!]!
 
+  """
+  The viewer's followers, newest first; restricted minors are counted but never listed
+  """
+  myFollowers(after: String, first: Int): PersonConnection!
+  myFollowing(after: String, first: Int): PersonConnection!
+
   """The viewer's own notes, most recently edited first"""
   myNotes(after: String, filter: NoteFilter, first: Int): NoteConnection!
+  myRestricted: [PersonEdge!]!
   myTags: [Tag!]!
   myVerificationRequests: [VerificationRequest!]!
 
@@ -1073,6 +1265,9 @@ type Query {
 
   """Your latest imports, newest first"""
   noteImports: [NoteImport!]!
+
+  """The viewer's notifications, newest first"""
+  notifications(after: String, first: Int): NotificationConnection!
 
   """A conversion the viewer asked for"""
   pdfConversion(id: UUID!): PdfConversion
@@ -1108,6 +1303,12 @@ type Query {
   Version of the Terms, Privacy Policy and public-content licence a new account accepts (§15.2)
   """
   termsVersion: String!
+  unreadNotificationCount: Int!
+
+  """
+  A person by handle (with or without @) or by id; null when there is none, or when they have no public profile (restricted minors, ADR-0043)
+  """
+  userByHandle(handle: String!): User
 
   """
   Platform admins only: a 15-minute link to one document; the view is written to the audit log
@@ -1126,6 +1327,38 @@ type Query {
 input RefreshSessionInput {
   """Mobile only; web sends the cookie"""
   refreshToken: String
+}
+
+"""How the viewer stands with a person"""
+type Relation {
+  """The viewer blocked them; being blocked by them is never shown"""
+  blocked: Boolean!
+
+  """Teachers who connected (ADR-0013)"""
+  connected: Boolean!
+  followedBy: Boolean!
+  following: Boolean!
+  pendingConnection: PendingConnection
+  restricted: Boolean!
+  viewerCan: RelationActions!
+}
+
+"""
+What the viewer may do about a person, from the same rules the API applies
+"""
+type RelationActions {
+  block: Boolean!
+  follow: Boolean!
+  removeConnection: Boolean!
+  removeFollower: Boolean!
+
+  """Teachers connect with teachers (ADR-0013)"""
+  requestConnection: Boolean!
+  respondToConnection: Boolean!
+  restrict: Boolean!
+  unblock: Boolean!
+  unfollow: Boolean!
+  unrestrict: Boolean!
 }
 
 input RenameTagInput {
@@ -1176,6 +1409,11 @@ input RequestTeacherVerificationInput {
 input ResetPasswordInput {
   password: String!
   token: String!
+}
+
+input RespondToConnectionRequestInput {
+  accept: Boolean!
+  requestId: UUID!
 }
 
 input RestoreNoteVersionInput {
@@ -1232,6 +1470,11 @@ input SetInstitutionalEmailInput {
 input SetNoteForkingInput {
   enabled: Boolean!
   noteId: UUID!
+}
+
+input SetNoteSharedWithConnectionsInput {
+  noteId: UUID!
+  shared: Boolean!
 }
 
 input ShareNoteInput {
@@ -1398,6 +1641,47 @@ type TagPayload {
   userErrors: [UserError!]!
 }
 
+type TeacherProfile {
+  bio: String
+  headline: String
+
+  """In the teacher's order"""
+  skills: [TeacherSkill!]!
+  updatedAt: DateTime
+}
+
+type TeacherProfilePayload {
+  profile: TeacherProfile
+  userErrors: [UserError!]!
+}
+
+type TeacherSkill {
+  detail: String
+  id: UUID!
+  kind: TeacherSkillKind!
+  name: String!
+  source: TeacherSkillSource!
+}
+
+input TeacherSkillInput {
+  """At most 500 characters"""
+  detail: String
+  kind: TeacherSkillKind!
+
+  """At most 120 characters"""
+  name: String!
+}
+
+enum TeacherSkillKind {
+  EXPERIENCE
+  QUALIFICATION
+  SKILL
+}
+
+enum TeacherSkillSource {
+  MANUAL
+}
+
 """
 A topic within a subject; curated by LVN or proposed by a user (usable by its proposer until curated)
 """
@@ -1478,6 +1762,15 @@ input UpdateProfileInput {
   yearOfStudy: YearOfStudy
 }
 
+"""
+Replaces the whole tab: headline (120 characters), bio (2,000) and at most 60 items in this order
+"""
+input UpdateTeacherProfileInput {
+  bio: String
+  headline: String
+  skills: [TeacherSkillInput!]!
+}
+
 type UploadHeader {
   name: String!
   value: String!
@@ -1506,6 +1799,15 @@ type User {
   """Viewer only"""
   email: String
   emailVerified: Boolean!
+
+  """Viewer only: exact counts"""
+  followerCount: Int
+
+  """
+  Everyone: followers as a milestone (ADR-0027) — 1000 for 1,000+, null below 1,000
+  """
+  followerMilestone: Int
+  followingCount: Int
   globalRole: GlobalRole!
   handle: String!
   id: UUID!
@@ -1530,13 +1832,26 @@ type User {
   """The viewer's own profile; for others only when they show it"""
   profile: StudentProfile
 
+  """
+  Their PUBLIC notes, of one kind or all, newest published first (ADR-0043): what anyone may read
+  """
+  publicNotes(after: String, first: Int, kind: NoteKind): NoteConnection!
+
   """False until the registration details are given (ADR-0017)"""
   registrationComplete: Boolean!
+
+  """
+  The viewer's relation to this person; null for anonymous viewers and on one's own profile
+  """
+  relation: Relation
 
   """
   Viewer only: a minor without verified consent (§15.2) — no public publishing, no DMs
   """
   restrictedMinor: Boolean
+
+  """The Skills tab, for anyone; null for people who are not teachers"""
+  teacherProfile: TeacherProfile
 
   """
   The viewer's own: whether they accepted the current version (Query.termsVersion); false means ask again. null for others.

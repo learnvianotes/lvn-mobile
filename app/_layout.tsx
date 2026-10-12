@@ -75,6 +75,9 @@ export default function RootLayout() {
               <Stack.Protected guard={signedIn && registered}>
                 <Stack.Screen name="(tabs)" />
                 <Stack.Screen name="notes" />
+                <Stack.Screen name="notifications" />
+                <Stack.Screen name="people" />
+                <Stack.Screen name="u/[handle]" />
                 <Stack.Screen name="verify" options={{ presentation: 'modal' }} />
               </Stack.Protected>
               <Stack.Protected guard={signedIn && !registered}>

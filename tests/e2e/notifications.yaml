@@ -1,0 +1,23 @@
+# Notifications on the phone (lvn-backend ADR-0042): the account asks for its data export; the worker builds it and
+# the notification reaches Home while the app is open — the bell's count changes without a refresh — then the
+# notifications screen says it in words and opens where it points.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- assertVisible: "Notifications"
+- runScript:
+    file: scripts/request-export.js
+    env:
+      TOKEN: ${output.token}
+- extendedWaitUntil:
+    visible: "Notifications, 1 unread"
+    timeout: 60000
+- tapOn: "Notifications, 1 unread"
+# The row is one control on Android, labelled with its state: "Unread: …".
+- assertVisible: "Unread: Your data export is ready to download"
+- tapOn: "Unread: Your data export is ready to download"
+- extendedWaitUntil:
+    visible: "Your data"
+    timeout: 15000

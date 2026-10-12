@@ -48,8 +48,21 @@ export function ExploreScreen() {
         </Text>
         <View className="bg-card border-border flex-row items-center gap-2 rounded-2xl border px-3">
           <Search size={18} color={muted} />
-          <TextInput accessibilityLabel="Search notes and topics" value={query} onChangeText={setQuery} placeholder="Search notes and topics…" placeholderTextColor={muted} className="text-foreground flex-1 py-3 text-base" returnKeyType="search" autoCorrect={false} />
+          <TextInput accessibilityLabel="Search notes, people and topics" value={query} onChangeText={setQuery} placeholder="Search notes, people and topics…" placeholderTextColor={muted} className="text-foreground flex-1 py-3 text-base" returnKeyType="search" autoCorrect={false} />
         </View>
+        {found?.people.length ? (
+          <View className="flex-row flex-wrap gap-2">
+            {found.people.map((p) => (
+              <Pressable key={p.id} accessibilityRole="link" accessibilityLabel={`${p.displayName}, @${p.handle}`} onPress={() => router.push(`/u/${p.handle}`)} className="bg-card border-border flex-row items-center gap-2 rounded-full border py-1 pl-1 pr-3">
+                <View className="bg-secondary size-7 items-center justify-center rounded-full">
+                  <Text className="text-secondary-foreground text-xs font-bold">{p.displayName.slice(0, 1).toUpperCase()}</Text>
+                </View>
+                <Text className="text-sm font-semibold">{p.displayName}</Text>
+                {p.globalRole === 'TEACHER' ? <Text className="text-primary text-[10px] font-bold uppercase">Teacher</Text> : null}
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         {found?.topics.length ? (
           <View className="flex-row flex-wrap gap-2">
             {found.topics.map((t) => (
@@ -68,7 +81,7 @@ export function ExploreScreen() {
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
           <Text className="text-muted-foreground py-8 text-center text-sm">
-            {error ? 'Search needs the internet. Your own notes are in My notes.' : !ready ? 'Type to search notes and topics.' : loading ? 'Searching…' : `Nothing found for “${settled}”.`}
+            {error ? 'Search needs the internet. Your own notes are in My notes.' : !ready ? 'Type to search notes, people and topics.' : loading ? 'Searching…' : `Nothing found for “${settled}”.`}
           </Text>
         }
         renderItem={({ item }) => (

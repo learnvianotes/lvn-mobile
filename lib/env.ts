@@ -1,4 +1,4 @@
-import { parseEnv } from './parse-env'
+import { liveUrlFrom, parseEnv } from './parse-env'
 
 /**
  * Validated once at start-up; the app does not start with a missing or malformed value.
@@ -8,6 +8,7 @@ export const env = parseEnv({
   EXPO_PUBLIC_APP_ENV: process.env.EXPO_PUBLIC_APP_ENV,
   EXPO_PUBLIC_WEB_URL: process.env.EXPO_PUBLIC_WEB_URL,
   EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
+  EXPO_PUBLIC_LIVE_URL: process.env.EXPO_PUBLIC_LIVE_URL,
   EXPO_PUBLIC_GITHUB_CLIENT_ID: process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID,
   EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: process.env.EXPO_PUBLIC_GITHUB_AUTHORIZE_URL,
   EXPO_PUBLIC_FIREBASE_API_KEY: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -18,3 +19,6 @@ export const env = parseEnv({
   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
   EXPO_PUBLIC_SENTRY_DSN: process.env.EXPO_PUBLIC_SENTRY_DSN,
 })
+
+/** Live updates' address, or null when this build has none (lvn-backend ADR-0042). */
+export const liveUrl = liveUrlFrom(env)
