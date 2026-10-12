@@ -1,5 +1,5 @@
 import { ApolloProvider } from '@apollo/client/react'
-import { fireEvent, screen, waitFor } from '@testing-library/react-native'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react-native'
 import { router } from 'expo-router'
 import { Alert } from 'react-native'
 import { ExploreScreen } from '@/features/explore/ExploreScreen'
@@ -59,8 +59,9 @@ it('blocks only after the person reads what it does', async () => {
   })
   await inApollo(<ProfileScreen handle="meera" />)
   await fireEvent.press(await screen.findByLabelText('More options'))
-  const menu = alert.mock.calls.at(-1)![2]!
-  menu.find((b) => b.text === 'Block')!.onPress!()
+  // The menu is a sheet (Android's alert drops a fourth button): Restrict, Block, Report.
+  expect(screen.getAllByRole('menuitem').map((m) => within(m).getByText(/./).props.children)).toEqual(['Restrict', 'Block', 'Report'])
+  await fireEvent.press(screen.getByRole('menuitem', { name: 'Block' }))
   expect(alert.mock.calls.at(-1)![0]).toBe('Block this person?')
   expect(alert.mock.calls.at(-1)![1]).toMatch(/They are not told/)
   alert.mock.calls.at(-1)![2]!.find((b) => b.text === 'Block')!.onPress!()
@@ -168,4 +169,19 @@ it('a teacher accepts a connection request from the people screen', async () => 
   await fireEvent.press(screen.getByLabelText('Accept Meera Iyer'))
   await waitFor(() => expect(api.calls.find((c) => c.op === 'RespondToConnectionRequest')?.variables).toEqual({ input: { requestId: 'r9', accept: true } }))
   expect(await screen.findByText('Connections 1')).toBeOnTheScreen()
+})
+
+it('reports a person from the menu (lvn-backend ADR-0051)', async () => {
+  const api = mockApi({
+    Profile: () => profile(relation()),
+    ReportContent: () => ({ data: { reportContent: { __typename: 'OkPayload', ok: true, userErrors: [] } } }),
+  })
+  await inApollo(<ProfileScreen handle="meera" />)
+  await fireEvent.press(await screen.findByLabelText('More options'))
+  await fireEvent.press(screen.getByRole('menuitem', { name: 'Report' }))
+  expect(await screen.findByText('Report this person')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByLabelText('Spam or advertising'))
+  await fireEvent.press(screen.getByText('Send report'))
+  expect(await screen.findByText('Thank you for telling us')).toBeOnTheScreen()
+  expect(api.calls.find((c) => c.op === 'ReportContent')?.variables).toEqual({ input: { entityType: 'USER', entityId: MEERA, reason: 'SPAM', details: null } })
 })

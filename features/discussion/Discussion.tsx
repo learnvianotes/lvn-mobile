@@ -11,6 +11,8 @@ import { ago } from '@/features/notifications/describe'
 import { AddCommentDocument, ApproveCommentDocument, DeleteCommentDocument, DiscussionDocument, type CommentFieldsFragment, type CommentTargetType } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 import { ReactionBar } from './Reactions'
+import { ContentModeration } from '@/features/moderation/ModerationNotice'
+import { ReportLink } from '@/features/moderation/ReportSheet'
 
 /**
  * A discussion on the phone (lvn-backend ADR-0047): reactions, comments with one level of replies, and what the viewer
@@ -132,6 +134,7 @@ function CommentView({ comment: c, onChanged, onReply }: { comment: CommentField
         ) : null}
         {c.pendingApproval ? <Text className="text-xs text-amber-700">Waiting for approval</Text> : null}
       </View>
+      <ContentModeration entityType="COMMENT" item={c} onAppealed={onChanged} />
       <RichDoc doc={c.body as Doc} />
       <View className="flex-row flex-wrap items-center gap-3">
         <ReactionBar target={{ type: 'COMMENT', id: c.id }} reactions={c.reactions} disabled={c.pendingApproval} onChanged={onChanged} />
@@ -160,6 +163,7 @@ function CommentView({ comment: c, onChanged, onReply }: { comment: CommentField
               <Text className="text-muted-foreground text-xs font-semibold">Delete</Text>
             </Pressable>
           ) : null}
+          {c.author ? <ReportLink entityType="COMMENT" entityId={c.id} authorId={c.author.id} /> : null}
         </View>
       </View>
       {error ? (

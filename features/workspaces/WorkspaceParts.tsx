@@ -7,6 +7,9 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { PostComments } from '@/features/discussion/PostComments'
 import { attempt, textToDoc } from '@/features/groups/shared'
+import { STATE } from '@/features/moderation/copy'
+import { ContentModeration } from '@/features/moderation/ModerationNotice'
+import { ReportLink } from '@/features/moderation/ReportSheet'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
 import { AnswerMentorInviteDocument, AskDoubtDocument, CreateIdeaDocument, WorkspaceDocument, WorkspaceDoubtsDocument, WorkspaceIdeasDocument, type DoubtStatus, type GroupDetailFragment } from '@/graphql/generated/graphql'
@@ -142,8 +145,10 @@ export function Ideas({ group }: { group: GroupDetailFragment }) {
               </Text>
               <Lightbulb size={14} color="#f59e0b" />
               <Text className="font-semibold">{idea.author.displayName}</Text>
-              <Text className="text-muted-foreground text-xs">{ago(idea.createdAt)}</Text>
+              <Text className="text-muted-foreground flex-1 text-xs">{ago(idea.createdAt)}</Text>
+              <ReportLink icon entityType="GROUP_POST" entityId={idea.id} authorId={idea.author.id} />
             </View>
+            <ContentModeration entityType="GROUP_POST" item={idea} onAppealed={() => void refetch()} />
             <RichDoc doc={idea.body as Doc} />
             <PostComments type="GROUP_POST" id={idea.id} count={idea.discussion.commentCount} />
           </View>
@@ -218,6 +223,7 @@ export function Doubts({ group }: { group: GroupDetailFragment }) {
             <View className="flex-row flex-wrap items-center gap-2">
               <Text className="flex-1 font-semibold">{d.title}</Text>
               <StatusChip status={d.status} />
+              {d.moderation !== 'OK' ? <Text className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{STATE[d.moderation]}</Text> : null}
             </View>
             <View className="flex-row flex-wrap items-center gap-2">
               <Text className="text-muted-foreground text-xs">

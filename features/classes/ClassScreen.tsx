@@ -7,6 +7,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { PostComments } from '@/features/discussion/PostComments'
+import { ContentModeration } from '@/features/moderation/ModerationNotice'
+import { ModerationQueue } from '@/features/moderation/ModerationQueue'
+import { ReportLink } from '@/features/moderation/ReportSheet'
 import { attempt, textToDoc } from '@/features/groups/shared'
 import { useLocal } from '@/features/notes/hooks'
 import { RichDoc } from '@/features/notes/render/RichText'
@@ -31,8 +34,8 @@ import { env } from '@/lib/env'
 import type { Doc } from '@/lib/contracts/validation'
 import { CLASS_ROLE } from './shared'
 
-type Tab = 'posts' | 'notes' | 'people' | 'requests'
-const TABS: Record<Tab, string> = { posts: 'Announcements', notes: 'Notes', people: 'People', requests: 'Requests' }
+type Tab = 'posts' | 'notes' | 'people' | 'requests' | 'reports'
+const TABS: Record<Tab, string> = { posts: 'Announcements', notes: 'Notes', people: 'People', requests: 'Requests', reports: 'Reports' }
 type Run = () => Promise<{ data?: unknown }>
 
 /**
@@ -66,7 +69,7 @@ export function ClassScreen({ id }: { id: string }) {
   )
   if (!classroom) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This class is not available.</Text>}</View>
   const staff = classroom.viewerCan.review
-  const tabs: Tab[] = classroom.viewerRole ? ['posts', 'notes', ...(staff ? (['people', 'requests'] as const) : [])] : []
+  const tabs: Tab[] = classroom.viewerRole ? ['posts', 'notes', ...(staff ? (['people', 'requests', 'reports'] as const) : [])] : []
   return (
     <View className="bg-background flex-1">
       {back}
@@ -133,6 +136,7 @@ export function ClassScreen({ id }: { id: string }) {
             {tab === 'notes' ? <Notes classroom={classroom} /> : null}
             {tab === 'people' ? <People classroom={classroom} /> : null}
             {tab === 'requests' ? <Requests classroom={classroom} onChanged={() => void refetch()} /> : null}
+            {tab === 'reports' ? <ModerationQueue scope={{ scope: 'CLASSROOM', id: classroom.id }} /> : null}
           </>
         ) : null}
       </ScrollView>
@@ -197,7 +201,9 @@ function Posts({ classroom }: { classroom: ClassroomDetailFragment }) {
                   <Trash2 size={16} color={muted} />
                 </Pressable>
               ) : null}
+              <ReportLink icon entityType="CLASSROOM_POST" entityId={p.id} authorId={p.author.id} />
             </View>
+            <ContentModeration entityType="CLASSROOM_POST" item={p} onAppealed={() => void refetch()} />
             <RichDoc doc={p.body as Doc} />
             <PostComments type="CLASSROOM_POST" id={p.id} count={p.discussion.commentCount} />
           </View>
