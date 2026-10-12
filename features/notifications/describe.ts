@@ -1,6 +1,6 @@
 import type { NotificationFieldsFragment } from '@/graphql/generated/graphql'
 
-type Described = Pick<NotificationFieldsFragment, 'category' | 'data' | 'actor' | 'note'>
+type Described = Pick<NotificationFieldsFragment, 'category' | 'data' | 'actor' | 'note'> & { group?: NotificationFieldsFragment['group'] }
 
 /**
  * The sentence for a notification (lvn-backend ADR-0042), written here from its category, the actor's name and the
@@ -18,6 +18,10 @@ export function describeNotification(n: Described): string {
       return 'Your verification was not accepted. You can try again from your profile.'
     case 'FOLLOW':
       return `${actor} started following you`
+    case 'JOIN_REQUEST':
+      return `${actor} asked to join ${n.group?.name ?? 'a group'}`
+    case 'JOIN_DECISION':
+      return data.decision === 'APPROVED' ? `You're in: ${n.group?.name ?? 'a group'} accepted your request` : `${n.group?.name ?? 'A group'} didn't accept your request`
     case 'CONNECTION':
       return data.kind === 'ACCEPTED' ? `${actor} accepted your connection request` : `${actor} wants to connect with you`
     case 'DATA_EXPORT':

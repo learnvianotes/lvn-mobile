@@ -8,7 +8,7 @@ env:
 - assertVisible: "Search notes, people and topics"
 - assertVisible: "Type to search notes, people and topics."
 - tapOn: "Community"
-- assertVisible: "Arrives in Phase 3.*"
+- assertVisible: "Your groups"
 - tapOn: "Profile"
 - assertVisible: "Your account"
 - assertVisible: "Ravi Kumar"

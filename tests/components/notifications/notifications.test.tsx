@@ -13,7 +13,7 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }
 jest.mock('@/features/notifications/live', () => ({ useLive: jest.fn(), subscribeLive: jest.fn(() => () => {}) }))
 
 const NOTE = '01920000-0000-7000-8000-00000000a001'
-const node = (n: number, over: object) => ({ __typename: 'Notification', id: `01920000-0000-7000-8000-0000000f000${n}`, path: '/profile', data: null, readAt: null, createdAt: new Date(Date.now() - n * 300_000).toISOString(), actor: null, note: null, ...over })
+const node = (n: number, over: object) => ({ __typename: 'Notification', id: `01920000-0000-7000-8000-0000000f000${n}`, path: '/profile', data: null, readAt: null, createdAt: new Date(Date.now() - n * 300_000).toISOString(), actor: null, note: null, group: null, ...over })
 const LIST = [
   node(1, { category: 'SHARE', path: `/notes/${NOTE}`, actor: { __typename: 'User', id: 'u1', displayName: 'Meera Iyer' }, note: { __typename: 'Note', id: NOTE, title: 'Binary heaps' } }),
   node(2, { category: 'DATA_EXPORT', readAt: new Date().toISOString() }),
