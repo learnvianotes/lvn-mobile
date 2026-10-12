@@ -32,8 +32,13 @@ env:
 - tapOn: "Done"
 - tapOn: "Back"
 - tapOn: "Profile"
+# Unverified, the account shows how to get verified first.
+- scrollUntilVisible:
+    element: "See your profile"
 - tapOn: "See your profile"
 - assertVisible: "0 followers · 0 following"
 - tapOn: "Back"
+- scrollUntilVisible:
+    element: "Followers, following and blocked people"
 - tapOn: "Followers, following and blocked people"
 - assertVisible: "Nobody follows you yet."
