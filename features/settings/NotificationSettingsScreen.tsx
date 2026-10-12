@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
+import { TurnOnPush } from '@/features/push/TurnOnPush'
 import { NotificationSettingsDocument, UpdateNotificationSettingsDocument, type NotificationCategory } from '@/graphql/generated/graphql'
 
 const LABEL: Partial<Record<NotificationCategory, string>> = {
@@ -41,7 +42,7 @@ export function NotificationSettingsScreen() {
       </View>
       {s ? (
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-          {!s.pushAvailable ? <Text className="bg-secondary text-muted-foreground rounded-xl p-3 text-xs">Phone notifications aren&apos;t switched on for LearnViaNotes yet. Your choices are kept for when they are.</Text> : null}
+          {!s.pushAvailable ? <Text className="bg-secondary text-muted-foreground rounded-xl p-3 text-xs">Phone notifications aren&apos;t switched on for LearnViaNotes yet. Your choices are kept for when they are.</Text> : <TurnOnPush onEnabled={() => void refetch()} />}
           {error ? (
             <Text accessibilityRole="alert" className="text-destructive text-sm">
               {error}
