@@ -4,7 +4,7 @@ import type { LocalCard, LocalNote } from '@/features/notes/model/types'
 /** The pure half of offline sync (lvn-backend §13.2): what goes into the outbox, and how pulls are merged. */
 
 const text = (s: string) => ({ doc: { type: 'doc', content: s ? [{ type: 'paragraph', content: [{ type: 'text', text: s }] }] : [] } })
-const note = (over: Partial<LocalNote> = {}): LocalNote => ({ id: 'n1', title: 'Heaps', ownerId: 'u1', ownerName: 'Asha', access: 'OWNER', visibility: 'PRIVATE', publishedAt: null, deletedAt: null, updatedAt: '2026-10-09T10:00:00.000Z', localOnly: false, titleDirty: false, pendingTrash: null, ...over })
+const note = (over: Partial<LocalNote> = {}): LocalNote => ({ id: 'n1', title: 'Heaps', kind: 'NOTE', folderId: null, folderName: null, tags: [], ownerId: 'u1', ownerName: 'Asha', access: 'OWNER', visibility: 'PRIVATE', publishedAt: null, deletedAt: null, updatedAt: '2026-10-09T10:00:00.000Z', localOnly: false, titleDirty: false, pendingTrash: null, ...over })
 const card = (id: string, over: Partial<LocalCard> = {}): LocalCard => ({ id, noteId: 'n1', type: 'text', position: `a${id}`, revision: 3, content: text(id), dirty: false, deleted: false, ...over })
 let n = 0
 const ids = () => `op-${++n}`
@@ -43,13 +43,23 @@ describe('freezing changes into the outbox', () => {
   })
 })
 
+it('a project, blog or post made here says what it is when it is sent; a plain note does not (ADR-0052)', () => {
+  n = 0
+  const made = (kind: LocalNote['kind']) => freeze(note({ kind, localOnly: true }), [card('1', { revision: null, dirty: true })], ids).ops[0]
+  expect(made('BLOG')).toMatchObject({ kind: 'CREATE_NOTE', noteKind: 'BLOG' })
+  expect(made('PROJECT')).toMatchObject({ kind: 'CREATE_NOTE', noteKind: 'PROJECT' })
+  expect(made('NOTE')).not.toHaveProperty('noteKind')
+  // Later changes never carry it.
+  expect(freeze(note({ kind: 'BLOG', titleDirty: true }), [], ids).ops[0]).not.toHaveProperty('noteKind')
+})
+
 describe('merging what was pulled', () => {
-  const pulled = { note: { id: 'n1', title: 'Heaps (server)', ownerId: 'u1', ownerName: 'Asha', access: 'OWNER' as const, visibility: 'SHARED' as const, publishedAt: null, deletedAt: null, updatedAt: '2026-10-09T11:00:00.000Z' }, cards: [{ id: '1', type: 'text' as const, position: 'a1', revision: 5, content: text('server 1') }, { id: '5', type: 'text' as const, position: 'a5', revision: 1, content: text('new on server') }] }
+  const pulled = { note: { id: 'n1', title: 'Heaps (server)', kind: 'NOTE' as const, folderId: 'f1', folderName: 'Algorithms', tags: ['exam'], ownerId: 'u1', ownerName: 'Asha', access: 'OWNER' as const, visibility: 'SHARED' as const, publishedAt: null, deletedAt: null, updatedAt: '2026-10-09T11:00:00.000Z' }, cards: [{ id: '1', type: 'text' as const, position: 'a1', revision: 5, content: text('server 1') }, { id: '5', type: 'text' as const, position: 'a5', revision: 1, content: text('new on server') }] }
 
   it('follows the server, except changes made here and not yet answered', () => {
     const local = { note: note({ titleDirty: true, title: 'Heaps (phone)' }), cards: [card('1', { dirty: true, content: text('phone 1') }), card('2'), card('3', { deleted: true })] }
     const { note: merged, upsert, remove } = merge(local, pulled)
-    expect(merged).toMatchObject({ title: 'Heaps (phone)', titleDirty: true, visibility: 'SHARED', localOnly: false })
+    expect(merged).toMatchObject({ title: 'Heaps (phone)', titleDirty: true, visibility: 'SHARED', localOnly: false, folderName: 'Algorithms', tags: ['exam'] })
     expect(upsert.map((c) => c.id)).toEqual(['5'])
     expect(remove).toEqual(['2'])
   })

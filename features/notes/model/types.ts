@@ -5,10 +5,17 @@ import type { CardType } from '@/lib/contracts/domain/enums'
  * sent. `dirty` marks a change waiting for the next push; a frozen change lives in the outbox until answered.
  */
 export type NoteAccess = 'OWNER' | 'EDITOR' | 'READER'
+/** What a note is (lvn-backend ADR-0014): a note, a project, or a teacher's blog post or post. */
+export type NoteKind = 'NOTE' | 'PROJECT' | 'BLOG' | 'POST'
 
 export interface LocalNote {
   id: string
   title: string
+  kind: NoteKind
+  /** The folder and tags as the last pull brought them (ADR-0052); changed online, from the note's details */
+  folderId: string | null
+  folderName: string | null
+  tags: string[]
   ownerId: string
   ownerName: string
   access: NoteAccess
@@ -47,6 +54,8 @@ export interface SyncOp {
   title?: string
   cards?: { id: string; type: CardType; position: string; content: unknown }[]
   ops?: { kind: 'UPSERT' | 'DELETE'; id: string; type?: CardType; position?: string; content?: unknown; baseRevision?: number }[]
+  /** CREATE_NOTE of a project, blog or post (ADR-0052) */
+  noteKind?: NoteKind
 }
 
 /** An operation waiting for the server, or one it refused (shown as needing attention). */

@@ -1,9 +1,16 @@
+import { ApolloProvider } from '@apollo/client/react'
 import { fireEvent, screen } from '@testing-library/react-native'
 import type { ComponentProps } from 'react'
 import { TabBar } from '@/features/shell/TabBar'
-import { renderInApp } from '../../support/render'
+import { createApolloClient } from '@/lib/apollo'
+import { mockApi, viewer } from '../../support/api'
+import { renderInApp as render } from '../../support/render'
 
 jest.mock('@/lib/haptics', () => ({ haptic: { tick: jest.fn(), press: jest.fn(), success: jest.fn() } }))
+
+// The create sheet asks who the viewer is (teachers also start blogs and posts).
+beforeEach(() => mockApi({ Viewer: () => ({ data: { viewer: viewer() } }) }))
+const renderInApp = (ui: React.ReactElement) => render(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 const { haptic } = jest.requireMock('@/lib/haptics') as { haptic: Record<string, jest.Mock> }
 
 type Props = ComponentProps<typeof TabBar>

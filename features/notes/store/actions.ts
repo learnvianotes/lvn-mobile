@@ -34,9 +34,10 @@ export function emptyContent(type: CardType): unknown {
   }
 }
 
-export async function createNote(owner: { id: string; name: string }): Promise<string> {
+/** A new note written here; a project, or a teacher's blog post or post, says so when it is sent (ADR-0052). */
+export async function createNote(owner: { id: string; name: string }, kind: LocalNote['kind'] = 'NOTE'): Promise<string> {
   const id = newId()
-  const note: LocalNote = { id, title: '', ownerId: owner.id, ownerName: owner.name, access: 'OWNER', visibility: 'PRIVATE', publishedAt: null, deletedAt: null, updatedAt: now(), localOnly: true, titleDirty: false, pendingTrash: null }
+  const note: LocalNote = { id, title: '', kind, folderId: null, folderName: null, tags: [], ownerId: owner.id, ownerName: owner.name, access: 'OWNER', visibility: 'PRIVATE', publishedAt: null, deletedAt: null, updatedAt: now(), localOnly: true, titleDirty: false, pendingTrash: null }
   await db.putNote(note)
   await db.putCards([{ id: newId(), noteId: id, type: 'text', position: positionBetween(null, null), revision: null, content: emptyContent('text'), dirty: true, deleted: false }])
   return id

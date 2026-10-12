@@ -1,0 +1,281 @@
+# What the owner does with a note beyond writing it, online (lvn-backend ADR-0052): publish, who can read it, sharing,
+# copies, versions, folder, tags and topics. The same mutations as lvn-web.
+
+fragment NoteMeta on Note {
+  id
+  title
+  slug
+  kind
+  visibility
+  viewerAccess
+  viewerCan {
+    edit
+    publish
+    changeVisibility
+    delete
+    share
+    fork
+  }
+  owner {
+    id
+    displayName
+    handle
+  }
+  folder {
+    id
+    name
+  }
+  tags {
+    id
+    name
+  }
+  topics {
+    id
+    title
+    subject {
+      id
+      title
+    }
+  }
+  draftRevision
+  draftUpdatedAt
+  publishedAt
+  publishedVersion {
+    id
+    number
+    createdAt
+  }
+  forkingEnabled
+  moderation {
+    state
+    reason
+    canAppeal
+  }
+  forkedFrom {
+    title
+    author {
+      id
+      displayName
+      handle
+    }
+    note {
+      id
+    }
+  }
+  deletedAt
+}
+
+fragment ShareFields on NoteShare {
+  role
+  source
+  createdAt
+  user {
+    id
+    displayName
+    handle
+  }
+}
+
+fragment VersionFields on NoteVersion {
+  id
+  number
+  kind
+  title
+  createdAt
+  createdBy {
+    id
+    displayName
+  }
+}
+
+query PhoneNoteMeta($id: UUID!) {
+  note(id: $id) {
+    ...NoteMeta
+  }
+}
+
+mutation PublishNote($noteId: UUID!) {
+  publishNote(input: { noteId: $noteId }) {
+    note {
+      ...NoteMeta
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation ChangeNoteVisibility($noteId: UUID!, $visibility: Visibility!) {
+  changeNoteVisibility(input: { noteId: $noteId, visibility: $visibility }) {
+    note {
+      ...NoteMeta
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+query NoteShares($id: UUID!) {
+  note(id: $id) {
+    id
+    visibility
+    sharedWithConnections
+    shares {
+      ...ShareFields
+    }
+  }
+  viewer {
+    id
+    globalRole
+  }
+}
+
+mutation ShareNote($noteId: UUID!, $person: String!, $role: NoteShareRole!) {
+  shareNote(input: { noteId: $noteId, person: $person, role: $role }) {
+    note {
+      ...NoteMeta
+      shares {
+        ...ShareFields
+      }
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation UnshareNote($noteId: UUID!, $userId: UUID!) {
+  unshareNote(input: { noteId: $noteId, userId: $userId }) {
+    note {
+      id
+      shares {
+        ...ShareFields
+      }
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation SetNoteSharedWithConnections($noteId: UUID!, $shared: Boolean!) {
+  setNoteSharedWithConnections(input: { noteId: $noteId, shared: $shared }) {
+    note {
+      id
+      visibility
+      sharedWithConnections
+    }
+    userErrors {
+      message
+    }
+  }
+}
+
+mutation SetNoteForking($noteId: UUID!, $enabled: Boolean!) {
+  setNoteForking(input: { noteId: $noteId, enabled: $enabled }) {
+    note {
+      ...NoteMeta
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation ForkNote($noteId: UUID!) {
+  forkNote(input: { noteId: $noteId }) {
+    note {
+      id
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+query NoteVersions($id: UUID!, $after: String) {
+  note(id: $id) {
+    id
+    publishedVersion {
+      id
+    }
+    versions(first: 30, after: $after) {
+      edges {
+        node {
+          ...VersionFields
+        }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+    }
+  }
+}
+
+mutation RestoreNoteVersion($noteId: UUID!, $versionId: UUID!) {
+  restoreNoteVersion(input: { noteId: $noteId, versionId: $versionId }) {
+    note {
+      id
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+query Organise {
+  myFolders {
+    id
+    name
+    parentId
+    noteCount
+  }
+  myTags {
+    id
+    name
+    noteCount
+  }
+}
+
+query FindTopics($query: String!) {
+  findTopics(query: $query) {
+    id
+    title
+    origin
+    subject {
+      id
+      title
+    }
+  }
+}
+
+mutation UpdateNoteDetails($input: UpdateNoteDraftInput!) {
+  updateNoteDraft(input: $input) {
+    note {
+      ...NoteMeta
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+query NoteVersionPreview($id: UUID!, $versionId: UUID!) {
+  note(id: $id) {
+    id
+    version(id: $versionId) {
+      ...VersionFields
+      cards(first: 100) {
+        edges {
+          node {
+            id
+            type
+            content
+          }
+        }
+      }
+    }
+  }
+}

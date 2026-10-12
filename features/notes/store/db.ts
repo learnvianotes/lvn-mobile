@@ -20,6 +20,12 @@ const MIGRATIONS = [
      seq INTEGER PRIMARY KEY AUTOINCREMENT, client_op_id TEXT NOT NULL UNIQUE, note_id TEXT NOT NULL, op TEXT NOT NULL,
      state TEXT NOT NULL DEFAULT 'PENDING', message TEXT, attempts INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL);
    CREATE TABLE kv (key TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL);`,
+  // 2: a note's kind, folder and tags (lvn-backend ADR-0052). The cursor goes, so the next pull brings every note again.
+  `ALTER TABLE notes ADD COLUMN kind TEXT NOT NULL DEFAULT 'NOTE';
+   ALTER TABLE notes ADD COLUMN folder_id TEXT;
+   ALTER TABLE notes ADD COLUMN folder_name TEXT;
+   ALTER TABLE notes ADD COLUMN tags TEXT NOT NULL DEFAULT '[]';
+   DELETE FROM kv WHERE key = 'cursor';`,
 ]
 
 let db: SQLiteDatabase | null = null
@@ -45,12 +51,16 @@ export function subscribe(listener: () => void): () => void {
 }
 const changed = () => listeners.forEach((l) => l())
 
-type NoteRow = { id: string; title: string; owner_id: string; owner_name: string; access: string; visibility: string; published_at: string | null; deleted_at: string | null; updated_at: string; local_only: number; title_dirty: number; pending_trash: string | null }
+type NoteRow = { id: string; title: string; kind: string; folder_id: string | null; folder_name: string | null; tags: string; owner_id: string; owner_name: string; access: string; visibility: string; published_at: string | null; deleted_at: string | null; updated_at: string; local_only: number; title_dirty: number; pending_trash: string | null }
 type CardRow = { id: string; note_id: string; type: string; position: string; revision: number | null; content: string; dirty: number; deleted: number }
 
 const toNote = (r: NoteRow): LocalNote => ({
   id: r.id,
   title: r.title,
+  kind: r.kind as LocalNote['kind'],
+  folderId: r.folder_id,
+  folderName: r.folder_name,
+  tags: JSON.parse(r.tags) as string[],
   ownerId: r.owner_id,
   ownerName: r.owner_name,
   access: r.access as LocalNote['access'],
@@ -135,12 +145,13 @@ export async function setValue(key: string, value: string | null): Promise<void>
 
 export async function putNote(n: LocalNote): Promise<void> {
   await open().runAsync(
-    `INSERT INTO notes (id, title, owner_id, owner_name, access, visibility, published_at, deleted_at, updated_at, local_only, title_dirty, pending_trash)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-     ON CONFLICT (id) DO UPDATE SET title = excluded.title, owner_id = excluded.owner_id, owner_name = excluded.owner_name, access = excluded.access,
+    `INSERT INTO notes (id, title, kind, folder_id, folder_name, tags, owner_id, owner_name, access, visibility, published_at, deleted_at, updated_at, local_only, title_dirty, pending_trash)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT (id) DO UPDATE SET title = excluded.title, kind = excluded.kind, folder_id = excluded.folder_id, folder_name = excluded.folder_name, tags = excluded.tags,
+       owner_id = excluded.owner_id, owner_name = excluded.owner_name, access = excluded.access,
        visibility = excluded.visibility, published_at = excluded.published_at, deleted_at = excluded.deleted_at, updated_at = excluded.updated_at,
        local_only = excluded.local_only, title_dirty = excluded.title_dirty, pending_trash = excluded.pending_trash`,
-    n.id, n.title, n.ownerId, n.ownerName, n.access, n.visibility, n.publishedAt, n.deletedAt, n.updatedAt, n.localOnly ? 1 : 0, n.titleDirty ? 1 : 0, n.pendingTrash,
+    n.id, n.title, n.kind, n.folderId, n.folderName, JSON.stringify(n.tags), n.ownerId, n.ownerName, n.access, n.visibility, n.publishedAt, n.deletedAt, n.updatedAt, n.localOnly ? 1 : 0, n.titleDirty ? 1 : 0, n.pendingTrash,
   )
   changed()
 }

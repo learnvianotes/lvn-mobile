@@ -137,6 +137,10 @@ async function pull(client: ApolloClient): Promise<void> {
       const pulledNote = {
         id: note.id,
         title: note.title,
+        kind: note.kind,
+        folderId: note.folder?.id ?? null,
+        folderName: note.folder?.name ?? null,
+        tags: note.tags.map((t) => t.name),
         ownerId: note.owner.id,
         ownerName: note.owner.displayName,
         access: note.viewerAccess,
