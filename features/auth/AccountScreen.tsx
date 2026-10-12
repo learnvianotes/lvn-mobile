@@ -11,6 +11,7 @@ import { SignOutDocument, ViewerDocument, type ViewerFieldsFragment } from '@/gr
 import { signedOut } from '@/lib/auth/session'
 import { ImportCard } from '@/features/data/ImportCard'
 import { YourDataCard } from '@/features/data/YourDataCard'
+import { ReviewRequests, VerifyCard } from '@/features/verification/Verification'
 import { InstitutionalEmailCard, LegacyDataCard, StudyDetailsCard } from './AccountDetails'
 import { copy } from './copy'
 import { Notice } from './Notice'
@@ -32,6 +33,9 @@ export function AccountScreen() {
         <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">{copy.account.title}</Text>
         {viewer ? <AccountStanding userId={viewer.id} /> : null}
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
+        {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
+        {viewer && !viewer.verified ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
+        {viewer?.globalRole === 'TEACHER' && viewer.verified ? <ReviewRequests /> : null}
         {viewer ? <PeopleLinks viewer={viewer} /> : null}
         {viewer ? <StudyDetailsCard /> : null}
         {viewer ? <LegacyDataCard /> : null}
@@ -123,6 +127,12 @@ function PeopleLinks({ viewer }: { viewer: ViewerFieldsFragment }) {
       {viewer.globalRole === 'TEACHER' ? (
         <Pressable accessibilityRole="link" onPress={() => router.push('/skills')} className="flex-row items-center justify-between">
           <Text className="font-semibold">Your Skills tab</Text>
+          <Text className="text-muted-foreground">›</Text>
+        </Pressable>
+      ) : null}
+      {viewer.globalRole === 'PLATFORM_ADMIN' ? (
+        <Pressable accessibilityRole="link" onPress={() => router.push('/admin/verification')} className="flex-row items-center justify-between">
+          <Text className="font-semibold">Proof of study to review</Text>
           <Text className="text-muted-foreground">›</Text>
         </Pressable>
       ) : null}

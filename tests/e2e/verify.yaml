@@ -1,0 +1,32 @@
+# Verifying without a college email on the phone, end to end (P3q; lvn-backend ADR-0019): a new, unverified learner
+# asks a verified teacher to vouch from the Profile tab. The teacher needs the database: scripts/e2e-android.mjs makes
+# one when run with --vm; without it this flow does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof TEACHER_EMAIL !== 'undefined' && TEACHER_EMAIL !== ''}
+    commands:
+      - runFlow: subflows/signed-in.yaml
+      - tapOn: "Profile"
+      - scrollUntilVisible:
+          element: "Ask a teacher"
+      - tapOn: "Ask a teacher"
+      # The form opens below the button: bring all of it above the tab bar.
+      - scrollUntilVisible:
+          element: "Send request"
+      - tapOn: "Find your teacher"
+      - inputText: "Anita Desai"
+      - hideKeyboard
+      - extendedWaitUntil:
+          visible: "Anita Desai @.*"
+          timeout: 15000
+      - tapOn: "Anita Desai @.*"
+      - scrollUntilVisible:
+          element: "Send request"
+      - tapOn: "Send request"
+      - extendedWaitUntil:
+          visible: "Waiting for Anita Desai to vouch for you."
+          timeout: 15000

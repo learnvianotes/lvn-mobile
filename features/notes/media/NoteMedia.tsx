@@ -78,7 +78,7 @@ export class UploadError extends Error {}
  * Uploads a file picked on the phone (§8.1): an intent from the API, a PUT straight to storage with exactly the headers
  * it asked for, then the API checks the file. Returns the file id.
  */
-export async function uploadFile(client: ApolloClient, picked: { uri: string; name: string; mimeType: string; size?: number | null }, purpose: { purpose: 'ATTACHMENT' | 'IMPORT'; parentId?: string }): Promise<string> {
+export async function uploadFile(client: ApolloClient, picked: { uri: string; name: string; mimeType: string; size?: number | null }, purpose: { purpose: 'ATTACHMENT' | 'IMPORT' | 'VERIFICATION_DOCUMENT'; parentId?: string }): Promise<string> {
   const body = await (await fetch(picked.uri)).blob()
   const res = await client.mutate({ mutation: CreateNoteUploadDocument, variables: { input: { fileName: picked.name || 'file', mimeType: picked.mimeType, sizeBytes: picked.size ?? body.size, purpose: purpose.purpose, ...(purpose.parentId ? { parentId: purpose.parentId } : {}) } } })
   const intent = res.data?.createUploadIntent.intent
