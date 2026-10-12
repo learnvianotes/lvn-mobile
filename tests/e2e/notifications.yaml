@@ -15,7 +15,8 @@ env:
     visible: "Notifications, 1 unread"
     timeout: 60000
 - tapOn: "Notifications, 1 unread"
-- assertVisible: "Your data export is ready to download"
+# The row is one control on Android, labelled with its state: "Unread: …".
+- assertVisible: "Unread: Your data export is ready to download"
 - tapOn: "Unread: Your data export is ready to download"
 - extendedWaitUntil:
     visible: "Your data"

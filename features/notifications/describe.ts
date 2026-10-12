@@ -30,12 +30,17 @@ export function describeNotification(n: Described): string {
   }
 }
 
-/** "5 minutes ago", "yesterday" */
+/**
+ * "5 minutes ago", "yesterday". Written out by hand: Hermes, the phone's JavaScript engine, has no
+ * Intl.RelativeTimeFormat (Node, where the tests run, does).
+ */
 export function ago(iso: string, now = Date.now()): string {
-  const seconds = (Date.parse(iso) - now) / 1000
-  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
+  const seconds = Math.max(0, Math.round((now - Date.parse(iso)) / 1000))
   for (const [unit, size] of [['year', 31536000], ['month', 2592000], ['week', 604800], ['day', 86400], ['hour', 3600], ['minute', 60]] as const) {
-    if (Math.abs(seconds) >= size) return rtf.format(Math.round(seconds / size), unit)
+    const n = Math.floor(seconds / size)
+    if (n < 1) continue
+    if (unit === 'day' && n === 1) return 'yesterday'
+    return `${n} ${unit}${n === 1 ? '' : 's'} ago`
   }
-  return rtf.format(0, 'minute')
+  return 'just now'
 }

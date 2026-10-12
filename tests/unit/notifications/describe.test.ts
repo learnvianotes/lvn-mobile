@@ -15,10 +15,22 @@ describe('notification sentences (lvn-backend ADR-0042)', () => {
     expect(say({ category: 'NOTES_IMPORT', data: { created: 1, skipped: 0, failed: 0 } })).toBe('Your import is done: 1 note added')
   })
 
-  it('says how long ago', () => {
-    const now = Date.parse('2026-10-12T10:00:00Z')
-    expect(ago('2026-10-12T09:55:00Z', now)).toBe('5 minutes ago')
-    expect(ago('2026-10-11T10:00:00Z', now)).toBe('yesterday')
+  it('says how long ago, without Intl.RelativeTimeFormat, which the phone does not have', () => {
+    const real = Intl.RelativeTimeFormat
+    // Hermes has no RelativeTimeFormat: the screen crashed on the emulator when ago() used it.
+    ;(Intl as { RelativeTimeFormat?: unknown }).RelativeTimeFormat = undefined
+    try {
+      const now = Date.parse('2026-10-12T10:00:00Z')
+      expect(ago('2026-10-12T09:59:30Z', now)).toBe('just now')
+      expect(ago('2026-10-12T09:59:00Z', now)).toBe('1 minute ago')
+      expect(ago('2026-10-12T09:55:00Z', now)).toBe('5 minutes ago')
+      expect(ago('2026-10-12T07:00:00Z', now)).toBe('3 hours ago')
+      expect(ago('2026-10-11T10:00:00Z', now)).toBe('yesterday')
+      expect(ago('2026-09-28T10:00:00Z', now)).toBe('2 weeks ago')
+      expect(ago('2026-10-12T10:00:05Z', now)).toBe('just now')
+    } finally {
+      ;(Intl as { RelativeTimeFormat?: unknown }).RelativeTimeFormat = real
+    }
   })
 })
 
