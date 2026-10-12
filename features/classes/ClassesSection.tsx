@@ -1,18 +1,24 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { GraduationCap, Users } from 'lucide-react-native'
+import { GraduationCap, Plus, Users } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
-import { AnswerClassroomInviteDocument, MyClassroomsDocument, type ClassroomCardFragment } from '@/graphql/generated/graphql'
+import { AnswerClassroomInviteDocument, MyClassroomsDocument, ViewerDocument, type ClassroomCardFragment } from '@/graphql/generated/graphql'
 import { CLASS_ROLE, cleanCode } from './shared'
 
-/** Classes in the Community tab (lvn-backend ADR-0046): invites to answer, a class code to enter, and your classes. */
+/**
+ * Classes in the Community tab (lvn-backend ADR-0046): invites to answer, a class code to enter, your classes, and for
+ * teachers a new class.
+ */
 export function ClassesSection() {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const { data, refetch } = useQuery(MyClassroomsDocument, { fetchPolicy: 'cache-and-network' })
+  const viewer = useQuery(ViewerDocument)
+  const teacher = viewer.data?.viewer?.globalRole === 'TEACHER'
   const [answer] = useMutation(AnswerClassroomInviteDocument)
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +32,15 @@ export function ClassesSection() {
   }
   return (
     <View className="gap-3">
-      <Text className="text-muted-foreground text-sm font-semibold">Your classes</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-muted-foreground text-sm font-semibold">Your classes</Text>
+        {teacher ? (
+          <Pressable accessibilityRole="button" onPress={() => router.push('/classes/new')} className="flex-row items-center gap-1 py-1">
+            <Plus size={16} color={accent} />
+            <Text className="text-primary text-sm font-semibold">New class</Text>
+          </Pressable>
+        ) : null}
+      </View>
       {data?.myClassroomInvites.map((i) => (
         <View key={i.id} className="bg-card border-primary gap-2 rounded-2xl border p-4">
           <Text className="font-semibold">{i.classroom.name}</Text>
@@ -49,7 +63,7 @@ export function ClassesSection() {
         </Text>
       ) : null}
       {data?.myClassrooms.map((c) => <ClassRow key={c.id} classroom={c} />)}
-      {data && !data.myClassrooms.length ? <Text className="text-muted-foreground">You&apos;re not in a class yet. Ask your teacher for the class code.</Text> : null}
+      {data && !data.myClassrooms.length ? <Text className="text-muted-foreground">{teacher ? 'No classes yet. Start one, and share its code with your students.' : "You're not in a class yet. Ask your teacher for the class code."}</Text> : null}
       <View className="bg-card border-border flex-row items-center gap-2 rounded-2xl border px-3">
         <GraduationCap size={18} color={muted} />
         <TextInput accessibilityLabel="Class code" value={code} onChangeText={setCode} onSubmitEditing={find} placeholder="Class code, e.g. K7PQ2MXA" placeholderTextColor={muted} autoCapitalize="characters" autoCorrect={false} maxLength={16} className="text-foreground flex-1 py-3 text-base" />

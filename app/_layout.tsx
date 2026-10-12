@@ -79,9 +79,13 @@ export default function RootLayout() {
                 <Stack.Screen name="notifications" />
                 <Stack.Screen name="notification-settings" />
                 <Stack.Screen name="people" />
+                <Stack.Screen name="skills" />
+                <Stack.Screen name="admin/moderation" />
                 <Stack.Screen name="u/[handle]" />
+                <Stack.Screen name="groups/new" />
                 <Stack.Screen name="groups/[id]" />
                 <Stack.Screen name="groups/[id]/doubts/[doubtId]" />
+                <Stack.Screen name="classes/new" />
                 <Stack.Screen name="classes/[id]" />
                 <Stack.Screen name="classes/join/[code]" />
                 <Stack.Screen name="verify" options={{ presentation: 'modal' }} />

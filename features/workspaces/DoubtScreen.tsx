@@ -6,16 +6,20 @@ import { Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { confirm } from '@/features/groups/GroupManage'
 import { attempt, textToDoc } from '@/features/groups/shared'
 import { ContentModeration } from '@/features/moderation/ModerationNotice'
 import { ReportLink } from '@/features/moderation/ReportSheet'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
-import { AnswerDoubtDocument, DoubtDocument, ReopenDoubtDocument, ResolveDoubtDocument } from '@/graphql/generated/graphql'
+import { AnswerDoubtDocument, DeleteDoubtDocument, DoubtDocument, ReopenDoubtDocument, ResolveDoubtDocument } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 import { StatusChip } from './WorkspaceParts'
 
-/** One doubt on the phone (lvn-backend ADR-0048): the question, its answers (the mentor's marked), answer, resolve, reopen. */
+/**
+ * One doubt on the phone (lvn-backend ADR-0048): the question, its answers (the mentor's marked), answer, resolve, reopen
+ * and delete.
+ */
 export function DoubtScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
@@ -25,6 +29,7 @@ export function DoubtScreen({ id }: { id: string }) {
   const [answer] = useMutation(AnswerDoubtDocument)
   const [resolve] = useMutation(ResolveDoubtDocument)
   const [reopen] = useMutation(ReopenDoubtDocument)
+  const [remove] = useMutation(DeleteDoubtDocument)
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const d = data?.doubt
@@ -66,6 +71,22 @@ export function DoubtScreen({ id }: { id: string }) {
               {d.viewerCan.reopen ? (
                 <Pressable accessibilityRole="button" onPress={() => void run(() => reopen({ variables: { doubtId: id } }))} className="border-border rounded-full border px-4 py-2">
                   <Text className="font-semibold">Reopen</Text>
+                </Pressable>
+              ) : null}
+              {d.viewerCan.delete ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() =>
+                    confirm('Delete this doubt?', 'Delete', () =>
+                      void attempt(() => remove({ variables: { doubtId: id } })).then((problem) => {
+                        if (problem) return setError(problem)
+                        router.back()
+                      }),
+                    'Its answers go with it.')
+                  }
+                  className="border-border rounded-full border px-4 py-2"
+                >
+                  <Text className="text-destructive font-semibold">Delete</Text>
                 </Pressable>
               ) : null}
             </View>

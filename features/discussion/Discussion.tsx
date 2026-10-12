@@ -5,10 +5,10 @@ import { useState } from 'react'
 import { Alert, Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
-import { attempt, textToDoc } from '@/features/groups/shared'
+import { attempt, docToText, textToDoc } from '@/features/groups/shared'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
-import { AddCommentDocument, ApproveCommentDocument, DeleteCommentDocument, DiscussionDocument, type CommentFieldsFragment, type CommentTargetType } from '@/graphql/generated/graphql'
+import { AddCommentDocument, ApproveCommentDocument, DeleteCommentDocument, DiscussionDocument, EditCommentDocument, type CommentFieldsFragment, type CommentTargetType } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 import { ReactionBar } from './Reactions'
 import { ContentModeration } from '@/features/moderation/ModerationNotice'
@@ -16,7 +16,7 @@ import { ReportLink } from '@/features/moderation/ReportSheet'
 
 /**
  * A discussion on the phone (lvn-backend ADR-0047): reactions, comments with one level of replies, and what the viewer
- * may do with each. Editing a comment is on the web. Read with its own query, so threads stay within the depth limit.
+ * may do with each, editing one's own included. Read with its own query, so threads stay within the depth limit.
  */
 export function Discussion({ target, compact }: { target: { type: CommentTargetType; id: string }; compact?: boolean }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
@@ -108,10 +108,15 @@ function CommentView({ comment: c, onChanged, onReply }: { comment: CommentField
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const [remove] = useMutation(DeleteCommentDocument)
   const [approve] = useMutation(ApproveCommentDocument)
+  const [edit] = useMutation(EditCommentDocument)
   const [error, setError] = useState<string | null>(null)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState('')
   const run = async (fn: () => Promise<{ data?: unknown }>) => {
-    setError(await attempt(fn))
+    const problem = await attempt(fn)
+    setError(problem)
     onChanged()
+    return problem
   }
   if (c.removed) return <Text className="bg-secondary text-muted-foreground rounded-2xl px-3 py-2 text-sm italic">This comment was removed.</Text>
   return (
@@ -135,13 +140,39 @@ function CommentView({ comment: c, onChanged, onReply }: { comment: CommentField
         {c.pendingApproval ? <Text className="text-xs text-amber-700">Waiting for approval</Text> : null}
       </View>
       <ContentModeration entityType="COMMENT" item={c} onAppealed={onChanged} />
-      <RichDoc doc={c.body as Doc} />
+      {editing ? (
+        <View className="gap-2">
+          <TextInput accessibilityLabel="Edit your comment" value={draft} onChangeText={setDraft} multiline maxLength={5000} autoFocus className="border-border text-foreground min-h-12 rounded-xl border px-3 py-2" />
+          <View className="flex-row justify-end gap-4">
+            <Pressable accessibilityRole="button" onPress={() => setEditing(false)}>
+              <Text className="text-muted-foreground text-sm font-semibold">Cancel</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" disabled={!draft.trim()} onPress={() => void run(() => edit({ variables: { commentId: c.id, body: textToDoc(draft) } })).then((problem) => !problem && setEditing(false))}>
+              <Text className={`text-sm font-semibold ${draft.trim() ? 'text-primary' : 'text-muted-foreground'}`}>Save</Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : (
+        <RichDoc doc={c.body as Doc} />
+      )}
       <View className="flex-row flex-wrap items-center gap-3">
         <ReactionBar target={{ type: 'COMMENT', id: c.id }} reactions={c.reactions} disabled={c.pendingApproval} onChanged={onChanged} />
         <View className="ml-auto flex-row gap-4">
           {onReply ? (
             <Pressable accessibilityRole="button" onPress={onReply}>
               <Text className="text-muted-foreground text-xs font-semibold">Reply</Text>
+            </Pressable>
+          ) : null}
+          {c.viewerCan.edit && !editing ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Edit comment"
+              onPress={() => {
+                setDraft(docToText(c.body))
+                setEditing(true)
+              }}
+            >
+              <Text className="text-muted-foreground text-xs font-semibold">Edit</Text>
             </Pressable>
           ) : null}
           {c.viewerCan.approve ? (

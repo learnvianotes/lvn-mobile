@@ -42,16 +42,28 @@ query ModerationQueue($after: String, $scope: ModerationScopeInput) {
             handle
           }
         }
+        group {
+          id
+          name
+        }
         note {
           id
           title
           excerpt
+          visibility
           moderation
+          moderationReason
+          deleted
           owner {
             id
             displayName
             handle
           }
+        }
+        user {
+          id
+          displayName
+          handle
         }
         reports {
           reason

@@ -212,7 +212,7 @@ export function ProfileScreen({ handle }: { handle: string }) {
           ) : null}
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} accessibilityRole="tablist">
+        <View className="flex-row flex-wrap gap-2" accessibilityRole="tablist">
           {kinds.map((k) => (
             <Pressable
               key={k}
@@ -226,10 +226,17 @@ export function ProfileScreen({ handle }: { handle: string }) {
               </Text>
             </Pressable>
           ))}
-        </ScrollView>
+        </View>
 
         {kind === 'SKILLS' ? (
-          <SkillsTab profile={person.teacherProfile} />
+          <>
+            {own ? (
+              <Pressable accessibilityRole="button" onPress={() => router.push('/skills')} className="border-border self-start rounded-full border px-4 py-2">
+                <Text className="font-semibold">Edit your Skills tab</Text>
+              </Pressable>
+            ) : null}
+            <SkillsTab profile={person.teacherProfile} />
+          </>
         ) : shown.length ? (
           shown.map((n) => (
             <Pressable key={n.id} accessibilityRole="button" onPress={() => router.push(`/notes/${n.id}`)} className="bg-card border-border flex-row items-start gap-3 rounded-2xl border p-4">

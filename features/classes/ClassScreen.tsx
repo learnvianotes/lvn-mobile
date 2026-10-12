@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { ArrowLeft, FileText, GraduationCap, Share2, Trash2, Users } from 'lucide-react-native'
+import { ArrowLeft, FileText, GraduationCap, MoreHorizontal, Share2, Trash2 } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, ScrollView, Share, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -25,22 +25,28 @@ import {
   DeleteClassroomPostDocument,
   InviteToClassroomDocument,
   LeaveClassroomDocument,
+  RemoveClassroomMemberDocument,
   ReviewClassroomJoinRequestDocument,
+  SetClassroomRoleDocument,
   ShareNoteToClassroomDocument,
   WithdrawClassroomJoinRequestDocument,
   type ClassroomDetailFragment,
+  type ClassroomPeopleQuery,
 } from '@/graphql/generated/graphql'
 import { env } from '@/lib/env'
 import type { Doc } from '@/lib/contracts/validation'
+import { ActionSheet } from '@/features/shell/ActionSheet'
+import { ClassSettings, memberActions } from './ClassManage'
 import { CLASS_ROLE } from './shared'
 
-type Tab = 'posts' | 'notes' | 'people' | 'requests' | 'reports'
-const TABS: Record<Tab, string> = { posts: 'Announcements', notes: 'Notes', people: 'People', requests: 'Requests', reports: 'Reports' }
+type Tab = 'posts' | 'notes' | 'people' | 'requests' | 'reports' | 'settings'
+const TABS: Record<Tab, string> = { posts: 'Announcements', notes: 'Notes', people: 'People', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
 type Run = () => Promise<{ data?: unknown }>
+type Member = NonNullable<NonNullable<ClassroomPeopleQuery['classroom']>['members']>[number]
 
 /**
  * One class on the phone (lvn-backend ADR-0046): announcements and notes for members; for staff the code to share,
- * posting, people and invites, and requests. Settings, roles and handing the class over are on the web.
+ * posting, people and invites, requests and reports; for the teacher roles, handing the class over and settings.
  */
 export function ClassScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
@@ -69,7 +75,7 @@ export function ClassScreen({ id }: { id: string }) {
   )
   if (!classroom) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This class is not available.</Text>}</View>
   const staff = classroom.viewerCan.review
-  const tabs: Tab[] = classroom.viewerRole ? ['posts', 'notes', ...(staff ? (['people', 'requests', 'reports'] as const) : [])] : []
+  const tabs: Tab[] = classroom.viewerRole ? ['posts', 'notes', ...(staff ? (['people', 'requests', 'reports'] as const) : []), ...(classroom.viewerCan.manage ? (['settings'] as const) : [])] : []
   return (
     <View className="bg-background flex-1">
       {back}
@@ -125,18 +131,19 @@ export function ClassScreen({ id }: { id: string }) {
         </View>
         {tabs.length ? (
           <>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} accessibilityRole="tablist">
+            <View className="flex-row flex-wrap gap-2" accessibilityRole="tablist">
               {tabs.map((k) => (
                 <Pressable key={k} accessibilityRole="tab" accessibilityState={{ selected: k === tab }} onPress={() => setTab(k)} className={`rounded-full px-4 py-2 ${k === tab ? 'bg-primary' : 'bg-card border-border border'}`}>
                   <Text className={k === tab ? 'text-primary-foreground font-semibold' : 'font-semibold'}>{TABS[k]}</Text>
                 </Pressable>
               ))}
-            </ScrollView>
+            </View>
             {tab === 'posts' ? <Posts classroom={classroom} /> : null}
             {tab === 'notes' ? <Notes classroom={classroom} /> : null}
-            {tab === 'people' ? <People classroom={classroom} /> : null}
+            {tab === 'people' ? <People classroom={classroom} onChanged={() => void refetch()} /> : null}
             {tab === 'requests' ? <Requests classroom={classroom} onChanged={() => void refetch()} /> : null}
             {tab === 'reports' ? <ModerationQueue scope={{ scope: 'CLASSROOM', id: classroom.id }} /> : null}
+            {tab === 'settings' ? <ClassSettings classroom={classroom} onSaved={() => void refetch()} /> : null}
           </>
         ) : null}
       </ScrollView>
@@ -275,16 +282,25 @@ function Notes({ classroom }: { classroom: ClassroomDetailFragment }) {
   )
 }
 
-function People({ classroom }: { classroom: ClassroomDetailFragment }) {
+function People({ classroom, onChanged }: { classroom: ClassroomDetailFragment; onChanged: () => void }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data } = useQuery(ClassroomPeopleDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = useQuery(ClassroomPeopleDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const [invite] = useMutation(InviteToClassroomDocument)
+  const [setRole] = useMutation(SetClassroomRoleDocument)
+  const [remove] = useMutation(RemoveClassroomMemberDocument)
   const [person, setPerson] = useState('')
+  const [chosen, setChosen] = useState<Member>()
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const send = async (role: 'STUDENT' | 'TA') => {
     const problem = await attempt(() => invite({ variables: { classroomId: classroom.id, person: person.trim(), role } }))
     setMessage(problem ? { ok: false, text: problem } : { ok: true, text: 'Invite sent. It lasts 14 days.' })
     if (!problem) setPerson('')
+  }
+  const act = async (fn: Run, done: string) => {
+    const problem = await attempt(fn)
+    setMessage(problem ? { ok: false, text: problem } : { ok: true, text: done })
+    await refetch()
+    onChanged()
   }
   return (
     <View className="gap-2">
@@ -294,25 +310,47 @@ function People({ classroom }: { classroom: ClassroomDetailFragment }) {
           <Action label="Invite as student" primary onPress={() => person.trim() && void send('STUDENT')} />
           {classroom.viewerCan.manage ? <Action label="Invite as TA" onPress={() => person.trim() && void send('TA')} /> : null}
         </View>
-        {message ? (
-          <Text accessibilityRole={message.ok ? undefined : 'alert'} className={message.ok ? 'text-primary text-sm' : 'text-destructive text-sm'}>
-            {message.text}
-          </Text>
-        ) : null}
       </View>
+      {message ? (
+        <Text accessibilityRole={message.ok ? undefined : 'alert'} className={message.ok ? 'text-primary text-sm' : 'text-destructive text-sm'}>
+          {message.text}
+        </Text>
+      ) : null}
       {(data?.classroom?.members ?? []).map((m) => (
-        <Pressable key={m.user.id} accessibilityRole="link" onPress={() => router.push(`/u/${m.user.handle}`)} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">
-          <View className="bg-secondary size-9 items-center justify-center rounded-full">
-            <Text className="text-secondary-foreground font-bold">{m.user.displayName.slice(0, 1).toUpperCase()}</Text>
-          </View>
-          <Text className="flex-1 font-semibold">{m.user.displayName}</Text>
-          <Text className="text-muted-foreground text-xs">{CLASS_ROLE[m.role]}</Text>
-        </Pressable>
+        <View key={m.user.id} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">
+          <Pressable accessibilityRole="link" accessibilityLabel={m.user.displayName} onPress={() => router.push(`/u/${m.user.handle}`)} className="flex-1 flex-row items-center gap-3">
+            <View className="bg-secondary size-9 items-center justify-center rounded-full">
+              <Text className="text-secondary-foreground font-bold">{m.user.displayName.slice(0, 1).toUpperCase()}</Text>
+            </View>
+            <Text className="flex-1 font-semibold">{m.user.displayName}</Text>
+            <Text className="text-muted-foreground text-xs">{CLASS_ROLE[m.role]}</Text>
+          </Pressable>
+          {classroom.viewerCan.manage && m.role !== 'TEACHER' ? (
+            <Pressable accessibilityRole="button" accessibilityLabel={`Manage ${m.user.displayName}`} onPress={() => setChosen(m)} className="p-2">
+              <MoreHorizontal size={20} color={muted} />
+            </Pressable>
+          ) : null}
+        </View>
       ))}
-      <View className="flex-row items-center gap-1.5">
-        <Users size={14} color={muted} />
-        <Text className="text-muted-foreground text-xs">Roles and settings are changed on the web.</Text>
-      </View>
+      <ActionSheet
+        name="class-member"
+        title={chosen?.user.displayName}
+        open={!!chosen}
+        onClose={() => setChosen(undefined)}
+        actions={
+          chosen
+            ? memberActions(
+                classroom,
+                chosen,
+                {
+                  setRole: (role) => () => setRole({ variables: { classroomId: classroom.id, userId: chosen.user.id, role } }),
+                  remove: () => remove({ variables: { classroomId: classroom.id, userId: chosen.user.id } }),
+                },
+                (fn, done) => void act(fn, done),
+              )
+            : []
+        }
+      />
     </View>
   )
 }

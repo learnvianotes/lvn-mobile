@@ -1,6 +1,7 @@
 import { ApolloProvider } from '@apollo/client/react'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native'
 import { ClassScreen } from '@/features/classes/ClassScreen'
+import { PlatformQueueScreen } from '@/features/moderation/PlatformQueueScreen'
 import { GroupScreen } from '@/features/groups/GroupScreen'
 import { createApolloClient } from '@/lib/apollo'
 import { mockApi, viewer } from '../../support/api'
@@ -68,7 +69,7 @@ it('a member reports someone else’s post, and appeals once against hiding thei
 
 it('group moderators review the group’s reports: mute the author, hide with a reason', async () => {
   let open = true
-  const item = { __typename: 'ModerationCase', entityType: 'GROUP_POST', entityId: 'p2', scope: 'GROUP', scopeId: GROUP, openedAt: new Date().toISOString(), note: null, appeal: null, content: content({}), reports: [{ __typename: 'ModerationReport', reason: 'HARASSMENT', details: 'Rude to everyone', createdAt: new Date().toISOString(), reporter: { __typename: 'User', id: ME, displayName: 'Asha Rao' } }] }
+  const item = { __typename: 'ModerationCase', entityType: 'GROUP_POST', entityId: 'p2', scope: 'GROUP', scopeId: GROUP, openedAt: new Date().toISOString(), note: null, group: null, user: null, appeal: null, content: content({}), reports: [{ __typename: 'ModerationReport', reason: 'HARASSMENT', details: 'Rude to everyone', createdAt: new Date().toISOString(), reporter: { __typename: 'User', id: ME, displayName: 'Asha Rao' } }] }
   const api = mockApi({
     Viewer: () => ({ data: { viewer: viewer() } }),
     Group: () => ({ data: { group: group({ viewerRole: 'MODERATOR', viewerCan: can({ post: true, moderate: true, leave: true }) }) } }),
@@ -110,7 +111,7 @@ it('the owner reads the platform moderators’ warning on the group', async () =
 it('class staff put back a held comment from the class’s reports', async () => {
   let open = true
   const ccan = { __typename: 'ClassroomActions', requestJoin: false, acceptInvite: false, review: true, post: true, manage: true, leave: false }
-  const item = { __typename: 'ModerationCase', entityType: 'COMMENT', entityId: 'c1', scope: 'CLASSROOM', scopeId: CLASS, openedAt: new Date().toISOString(), note: null, appeal: null, content: content({ entityType: 'COMMENT', id: 'c1', excerpt: 'Buy followers here', moderation: 'PENDING_REVIEW', path: `/classes/${CLASS}` }), reports: [{ __typename: 'ModerationReport', reason: 'SPAM', details: null, createdAt: new Date().toISOString(), reporter: null }] }
+  const item = { __typename: 'ModerationCase', entityType: 'COMMENT', entityId: 'c1', scope: 'CLASSROOM', scopeId: CLASS, openedAt: new Date().toISOString(), note: null, group: null, user: null, appeal: null, content: content({ entityType: 'COMMENT', id: 'c1', excerpt: 'Buy followers here', moderation: 'PENDING_REVIEW', path: `/classes/${CLASS}` }), reports: [{ __typename: 'ModerationReport', reason: 'SPAM', details: null, createdAt: new Date().toISOString(), reporter: null }] }
   const api = mockApi({
     Viewer: () => ({ data: { viewer: viewer() } }),
     Classroom: () => ({ data: { classroom: { __typename: 'Classroom', id: CLASS, name: 'Physics 9A', description: null, memberCount: 31, viewerRole: 'TEACHER', teacher: asha, createdAt: '2026-10-01T10:00:00.000Z', joinCode: 'K7PQ2MXA', viewerRequestId: null, viewerInviteId: null, viewerCan: ccan } } }),
@@ -127,4 +128,46 @@ it('class staff put back a held comment from the class’s reports', async () =>
   await fireEvent.press(within(card).getByText('Approve'))
   expect(await screen.findByText('Nothing to review. Thank you!')).toBeOnTheScreen()
   expect(api.calls.find((c) => c.op === 'ModerateContent')?.variables).toEqual({ input: { entityType: 'COMMENT', entityId: 'c1', action: 'APPROVE', reason: null } })
+})
+
+it('platform admins review every scope on the phone: a note, a group, an account and a class’s case', async () => {
+  let decided = false
+  const reportBy = (reason: string) => [{ __typename: 'ModerationReport', reason, details: null, createdAt: new Date().toISOString(), reporter: { __typename: 'User', id: ME, displayName: 'Asha Rao' } }]
+  const base = { __typename: 'ModerationCase', scopeId: null, openedAt: new Date().toISOString(), note: null, group: null, user: null, content: null, appeal: null }
+  const cases = [
+    { ...base, entityType: 'NOTE', entityId: 'n1', scope: 'PLATFORM', note: { __typename: 'Note', id: 'n1', title: 'Exam answers', excerpt: 'Leaked paper', visibility: 'PUBLIC', moderation: 'HIDDEN', moderationReason: 'Copied', deleted: false, owner: meera }, appeal: { __typename: 'ModerationAppeal', message: 'These are my own answers.', createdAt: new Date().toISOString() }, reports: reportBy('COPYRIGHT') },
+    { ...base, entityType: 'GROUP', entityId: GROUP, scope: 'PLATFORM', group: { __typename: 'Group', id: GROUP, name: 'Algorithms study' }, reports: reportBy('SPAM') },
+    { ...base, entityType: 'USER', entityId: OTHER, scope: 'PLATFORM', user: meera, reports: reportBy('HARASSMENT') },
+    { ...base, entityType: 'CLASSROOM_POST', entityId: 'cp1', scope: 'CLASSROOM', scopeId: CLASS, content: content({ entityType: 'CLASSROOM_POST', id: 'cp1', excerpt: 'Homework is cancelled forever' }), reports: reportBy('OTHER') },
+  ]
+  const api = mockApi({
+    Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN' }) } }),
+    ModerationQueue: () => queue(decided ? cases.slice(1) : cases),
+    ModerateContent: () => ((decided = true), ok('moderateContent')),
+  })
+  await inApollo(<PlatformQueueScreen />)
+  const note = await screen.findByLabelText('Note case')
+  expect(api.calls.find((c) => c.op === 'ModerationQueue')?.variables).toEqual({})
+  expect(within(note).getByText('Exam answers')).toBeOnTheScreen()
+  expect(within(note).getByText('These are my own answers.')).toBeOnTheScreen()
+  expect(within(note).getByText('Put it back')).toBeOnTheScreen()
+  expect(within(note).getByText('Keep the decision')).toBeOnTheScreen()
+  // A group is warned or removed, an account only warned; neither is hidden.
+  expect(within(screen.getByLabelText('Group case')).queryByText('Hide')).toBeNull()
+  expect(within(screen.getByLabelText('Group case')).getByText('Remove')).toBeOnTheScreen()
+  expect(within(screen.getByLabelText('Account case')).queryByText('Remove')).toBeNull()
+  expect(within(screen.getByLabelText('Account case')).getByText('Meera Iyer (@meera)')).toBeOnTheScreen()
+  // Where a case comes from, when it is not the platform's own.
+  expect(within(screen.getByLabelText('Announcement case')).getByText('In a class')).toBeOnTheScreen()
+  expect(within(note).queryByText('In a class')).toBeNull()
+  await fireEvent.press(within(note).getByText('Put it back'))
+  await waitFor(() => expect(screen.queryByLabelText('Note case')).toBeNull())
+  expect(api.calls.find((c) => c.op === 'ModerateContent')?.variables).toEqual({ input: { entityType: 'NOTE', entityId: 'n1', action: 'APPROVE', reason: null } })
+})
+
+it('anyone else is told the platform queue is for admins, and nothing is fetched', async () => {
+  const api = mockApi({ Viewer: () => ({ data: { viewer: viewer() } }) })
+  await inApollo(<PlatformQueueScreen />)
+  expect(await screen.findByText('The moderation queue is for platform admins.')).toBeOnTheScreen()
+  expect(api.ops()).not.toContain('ModerationQueue')
 })
