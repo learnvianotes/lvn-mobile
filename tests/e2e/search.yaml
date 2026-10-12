@@ -1,0 +1,52 @@
+# Search on the phone (lvn-backend §11, ADR-0055, ADR-0056): a verified learner finds the public group by its name on
+# Explore (Typesense answers on the local environment), opens it, and finds the search again under recent searches;
+# a kind chip narrows the notes. Needs the learner and the group of scripts/e2e-android.mjs --vm; without them this
+# flow does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof COMMUNITY_EMAIL !== 'undefined' && COMMUNITY_EMAIL !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${COMMUNITY_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${COMMUNITY_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Explore"
+      - assertVisible: "Projects"
+      - tapOn: "Search notes, people, groups and topics"
+      - inputText: ${COMMUNITY_GROUP}
+      - pressKey: Enter
+      - hideKeyboard
+      - extendedWaitUntil:
+          visible: "${COMMUNITY_GROUP}, Group, .*"
+          timeout: 20000
+      - tapOn: "${COMMUNITY_GROUP}, Group, .*"
+      - extendedWaitUntil:
+          visible: "${COMMUNITY_GROUP}"
+          timeout: 15000
+      - tapOn: "Back"
+      - tapOn: "Clear the search"
+      - assertVisible: "Recent searches"
+      - assertVisible: "Search for “${COMMUNITY_GROUP}” again"
+      - tapOn: "Projects"
+      - extendedWaitUntil:
+          visible: "Notes, newest first"
+          timeout: 15000
+      - tapOn: "Projects"
+      - tapOn: "Clear recent searches"
+      - assertNotVisible: "Recent searches"

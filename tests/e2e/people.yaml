@@ -9,7 +9,7 @@ env:
 - runScript:
     file: scripts/second-account.js
 - tapOn: "Explore"
-- tapOn: "Search notes, people and topics"
+- tapOn: "Search notes, people, groups and topics"
 - inputText: ${output.otherName}
 - hideKeyboard
 - extendedWaitUntil:

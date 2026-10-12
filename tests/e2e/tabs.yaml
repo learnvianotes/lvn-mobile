@@ -5,7 +5,7 @@ env:
 ---
 - runFlow: subflows/signed-in.yaml
 - tapOn: "Explore"
-- assertVisible: "Search notes, people and topics"
+- assertVisible: "Search notes, people, groups and topics"
 - assertVisible: "Type to search notes, people and topics."
 - tapOn: "Community"
 - assertVisible: "Activity"
