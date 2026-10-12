@@ -30,8 +30,8 @@ env:
       - assertVisible: "Projects"
       - tapOn: "Search notes, people, groups and topics"
       - inputText: ${COMMUNITY_GROUP}
+      # Enter searches and closes the keyboard (a hideKeyboard after it would go Back, out of Explore).
       - pressKey: Enter
-      - hideKeyboard
       - extendedWaitUntil:
           visible: "${COMMUNITY_GROUP}, Group, .*"
           timeout: 20000
