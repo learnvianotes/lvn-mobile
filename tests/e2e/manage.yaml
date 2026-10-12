@@ -1,0 +1,92 @@
+# Running places from the phone, end to end (P3k; lvn-backend ADR-0045, ADR-0046): a verified learner starts a group,
+# renames it in Settings and deletes it; a teacher starts a class and makes it a new code. The accounts need the
+# database: scripts/e2e-android.mjs makes them when run with --vm; without it this flow does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof COMMUNITY_EMAIL !== 'undefined' && COMMUNITY_EMAIL !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${COMMUNITY_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${COMMUNITY_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Community"
+      - tapOn: "Groups & classes"
+      - tapOn: "New group"
+      - tapOn: "Name"
+      - inputText: "Phone group ${STAMP}"
+      - hideKeyboard
+      - tapOn: "Private"
+      - tapOn: "Create group"
+      - extendedWaitUntil:
+          visible: "Private · 1 member · Owner"
+          timeout: 15000
+      - tapOn: "Settings"
+      - tapOn: "Description"
+      - inputText: "Made on the phone"
+      - hideKeyboard
+      - scrollUntilVisible:
+          element: "Save"
+      - tapOn: "Save"
+      - extendedWaitUntil:
+          visible: "Saved."
+          timeout: 15000
+      - assertVisible: "Made on the phone"
+      - tapOn: "Delete group"
+      # The native confirmation.
+      - tapOn: "(?i)delete"
+      - extendedWaitUntil:
+          visible: "Groups & classes"
+          timeout: 15000
+      - assertNotVisible: "Phone group ${STAMP}"
+- runFlow:
+    when:
+      true: ${typeof TEACHER_EMAIL !== 'undefined' && TEACHER_EMAIL !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${TEACHER_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${TEACHER_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Community"
+      - tapOn: "Groups & classes"
+      - tapOn: "New class"
+      - tapOn: "Name"
+      - inputText: "Phone class ${STAMP}"
+      - hideKeyboard
+      - tapOn: "Create class"
+      - extendedWaitUntil:
+          visible: "Class code"
+          timeout: 15000
+      - tapOn: "Settings"
+      - tapOn: "New code"
+      - tapOn: "(?i)make new code"
+      - extendedWaitUntil:
+          visible: "The class has a new code."
+          timeout: 15000

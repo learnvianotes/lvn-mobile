@@ -20,6 +20,7 @@ import * as db from './store/db'
 import { syncSoon } from './sync/engine'
 import { readerPath } from '@/features/reader/paths'
 import { Discussion } from '@/features/discussion/Discussion'
+import { NoteCredits } from '@/features/workspaces/Credits'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -228,6 +229,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
         ) : null}
         <Text className="text-3xl font-extrabold">{note.title || 'Untitled note'}</Text>
         {note.ownerName ? <Text className="text-muted-foreground text-sm">By {note.ownerName}</Text> : null}
+        {note.deletedAt ? null : <NoteCredits noteId={note.id} />}
         {cards.map((c) => (
           <Pressable key={c.id} onLongPress={() => reader.play(c.id)} accessibilityHint="Long press to read aloud from here">
             <CardView type={c.type} content={c.content} highlighted={reader.current === c.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: c.id }))} />

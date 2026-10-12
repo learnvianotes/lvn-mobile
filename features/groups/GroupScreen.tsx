@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { ArrowLeft, FileText, Globe, Lock, Pin, PinOff, Trash2, Users } from 'lucide-react-native'
+import { ArrowLeft, FileText, Globe, Lock, Pin, PinOff, Trash2 } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -32,14 +32,16 @@ import {
 } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 import { Doubts, Ideas, WorkspaceHeader } from '@/features/workspaces/WorkspaceParts'
+import { GroupMembers, GroupSettings, InviteMentor, ShowcaseSetting } from './GroupManage'
 import { attempt, ROLE, textToDoc } from './shared'
 
-type Tab = 'posts' | 'ideas' | 'doubts' | 'notes' | 'members' | 'requests' | 'reports'
-const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Doubts', notes: 'Notes', members: 'Members', requests: 'Requests', reports: 'Reports' }
+type Tab = 'posts' | 'ideas' | 'doubts' | 'notes' | 'members' | 'requests' | 'reports' | 'settings'
+const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Doubts', notes: 'Notes', members: 'Members', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
 
 /**
- * One group on the phone (lvn-backend ADR-0045): joining or asking to; for members, posts (write, and pin or delete as a
- * moderator), shared notes, members, and requests for admins. Settings and roles are changed on the web.
+ * One group on the phone (lvn-backend ADR-0045, ADR-0048): joining or asking to; for members, posts (write, and pin or
+ * delete as a moderator), shared notes and members; for admins, requests, roles, settings and a workspace's mentor and
+ * showcase; for moderators, reports and muting.
  */
 export function GroupScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
@@ -70,7 +72,7 @@ export function GroupScreen({ id }: { id: string }) {
   if (!group) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This group is not available.</Text>}</View>
   const member = !!group.viewerRole
   const project = group.type === 'PROJECT'
-  const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : []), ...(group.viewerCan.moderate ? (['reports'] as const) : [])] : []
+  const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : []), ...(group.viewerCan.moderate ? (['reports'] as const) : []), ...(group.viewerCan.manage ? (['settings'] as const) : [])] : []
   const Icon = group.privacy === 'PRIVATE' ? Lock : Globe
   return (
     <View className="bg-background flex-1">
@@ -133,9 +135,20 @@ export function GroupScreen({ id }: { id: string }) {
             {tab === 'ideas' ? <Ideas group={group} /> : null}
             {tab === 'doubts' ? <Doubts group={group} /> : null}
             {tab === 'notes' ? <Notes group={group} /> : null}
-            {tab === 'members' ? <Members group={group} /> : null}
+            {tab === 'members' ? (
+              <View className="gap-3">
+                {group.viewerCan.inviteMentor ? <InviteMentor groupId={group.id} /> : null}
+                <GroupMembers group={group} onChanged={() => void refetch()} />
+              </View>
+            ) : null}
             {tab === 'requests' ? <Requests group={group} onChanged={() => void refetch()} /> : null}
             {tab === 'reports' ? <ModerationQueue scope={{ scope: 'GROUP', id: group.id }} groupId={group.id} /> : null}
+            {tab === 'settings' ? (
+              <View className="gap-8">
+                <GroupSettings group={group} onSaved={() => void refetch()} />
+                {project ? <ShowcaseSetting group={group} /> : null}
+              </View>
+            ) : null}
           </>
         ) : (
           <Text className="text-muted-foreground text-center">Posts, notes and members are for members. Join to see them.</Text>
@@ -279,27 +292,6 @@ function Notes({ group }: { group: GroupDetailFragment }) {
       ) : data ? (
         <Text className="text-muted-foreground py-6 text-center">No notes shared yet.</Text>
       ) : null}
-    </View>
-  )
-}
-
-function Members({ group }: { group: GroupDetailFragment }) {
-  const { data } = useQuery(GroupMembersDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
-  return (
-    <View className="gap-2">
-      {(data?.group?.members ?? []).map((m) => (
-        <Pressable key={m.user.id} accessibilityRole="link" onPress={() => router.push(`/u/${m.user.handle}`)} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">
-          <View className="bg-secondary size-9 items-center justify-center rounded-full">
-            <Text className="text-secondary-foreground font-bold">{m.user.displayName.slice(0, 1).toUpperCase()}</Text>
-          </View>
-          <Text className="flex-1 font-semibold">{m.user.displayName}</Text>
-          <Text className="text-muted-foreground text-xs">{ROLE[m.role]}</Text>
-        </Pressable>
-      ))}
-      <View className="flex-row items-center gap-1.5">
-        <Users size={14} color="#6b7280" />
-        <Text className="text-muted-foreground text-xs">Roles and settings are changed on the web.</Text>
-      </View>
     </View>
   )
 }

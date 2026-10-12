@@ -11,8 +11,9 @@ import { STATE } from '@/features/moderation/copy'
 import { ContentModeration } from '@/features/moderation/ModerationNotice'
 import { ReportLink } from '@/features/moderation/ReportSheet'
 import { RichDoc } from '@/features/notes/render/RichText'
+import { Field, Outcome, Pill } from '@/features/shell/Form'
 import { ago } from '@/features/notifications/describe'
-import { AnswerMentorInviteDocument, AskDoubtDocument, CreateIdeaDocument, WorkspaceDocument, WorkspaceDoubtsDocument, WorkspaceIdeasDocument, type DoubtStatus, type GroupDetailFragment } from '@/graphql/generated/graphql'
+import { AnswerMentorInviteDocument, AskDoubtDocument, CreateIdeaDocument, SetGroupRepositoryDocument, WorkspaceDocument, WorkspaceDoubtsDocument, WorkspaceIdeasDocument, type DoubtStatus, type GroupDetailFragment } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 
 export const STATUS: Record<DoubtStatus, string> = { OPEN: 'Open', ANSWERED: 'Answered', RESOLVED: 'Resolved' }
@@ -28,12 +29,12 @@ export function StatusChip({ status }: { status: DoubtStatus }) {
 
 /**
  * A workspace's header parts on the phone (lvn-backend ADR-0048): an open mentor invite to answer, the repository card
- * (opened in the browser) and the showcase. Linking a repository and choosing the showcase are on the web.
+ * (opened in the browser; admins link, change or unlink it) and the showcase (chosen in Settings).
  */
 export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragment; onChanged: () => void }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data } = useQuery(WorkspaceDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = useQuery(WorkspaceDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const [answer] = useMutation(AnswerMentorInviteDocument)
   const [error, setError] = useState<string | null>(null)
   const repo = data?.group?.repository
@@ -83,6 +84,7 @@ export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragme
           )}
         </Pressable>
       ) : null}
+      {group.viewerCan.manage && data?.group ? <RepositoryEditor groupId={group.id} url={repo?.url ?? null} onChanged={() => void refetch()} /> : null}
       {showcase ? (
         <Pressable accessibilityRole="link" onPress={() => router.push(`/notes/${showcase.id}`)} className="flex-row items-center gap-1.5 self-start">
           <Award size={16} color={accent} />
@@ -94,6 +96,47 @@ export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragme
           {error}
         </Text>
       ) : null}
+    </View>
+  )
+}
+
+/** Admins link a public GitHub or GitLab repository, change it or unlink it; LearnViaNotes never needs access. */
+function RepositoryEditor({ groupId, url, onChanged }: { groupId: string; url: string | null; onChanged: () => void }) {
+  const [save, saving] = useMutation(SetGroupRepositoryDocument)
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(url ?? '')
+  const [error, setError] = useState<string | null>(null)
+  const submit = async (next: string | null) => {
+    const problem = await attempt(() => save({ variables: { groupId, url: next } }))
+    setError(problem)
+    if (!problem) setEditing(false)
+    onChanged()
+  }
+  if (!editing)
+    return (
+      <View className="gap-1">
+        {url ? null : <Text className="text-muted-foreground text-sm">No repository linked yet.</Text>}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            setValue(url ?? '')
+            setEditing(true)
+          }}
+          className="self-start py-1"
+        >
+          <Text className="text-primary text-sm font-semibold">{url ? 'Change repository' : 'Link a repository'}</Text>
+        </Pressable>
+      </View>
+    )
+  return (
+    <View className="border-border gap-2 rounded-2xl border p-3">
+      <Field label="Repository address" hint="A repository on github.com or gitlab.com. LearnViaNotes shows its public details; it never needs access." placeholder="https://github.com/owner/project" value={value} onChangeText={setValue} autoCapitalize="none" autoCorrect={false} keyboardType="url" />
+      <View className="flex-row flex-wrap gap-2">
+        <Pill label="Save" primary disabled={saving.loading || !value.trim()} onPress={() => void submit(value.trim())} />
+        {url ? <Pill label="Unlink" onPress={() => void submit(null)} /> : null}
+        <Pill label="Cancel" onPress={() => setEditing(false)} />
+      </View>
+      <Outcome message={error ? { ok: false, text: error } : null} />
     </View>
   )
 }

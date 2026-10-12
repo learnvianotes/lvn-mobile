@@ -27,7 +27,7 @@ export function AccountScreen() {
       <ScrollView contentContainerClassName="gap-5 px-5 pb-32 pt-4">
         <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">{copy.account.title}</Text>
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
-        {viewer ? <PeopleLinks handle={viewer.handle} /> : null}
+        {viewer ? <PeopleLinks viewer={viewer} /> : null}
         {viewer ? <YourDataCard /> : null}
         <SignOutButton />
       </ScrollView>
@@ -114,11 +114,14 @@ function SignOutButton() {
   )
 }
 
-/** Your profile as others see it, and your followers, following and blocked people (lvn-backend ADR-0043). */
-function PeopleLinks({ handle }: { handle: string }) {
+/**
+ * Your profile as others see it, your followers, following and blocked people (lvn-backend ADR-0043), notification
+ * settings; a teacher's Skills tab, and the platform's moderation queue for platform admins.
+ */
+function PeopleLinks({ viewer }: { viewer: ViewerFieldsFragment }) {
   return (
     <View className={card}>
-      <Pressable accessibilityRole="link" onPress={() => router.push(`/u/${handle}`)} className="flex-row items-center justify-between">
+      <Pressable accessibilityRole="link" onPress={() => router.push(`/u/${viewer.handle}`)} className="flex-row items-center justify-between">
         <Text className="font-semibold">See your profile</Text>
         <Text className="text-muted-foreground">›</Text>
       </Pressable>
@@ -130,6 +133,18 @@ function PeopleLinks({ handle }: { handle: string }) {
         <Text className="font-semibold">Notification settings</Text>
         <Text className="text-muted-foreground">›</Text>
       </Pressable>
+      {viewer.globalRole === 'TEACHER' ? (
+        <Pressable accessibilityRole="link" onPress={() => router.push('/skills')} className="flex-row items-center justify-between">
+          <Text className="font-semibold">Your Skills tab</Text>
+          <Text className="text-muted-foreground">›</Text>
+        </Pressable>
+      ) : null}
+      {viewer.globalRole === 'PLATFORM_ADMIN' ? (
+        <Pressable accessibilityRole="link" onPress={() => router.push('/admin/moderation')} className="flex-row items-center justify-between">
+          <Text className="font-semibold">Moderation queue</Text>
+          <Text className="text-muted-foreground">›</Text>
+        </Pressable>
+      ) : null}
     </View>
   )
 }

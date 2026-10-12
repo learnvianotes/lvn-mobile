@@ -93,3 +93,30 @@ it('a class announcement opens a private thread with the staff', async () => {
   expect(screen.getByLabelText('Write a comment').props.placeholder).toBe("Ask the teacher a question. Only you and the class's staff see it.")
   expect(api.calls.find((c) => c.op === 'Discussion')?.variables).toEqual({ target: { type: 'CLASSROOM_POST', id: 'p1' } })
 })
+
+it('the author edits their comment, which then reads as edited', async () => {
+  let list = [comment('c1', 'Why halve it', { viewerCan: can({ edit: true, delete: true }) })]
+  const api = mockApi({
+    Discussion: () => discussion(list),
+    EditComment: (v) => {
+      list = [comment('c1', 'Why halve it twice?', { editedAt: new Date().toISOString(), viewerCan: can({ edit: true, delete: true }) })]
+      return { data: { editComment: { __typename: 'CommentPayload', comment: { __typename: 'Comment', id: v.commentId }, userErrors: [] } } }
+    },
+  })
+  await inApollo(<Discussion target={target} />)
+  await fireEvent.press(await screen.findByRole('button', { name: 'Edit comment' }))
+  expect(screen.getByLabelText('Edit your comment').props.value).toBe('Why halve it')
+  await fireEvent.changeText(screen.getByLabelText('Edit your comment'), 'Why halve it twice?')
+  await fireEvent.press(screen.getByRole('button', { name: 'Save' }))
+  expect(await screen.findByText('Why halve it twice?')).toBeOnTheScreen()
+  expect(screen.getByText(/· edited/)).toBeOnTheScreen()
+  expect(screen.queryByLabelText('Edit your comment')).toBeNull()
+  expect(api.calls.find((c) => c.op === 'EditComment')?.variables).toEqual({ commentId: 'c1', body: doc('Why halve it twice?') })
+})
+
+it('someone else’s comment has no Edit', async () => {
+  mockApi({ Discussion: () => discussion([comment('c1', 'Why halve it?')]) })
+  await inApollo(<Discussion target={target} />)
+  await screen.findByText('Why halve it?')
+  expect(screen.queryByRole('button', { name: 'Edit comment' })).toBeNull()
+})

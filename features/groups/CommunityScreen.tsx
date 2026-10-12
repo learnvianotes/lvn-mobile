@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { Globe, Lock, Search, Users } from 'lucide-react-native'
+import { Globe, Lock, Plus, Search, Users } from 'lucide-react-native'
 import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -16,12 +16,13 @@ const SECTIONS: Record<Section, string> = { activity: 'Activity', following: 'Fo
 
 /**
  * The Community tab (spec §13.1, lvn-backend ADR-0045, ADR-0046, ADR-0049): the activity of your groups and classes,
- * the Following feed, and your classes (with a class code to enter), your groups and public groups to find. Classes
- * and groups start on the web.
+ * the Following feed, and your classes (with a class code to enter), your groups and public groups to find. Anyone
+ * verified starts a group here; teachers start classes from the classes section.
  */
 export function CommunityScreen() {
   const insets = useSafeAreaInsets()
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const mine = useQuery(MyGroupsDocument, { fetchPolicy: 'cache-and-network' })
   const [query, setQuery] = useState('')
   const [settled, setSettled] = useState('')
@@ -51,7 +52,13 @@ export function CommunityScreen() {
         <>
       <ClassesSection />
       <MentorInvites onAnswered={() => void mine.refetch()} />
-      <Text className="text-muted-foreground text-sm font-semibold">Your groups</Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-muted-foreground text-sm font-semibold">Your groups</Text>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/groups/new')} className="flex-row items-center gap-1 py-1">
+          <Plus size={16} color={accent} />
+          <Text className="text-primary text-sm font-semibold">New group</Text>
+        </Pressable>
+      </View>
       {mine.data?.myGroups.length ? mine.data.myGroups.map((g) => <GroupRow key={g.id} group={g} />) : mine.data ? <Text className="text-muted-foreground">You&apos;re not in any group yet. Find one below.</Text> : null}
       <Text className="text-muted-foreground text-sm font-semibold">Find a group</Text>
       <View className="bg-card border-border flex-row items-center gap-2 rounded-2xl border px-3">

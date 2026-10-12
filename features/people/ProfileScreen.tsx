@@ -229,7 +229,14 @@ export function ProfileScreen({ handle }: { handle: string }) {
         </ScrollView>
 
         {kind === 'SKILLS' ? (
-          <SkillsTab profile={person.teacherProfile} />
+          <>
+            {own ? (
+              <Pressable accessibilityRole="button" onPress={() => router.push('/skills')} className="border-border self-start rounded-full border px-4 py-2">
+                <Text className="font-semibold">Edit your Skills tab</Text>
+              </Pressable>
+            ) : null}
+            <SkillsTab profile={person.teacherProfile} />
+          </>
         ) : shown.length ? (
           shown.map((n) => (
             <Pressable key={n.id} accessibilityRole="button" onPress={() => router.push(`/notes/${n.id}`)} className="bg-card border-border flex-row items-start gap-3 rounded-2xl border p-4">

@@ -1,8 +1,9 @@
 import { ApolloProvider } from '@apollo/client/react'
 import { fireEvent, screen, waitFor } from '@testing-library/react-native'
 import { router } from 'expo-router'
-import { Linking } from 'react-native'
+import { Alert, Linking } from 'react-native'
 import { GroupScreen } from '@/features/groups/GroupScreen'
+import { NoteCredits } from '@/features/workspaces/Credits'
 import { DoubtScreen } from '@/features/workspaces/DoubtScreen'
 import { createApolloClient } from '@/lib/apollo'
 import { mockApi } from '../../support/api'
@@ -88,4 +89,87 @@ it('a doubt shows the mentor’s answer, takes another, and resolves', async () 
   await fireEvent.press(screen.getByText('Mark resolved'))
   expect(await screen.findByText('This doubt is resolved. Reopen it to answer again.')).toBeOnTheScreen()
   expect(api.calls.find((c) => c.op === 'ResolveDoubt')?.variables).toEqual({ doubtId: DOUBT })
+})
+
+it('an admin links the repository, invites a mentor and chooses the showcase', async () => {
+  let repo: typeof repository | null = null
+  let showcase: Record<string, unknown> | null = null
+  const project = { __typename: 'Note', id: 'n7', title: 'Heap visualiser: the write-up', kind: 'PROJECT', visibility: 'PUBLIC', publishedAt: '2026-10-11T09:00:00.000Z', owner: meera }
+  const api = mockApi({
+    Group: () => ({ data: { group: workspace({ viewerRole: 'OWNER', viewerCan: can({ manage: true, delete: true, inviteMentor: true, leave: false }) }) } }),
+    GroupPosts: posts,
+    Workspace: () => ({ data: { group: { __typename: 'Group', id: GROUP, repository: repo, showcase } } }),
+    SetGroupRepository: (v) => ((repo = v.url ? { ...repository, url: String(v.url) } : null), { data: { setGroupRepository: { __typename: 'GroupPayload', group: { __typename: 'Group', id: GROUP }, userErrors: [] } } }),
+    GroupMembers: () => ({ data: { group: { __typename: 'Group', id: GROUP, viewerRole: 'OWNER', members: [], joinRequests: [] } } }),
+    InviteMentor: () => ({ data: { inviteMentor: { __typename: 'GroupPayload', group: { __typename: 'Group', id: GROUP }, userErrors: [] } } }),
+    GroupNotes: () => ({ data: { group: { __typename: 'Group', id: GROUP, sharedNotes: { __typename: 'NoteConnection', edges: [{ __typename: 'NoteEdge', node: project }, { __typename: 'NoteEdge', node: { ...project, id: 'n8', title: 'Private draft', visibility: 'SHARED' } }] } } } }),
+    SetProjectShowcase: (v) => ((showcase = v.noteId ? { __typename: 'Note', id: 'n7', title: project.title } : null), { data: { setProjectShowcase: { __typename: 'GroupPayload', group: { __typename: 'Group', id: GROUP }, userErrors: [] } } }),
+  })
+  await inApollo(<GroupScreen id={GROUP} />)
+  expect(await screen.findByText('No repository linked yet.')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Link a repository' }))
+  await fireEvent.changeText(screen.getByLabelText('Repository address'), ' https://github.com/team/heap-viz ')
+  await fireEvent.press(screen.getByRole('button', { name: 'Save' }))
+  expect(await screen.findByText('Watch a heap grow')).toBeOnTheScreen()
+  expect(api.calls.find((c) => c.op === 'SetGroupRepository')?.variables).toEqual({ groupId: GROUP, url: 'https://github.com/team/heap-viz' })
+  await fireEvent.press(screen.getByRole('button', { name: 'Change repository' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Unlink' }))
+  expect(await screen.findByText('No repository linked yet.')).toBeOnTheScreen()
+  expect(api.calls.filter((c) => c.op === 'SetGroupRepository').at(-1)?.variables).toEqual({ groupId: GROUP, url: null })
+
+  await fireEvent.press(screen.getByRole('tab', { name: 'Members' }))
+  await fireEvent.changeText(await screen.findByLabelText('Invite a mentor'), 'meera')
+  await fireEvent.press(screen.getByRole('button', { name: 'Invite' }))
+  expect(await screen.findByText('Invite sent. It lasts 14 days.')).toBeOnTheScreen()
+  expect(api.calls.find((c) => c.op === 'InviteMentor')?.variables).toEqual({ groupId: GROUP, person: 'meera' })
+
+  await fireEvent.press(screen.getByRole('tab', { name: 'Settings' }))
+  // Only a public project note can be the showcase.
+  expect(await screen.findByRole('radio', { name: 'Heap visualiser: the write-up' })).toBeOnTheScreen()
+  expect(screen.queryByRole('radio', { name: 'Private draft' })).toBeNull()
+  await fireEvent.press(screen.getByRole('radio', { name: 'Heap visualiser: the write-up' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Save showcase' }))
+  expect(await screen.findByText('Showcase: Heap visualiser: the write-up')).toBeOnTheScreen()
+  expect(api.calls.find((c) => c.op === 'SetProjectShowcase')?.variables).toEqual({ groupId: GROUP, noteId: 'n7' })
+})
+
+it('a member sees the repository but cannot change it', async () => {
+  mockApi({
+    Group: () => ({ data: { group: workspace() } }),
+    GroupPosts: posts,
+    Workspace: () => ({ data: { group: { __typename: 'Group', id: GROUP, repository: null, showcase: null } } }),
+  })
+  await inApollo(<GroupScreen id={GROUP} />)
+  await screen.findByText('Heap visualiser')
+  expect(screen.queryByRole('button', { name: 'Link a repository' })).toBeNull()
+  expect(screen.queryByRole('tab', { name: 'Settings' })).toBeNull()
+})
+
+it('the asker deletes a doubt after confirming', async () => {
+  jest.spyOn(Alert, 'alert').mockImplementation((_t, _m, buttons) => buttons?.find((b) => b.style === 'destructive')?.onPress?.())
+  const api = mockApi({
+    Doubt: () => ({ data: { doubt: { __typename: 'Doubt', moderation: 'OK', moderationReason: null, moderationCanAppeal: false, id: DOUBT, title: 'Why swap twice?', status: 'OPEN', repoRef: null, createdAt: new Date().toISOString(), answerCount: 0, author: asha, body: doc('See the loop'), resolvedAt: null, viewerCan: { __typename: 'DoubtActions', answer: true, resolve: true, reopen: false, delete: true }, answers: [] } } }),
+    DeleteDoubt: () => ({ data: { deleteDoubt: { __typename: 'GroupPayload', group: { __typename: 'Group', id: GROUP }, userErrors: [] } } }),
+  })
+  await inApollo(<DoubtScreen id={DOUBT} />)
+  await fireEvent.press(await screen.findByRole('button', { name: 'Delete' }))
+  expect(Alert.alert).toHaveBeenCalledWith('Delete this doubt?', 'Its answers go with it.', expect.anything())
+  await waitFor(() => expect(router.back).toHaveBeenCalled())
+  expect(api.calls.find((c) => c.op === 'DeleteDoubt')?.variables).toEqual({ doubtId: DOUBT })
+})
+
+it('a showcase note credits the team, then the mentor; other notes show nothing', async () => {
+  const contributors = (list: unknown[]) => ({ data: { note: { __typename: 'Note', id: 'n7', contributors: list } } })
+  mockApi({ NoteContributors: () => contributors([{ __typename: 'ProjectContributor', role: 'CONTRIBUTOR', user: asha }, { __typename: 'ProjectContributor', role: 'CONTRIBUTOR', user: { ...meera, id: 'u3', displayName: 'Dev Patel', handle: 'dev' } }, { __typename: 'ProjectContributor', role: 'MENTOR', user: meera }]) })
+  await inApollo(<NoteCredits noteId="n7" />)
+  expect(await screen.findByText(/Built by/)).toBeOnTheScreen()
+  expect(screen.getByText('Asha Rao, ')).toBeOnTheScreen()
+  expect(screen.getByText('Dev Patel')).toBeOnTheScreen()
+  expect(screen.getByText(/mentored by/)).toBeOnTheScreen()
+  await fireEvent.press(screen.getByText('Meera Iyer'))
+  expect(router.push).toHaveBeenCalledWith('/u/meera')
+
+  mockApi({ NoteContributors: () => contributors([]) })
+  await inApollo(<NoteCredits noteId="n8" />)
+  await waitFor(() => expect(screen.queryByText(/Built by/)).toBeNull())
 })

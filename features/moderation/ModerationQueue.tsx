@@ -1,3 +1,4 @@
+import { CombinedGraphQLErrors } from '@apollo/client/errors'
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { useState } from 'react'
@@ -14,40 +15,63 @@ type Choice = { action: ModerationActionType; label: string }
 
 const NEEDS_REASON = new Set<ModerationActionType>(['HIDE', 'REMOVE', 'WARN'])
 
-/** What a group's moderators or a class's staff can do with a case; approving content that is up changes nothing. */
+/** What a moderator can do with a case, as on the web: accounts are warned, groups removed; content that is up has nothing to approve. */
 function choicesFor(c: Case): Choice[] {
-  const state = c.content?.moderation
+  const state = c.content?.moderation ?? c.note?.moderation
   const keep = !!c.appeal && (state === 'HIDDEN' || state === 'REMOVED')
-  const rest: Choice[] = [
-    { action: 'DISMISS', label: keep ? 'Keep the decision' : 'Dismiss reports' },
-    { action: 'WARN', label: 'Warn' },
-    { action: 'HIDE', label: 'Hide' },
-    { action: 'REMOVE', label: 'Remove' },
-  ]
+  const dismiss: Choice = { action: 'DISMISS', label: keep ? 'Keep the decision' : 'Dismiss reports' }
+  const warn: Choice = { action: 'WARN', label: 'Warn' }
+  const remove: Choice = { action: 'REMOVE', label: 'Remove' }
+  if (c.entityType === 'USER') return [dismiss, warn]
+  if (c.entityType === 'GROUP') return [dismiss, warn, remove]
+  const rest: Choice[] = [dismiss, warn, { action: 'HIDE', label: 'Hide' }, remove]
   return state && state !== 'OK' ? [{ action: 'APPROVE', label: keep ? 'Put it back' : 'Approve' }, ...rest] : rest
 }
 
+const WHERE: Record<string, string> = { GROUP: 'In a group', CLASSROOM: 'In a class' }
+
 /**
- * A group's or a class's reports on the phone (lvn-backend ADR-0051), oldest first: what was reported and why, the
- * author's appeal, and the decisions. In a group, its moderators can also mute the author for a day.
+ * A moderation queue on the phone (lvn-backend ADR-0037, ADR-0051), oldest first: what was reported and why, the
+ * author's appeal, and the decisions. With `scope` it is a group's (its moderators can also mute the author for a day)
+ * or a class's; without, the platform's, for platform admins, with every scope's cases marked by where they are.
  */
-export function ModerationQueue({ scope, groupId }: { scope: { scope: 'GROUP' | 'CLASSROOM'; id: string }; groupId?: string }) {
-  const { data, refetch } = useQuery(ModerationQueueDocument, { variables: { scope }, fetchPolicy: 'cache-and-network' })
+export function ModerationQueue({ scope, groupId }: { scope?: { scope: 'GROUP' | 'CLASSROOM'; id: string }; groupId?: string }) {
+  const { data, error, refetch, fetchMore } = useQuery(ModerationQueueDocument, { variables: { scope }, fetchPolicy: 'cache-and-network' })
   const cases = data?.moderationQueue.edges.map((e) => e.node) ?? []
+  const forbidden = CombinedGraphQLErrors.is(error) && error.errors.some((e) => e.extensions?.code === 'FORBIDDEN')
+  if (forbidden) return <Text className="text-muted-foreground py-8 text-center">{scope ? 'Only the moderators of this place see its reports.' : 'The moderation queue is for platform admins.'}</Text>
   return (
     <View className="gap-3">
       <Text className="text-muted-foreground text-sm">
-        {scope.scope === 'GROUP' ? 'Reports from members and posts held for review, oldest first. Only the group’s moderators see them.' : 'Reports from the class and comments held for review, oldest first. Only the teacher and TAs see them.'}
+        {!scope
+          ? 'Open reports and appeals from everywhere, oldest first. Notes held on their way to the public are here too.'
+          : scope.scope === 'GROUP'
+            ? 'Reports from members and posts held for review, oldest first. Only the group’s moderators see them.'
+            : 'Reports from the class and comments held for review, oldest first. Only the teacher and TAs see them.'}
       </Text>
       {data && !cases.length ? <Text className="text-muted-foreground py-8 text-center">Nothing to review. Thank you!</Text> : null}
       {cases.map((c) => (
-        <CaseCard key={`${c.entityType}:${c.entityId}`} item={c} groupId={groupId} onDone={() => void refetch()} />
+        <CaseCard key={`${c.entityType}:${c.entityId}`} item={c} groupId={groupId} platform={!scope} onDone={() => void refetch()} />
       ))}
+      {data?.moderationQueue.pageInfo.hasNextPage ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
+            void fetchMore({
+              variables: { after: data.moderationQueue.pageInfo.endCursor },
+              updateQuery: (prev, { fetchMoreResult }) => ({ moderationQueue: { ...fetchMoreResult.moderationQueue, edges: [...prev.moderationQueue.edges, ...fetchMoreResult.moderationQueue.edges] } }),
+            })
+          }
+          className="border-border self-center rounded-full border px-4 py-2"
+        >
+          <Text className="font-semibold">Show more</Text>
+        </Pressable>
+      ) : null}
     </View>
   )
 }
 
-function CaseCard({ item: c, groupId, onDone }: { item: Case; groupId?: string; onDone: () => void }) {
+function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?: string; platform?: boolean; onDone: () => void }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const [moderate, deciding] = useMutation(ModerateContentDocument)
   const [mute] = useMutation(MuteGroupMemberDocument)
@@ -55,6 +79,8 @@ function CaseCard({ item: c, groupId, onDone }: { item: Case; groupId?: string; 
   const [error, setError] = useState<string | null>(null)
   const [muted24, setMuted24] = useState(false)
   const author = c.content?.author ?? c.note?.owner ?? null
+  const state = c.content?.moderation ?? c.note?.moderation ?? null
+  const title = c.note ? c.note.title || 'Untitled note' : c.group ? c.group.name : c.user ? `${c.user.displayName} (@${c.user.handle})` : null
   const decide = async (action: ModerationActionType) => {
     if (NEEDS_REASON.has(action) && !reason.trim()) return setError('Write a reason first: the author is told.')
     const problem = await attempt(() => moderate({ variables: { input: { entityType: c.entityType, entityId: c.entityId, action, reason: reason.trim() || null } } }))
@@ -71,12 +97,27 @@ function CaseCard({ item: c, groupId, onDone }: { item: Case; groupId?: string; 
     <View accessibilityLabel={`${ENTITY[c.entityType]} case`} className="bg-card border-border gap-3 rounded-2xl border p-4">
       <View className="flex-row flex-wrap items-center gap-2">
         <Text className="text-muted-foreground text-xs font-semibold uppercase">{ENTITY[c.entityType]}</Text>
-        {c.content ? <Text className="bg-secondary rounded-full px-2 py-0.5 text-xs">{STATE[c.content.moderation]}</Text> : null}
+        {platform && c.scope !== 'PLATFORM' ? <Text className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-semibold">{WHERE[c.scope]}</Text> : null}
+        {state ? <Text className="bg-secondary rounded-full px-2 py-0.5 text-xs">{STATE[state]}</Text> : null}
         <Text className="text-muted-foreground ml-auto text-xs">opened {ago(c.openedAt)}</Text>
       </View>
+      {title ? (
+        c.group ? (
+          <Pressable accessibilityRole="link" onPress={() => router.push(`/groups/${c.group!.id}`)}>
+            <Text className="text-lg font-bold">{title}</Text>
+          </Pressable>
+        ) : (
+          <Text className="text-lg font-bold">{title}</Text>
+        )
+      ) : null}
       {author ? (
         <Text className="text-sm">
           by <Text className="font-semibold">{author.displayName}</Text> (@{author.handle})
+        </Text>
+      ) : null}
+      {c.note?.excerpt ? (
+        <Text className="bg-secondary rounded-xl px-3 py-2 text-sm" numberOfLines={6}>
+          {c.note.excerpt}
         </Text>
       ) : null}
       {c.content ? (
