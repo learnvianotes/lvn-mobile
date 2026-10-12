@@ -28,10 +28,11 @@ import {
   type GroupDetailFragment,
 } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
+import { Doubts, Ideas, WorkspaceHeader } from '@/features/workspaces/WorkspaceParts'
 import { attempt, ROLE, textToDoc } from './shared'
 
-type Tab = 'posts' | 'notes' | 'members' | 'requests'
-const TABS: Record<Tab, string> = { posts: 'Posts', notes: 'Notes', members: 'Members', requests: 'Requests' }
+type Tab = 'posts' | 'ideas' | 'doubts' | 'notes' | 'members' | 'requests'
+const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Doubts', notes: 'Notes', members: 'Members', requests: 'Requests' }
 
 /**
  * One group on the phone (lvn-backend ADR-0045): joining or asking to; for members, posts (write, and pin or delete as a
@@ -65,7 +66,8 @@ export function GroupScreen({ id }: { id: string }) {
   )
   if (!group) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This group is not available.</Text>}</View>
   const member = !!group.viewerRole
-  const tabs: Tab[] = member ? ['posts', 'notes', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : [])] : []
+  const project = group.type === 'PROJECT'
+  const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : [])] : []
   const Icon = group.privacy === 'PRIVATE' ? Lock : Globe
   return (
     <View className="bg-background flex-1">
@@ -75,7 +77,8 @@ export function GroupScreen({ id }: { id: string }) {
           <View className="flex-row items-center gap-1.5">
             <Icon size={14} color={accent} />
             <Text className="text-muted-foreground text-xs">
-              {group.privacy === 'PRIVATE' ? 'Private' : 'Public'} · {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
+              {group.privacy === 'PRIVATE' ? 'Private' : 'Public'}
+              {project ? ' · Project' : ''} · {group.memberCount} {group.memberCount === 1 ? 'member' : 'members'}
               {group.viewerRole ? ` · ${ROLE[group.viewerRole]}` : ''}
             </Text>
           </View>
@@ -83,6 +86,7 @@ export function GroupScreen({ id }: { id: string }) {
             {group.name}
           </Text>
           {group.description ? <Text className="text-muted-foreground">{group.description}</Text> : null}
+          {project ? <WorkspaceHeader group={group} onChanged={() => void refetch()} /> : null}
           <View className="flex-row flex-wrap gap-2">
             {group.viewerCan.join ? <Action label="Join" primary onPress={() => void run(() => join({ variables: { groupId: group.id } }))} /> : null}
             {group.viewerCan.requestJoin && !asking ? <Action label="Ask to join" primary onPress={() => setAsking(true)} /> : null}
@@ -119,6 +123,8 @@ export function GroupScreen({ id }: { id: string }) {
               ))}
             </ScrollView>
             {tab === 'posts' ? <Posts group={group} /> : null}
+            {tab === 'ideas' ? <Ideas group={group} /> : null}
+            {tab === 'doubts' ? <Doubts group={group} /> : null}
             {tab === 'notes' ? <Notes group={group} /> : null}
             {tab === 'members' ? <Members group={group} /> : null}
             {tab === 'requests' ? <Requests group={group} onChanged={() => void refetch()} /> : null}

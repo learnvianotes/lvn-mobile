@@ -31,6 +31,14 @@ export function describeNotification(n: Described): string {
       if (place) return reply ? `${actor} replied to your comment in ${place}` : `${actor} commented in ${place}`
       return `${actor} commented on something you can no longer open`
     }
+    case 'MENTOR_INVITE':
+      return `${actor} asked you to mentor ${place ?? 'a group'}`
+    case 'DOUBT': {
+      const where = place ?? 'a group'
+      if (data.kind === 'ANSWERED') return `${actor} answered your doubt in ${where}`
+      if (data.kind === 'RESOLVED') return `${actor} marked your doubt in ${where} resolved`
+      return `${actor} asked a doubt in ${where}`
+    }
     case 'CLASSROOM_INVITE':
       return `${actor} invited you to ${place ?? 'a class'}`
     case 'CLASSROOM_POST':

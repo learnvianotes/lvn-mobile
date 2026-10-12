@@ -1,4 +1,4 @@
-import { useQuery } from '@apollo/client/react'
+import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { Globe, Lock, Search, Users } from 'lucide-react-native'
 import { useEffect, useState } from 'react'
@@ -7,8 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ClassesSection } from '@/features/classes/ClassesSection'
-import { DiscoverGroupsDocument, MyGroupsDocument, type GroupCardFragment } from '@/graphql/generated/graphql'
-import { ROLE } from './shared'
+import { AnswerMentorInviteDocument, DiscoverGroupsDocument, MyGroupsDocument, MyMentorInvitesDocument, type GroupCardFragment } from '@/graphql/generated/graphql'
+import { attempt, ROLE } from './shared'
 
 /**
  * The Community tab (spec §13.1, lvn-backend ADR-0045, ADR-0046): your classes and a class code to enter, your groups, and
@@ -33,6 +33,7 @@ export function CommunityScreen() {
         Community
       </Text>
       <ClassesSection />
+      <MentorInvites onAnswered={() => void mine.refetch()} />
       <Text className="text-muted-foreground text-sm font-semibold">Your groups</Text>
       {mine.data?.myGroups.length ? mine.data.myGroups.map((g) => <GroupRow key={g.id} group={g} />) : mine.data ? <Text className="text-muted-foreground">You&apos;re not in any group yet. Find one below.</Text> : null}
       <Text className="text-muted-foreground text-sm font-semibold">Find a group</Text>
@@ -70,5 +71,37 @@ function GroupRow({ group }: { group: GroupCardFragment }) {
         </Text>
       </View>
     </Pressable>
+  )
+}
+
+/** Teachers asked to mentor a project workspace (lvn-backend ADR-0048). */
+function MentorInvites({ onAnswered }: { onAnswered: () => void }) {
+  const { data, refetch } = useQuery(MyMentorInvitesDocument, { fetchPolicy: 'cache-and-network' })
+  const [answer] = useMutation(AnswerMentorInviteDocument)
+  const invites = data?.myMentorInvites ?? []
+  if (!invites.length) return null
+  const reply = async (inviteId: string, accept: boolean) => {
+    await attempt(() => answer({ variables: { inviteId, accept } }))
+    await refetch()
+    onAnswered()
+  }
+  return (
+    <View className="gap-2">
+      <Text className="text-muted-foreground text-sm font-semibold">Invites to mentor</Text>
+      {invites.map((i) => (
+        <View key={i.id} className="bg-card border-primary gap-2 rounded-2xl border p-4">
+          <Text className="font-semibold">{i.group.name}</Text>
+          <Text className="text-muted-foreground text-sm">{i.invitedBy.displayName} asked you to mentor this project</Text>
+          <View className="flex-row gap-2">
+            <Pressable accessibilityRole="button" onPress={() => void reply(i.id, true)} className="bg-primary rounded-full px-4 py-2">
+              <Text className="text-primary-foreground font-semibold">Accept</Text>
+            </Pressable>
+            <Pressable accessibilityRole="button" onPress={() => void reply(i.id, false)} className="border-border rounded-full border px-4 py-2">
+              <Text className="font-semibold">Decline</Text>
+            </Pressable>
+          </View>
+        </View>
+      ))}
+    </View>
   )
 }
