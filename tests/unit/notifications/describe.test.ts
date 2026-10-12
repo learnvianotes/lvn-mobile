@@ -45,7 +45,7 @@ describe('notification sentences (lvn-backend ADR-0042)', () => {
     expect(say({ category: 'MODERATION', classroom, path: '/classes/c1', data: { kind: 'WARNED', entityType: 'CLASSROOM_POST' } })).toBe('Moderators left a warning on your announcement in Physics 9A.')
     expect(say({ category: 'MODERATION', group, path: '/groups/g1/doubts/d1', data: { kind: 'RESTORED', entityType: 'DOUBT' } })).toBe('Moderators put your doubt in Heaps club back.')
     expect(say({ category: 'MODERATION', group, path: '/groups/g1', data: { kind: 'WARNED', entityType: 'GROUP' } })).toBe('Moderators left a warning on your group Heaps club.')
-    expect(say({ category: 'MODERATION', path: '/groups/g1', data: { kind: 'REMOVED', entityType: 'GROUP' } })).toBe('Moderators removed your group.')
+    expect(say({ category: 'MODERATION', path: '/groups/g1', data: { kind: 'REMOVED', entityType: 'GROUP' } })).toBe('Moderators removed your group. Open it to see why.')
   })
 
   it('match the web for classes (lvn-backend ADR-0046)', () => {
@@ -83,4 +83,11 @@ describe('liveUrlFrom', () => {
     expect(liveUrlFrom({ EXPO_PUBLIC_APP_ENV: 'development', EXPO_PUBLIC_API_URL: 'http://100.70.234.41:4000/graphql', EXPO_PUBLIC_LIVE_URL: undefined })).toBe('ws://100.70.234.41:4000/graphql/live')
     expect(liveUrlFrom({ EXPO_PUBLIC_APP_ENV: 'production', EXPO_PUBLIC_API_URL: 'https://api.example.in/graphql', EXPO_PUBLIC_LIVE_URL: undefined })).toBeNull()
   })
+})
+
+it('tells a person about their own account: a warning, a suspension, and a suspension lifted (lvn-backend ADR-0053)', () => {
+  const path = '/profile'
+  expect(say({ category: 'MODERATION', path, data: { kind: 'WARNED', entityType: 'USER' } })).toBe('Moderators warned your account. Open your account to read why.')
+  expect(say({ category: 'MODERATION', path, data: { kind: 'SUSPENDED', entityType: 'USER' } })).toBe('Moderators suspended your account. Open your account to see until when and why.')
+  expect(say({ category: 'MODERATION', path, data: { kind: 'RESTORED', entityType: 'USER' } })).toBe('Your account’s suspension has ended early.')
 })

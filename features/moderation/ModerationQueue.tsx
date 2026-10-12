@@ -13,7 +13,9 @@ import { ENTITY, REASON_LABEL, STATE } from './copy'
 type Case = ModerationQueueQuery['moderationQueue']['edges'][number]['node']
 type Choice = { action: ModerationActionType; label: string }
 
-const NEEDS_REASON = new Set<ModerationActionType>(['HIDE', 'REMOVE', 'WARN'])
+const NEEDS_REASON = new Set<ModerationActionType>(['HIDE', 'REMOVE', 'WARN', 'SUSPEND'])
+/** How long a suspension lasts, in days (ADR-0053: 1 to 365). */
+const SUSPEND_DAYS = [1, 3, 7, 30, 90, 365] as const
 
 /** What a moderator can do with a case, as on the web: accounts are warned, groups removed; content that is up has nothing to approve. */
 function choicesFor(c: Case): Choice[] {
@@ -22,8 +24,10 @@ function choicesFor(c: Case): Choice[] {
   const dismiss: Choice = { action: 'DISMISS', label: keep ? 'Keep the decision' : 'Dismiss reports' }
   const warn: Choice = { action: 'WARN', label: 'Warn' }
   const remove: Choice = { action: 'REMOVE', label: 'Remove' }
-  if (c.entityType === 'USER') return [dismiss, warn]
-  if (c.entityType === 'GROUP') return [dismiss, warn, remove]
+  // Accounts are warned or suspended; a suspension is lifted or kept (ADR-0053).
+  if (c.entityType === 'USER') return c.suspendedUntil ? [{ action: 'APPROVE', label: 'Lift the suspension' }, { action: 'DISMISS', label: c.appeal ? 'Keep the decision' : 'Dismiss reports' }, warn] : [dismiss, warn, { action: 'SUSPEND', label: 'Suspend' }]
+  // A removed group is put back or stays removed.
+  if (c.entityType === 'GROUP') return c.removedGroup ? [{ action: 'APPROVE', label: 'Put it back' }, { action: 'DISMISS', label: 'Keep the decision' }] : [dismiss, warn, remove]
   const rest: Choice[] = [dismiss, warn, { action: 'HIDE', label: 'Hide' }, remove]
   return state && state !== 'OK' ? [{ action: 'APPROVE', label: keep ? 'Put it back' : 'Approve' }, ...rest] : rest
 }
@@ -76,14 +80,15 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
   const [moderate, deciding] = useMutation(ModerateContentDocument)
   const [mute] = useMutation(MuteGroupMemberDocument)
   const [reason, setReason] = useState('')
+  const [days, setDays] = useState<number>(7)
   const [error, setError] = useState<string | null>(null)
   const [muted24, setMuted24] = useState(false)
   const author = c.content?.author ?? c.note?.owner ?? null
   const state = c.content?.moderation ?? c.note?.moderation ?? null
-  const title = c.note ? c.note.title || 'Untitled note' : c.group ? c.group.name : c.user ? `${c.user.displayName} (@${c.user.handle})` : null
+  const title = c.note ? c.note.title || 'Untitled note' : c.group ? c.group.name : c.removedGroup ? c.removedGroup.name : c.user ? `${c.user.displayName} (@${c.user.handle})` : null
   const decide = async (action: ModerationActionType) => {
     if (NEEDS_REASON.has(action) && !reason.trim()) return setError('Write a reason first: the author is told.')
-    const problem = await attempt(() => moderate({ variables: { input: { entityType: c.entityType, entityId: c.entityId, action, reason: reason.trim() || null } } }))
+    const problem = await attempt(() => moderate({ variables: { input: { entityType: c.entityType, entityId: c.entityId, action, reason: reason.trim() || null, ...(action === 'SUSPEND' ? { suspendDays: days } : {}) } } }))
     setError(problem)
     if (!problem) onDone()
   }
@@ -99,6 +104,8 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
         <Text className="text-muted-foreground text-xs font-semibold uppercase">{ENTITY[c.entityType]}</Text>
         {platform && c.scope !== 'PLATFORM' ? <Text className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-semibold">{WHERE[c.scope]}</Text> : null}
         {state ? <Text className="bg-secondary rounded-full px-2 py-0.5 text-xs">{STATE[state]}</Text> : null}
+        {c.suspendedUntil ? <Text className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Suspended until {new Date(c.suspendedUntil).toLocaleDateString()}</Text> : null}
+        {c.removedGroup ? <Text className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Removed</Text> : null}
         <Text className="text-muted-foreground ml-auto text-xs">opened {ago(c.openedAt)}</Text>
       </View>
       {title ? (
@@ -115,6 +122,7 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
           by <Text className="font-semibold">{author.displayName}</Text> (@{author.handle})
         </Text>
       ) : null}
+      {c.removedGroup ? <Text className="bg-secondary rounded-xl px-3 py-2 text-sm">Removed: {c.removedGroup.reason}</Text> : null}
       {c.note?.excerpt ? (
         <Text className="bg-secondary rounded-xl px-3 py-2 text-sm" numberOfLines={6}>
           {c.note.excerpt}
@@ -143,10 +151,22 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
         </View>
       ) : null}
       <TextInput accessibilityLabel="Reason (the author sees it)" placeholder="Needed to hide, remove or warn" placeholderTextColor={muted} value={reason} onChangeText={setReason} maxLength={1000} className="border-border text-foreground rounded-xl border px-3 py-2" />
+      {choicesFor(c).some((x) => x.action === 'SUSPEND') ? (
+        <View className="gap-1.5" accessibilityRole="radiogroup" accessibilityLabel="Suspend for">
+          <Text className="text-muted-foreground text-xs font-semibold">Suspend for</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {SUSPEND_DAYS.map((d) => (
+              <Pressable key={d} accessibilityRole="radio" accessibilityState={{ checked: days === d }} accessibilityLabel={d === 1 ? '1 day' : `${d} days`} onPress={() => setDays(d)} className={`rounded-full px-3 py-1.5 ${days === d ? 'bg-primary' : 'border-border border'}`}>
+                <Text className={`text-xs font-semibold ${days === d ? 'text-primary-foreground' : ''}`}>{d === 1 ? '1 day' : `${d} days`}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      ) : null}
       <View className="flex-row flex-wrap gap-2">
         {choicesFor(c).map(({ action, label }) => (
           <Pressable key={action} accessibilityRole="button" disabled={deciding.loading} onPress={() => void decide(action)} className={`rounded-full px-3 py-2 ${action === 'APPROVE' ? 'bg-primary' : 'border-border border'}`}>
-            <Text className={`text-sm font-semibold ${action === 'APPROVE' ? 'text-primary-foreground' : action === 'REMOVE' ? 'text-destructive' : ''}`}>{label}</Text>
+            <Text className={`text-sm font-semibold ${action === 'APPROVE' ? 'text-primary-foreground' : action === 'REMOVE' || action === 'SUSPEND' ? 'text-destructive' : ''}`}>{label}</Text>
           </Pressable>
         ))}
         {groupId && c.content ? (

@@ -48,9 +48,12 @@ export function describeNotification(n: Described): string {
     case 'MODERATION': {
       // What a moderator decided about the viewer's own content (lvn-backend ADR-0051); the reason is shown with it.
       const type = typeof data.entityType === 'string' ? data.entityType : ''
+      // About the account itself (ADR-0053): a warning, a suspension, or a suspension lifted.
+      if (type === 'USER') return data.kind === 'SUSPENDED' ? 'Moderators suspended your account. Open your account to see until when and why.' : data.kind === 'RESTORED' ? 'Your account’s suspension has ended early.' : 'Moderators warned your account. Open your account to read why.'
       const thing = MODERATED[type] ?? 'something you posted'
       const what = type === 'GROUP' ? (place ? `your group ${place}` : thing) : n.note ? `${thing} on “${n.note.title || 'Untitled note'}”` : place ? `${thing} in ${place}` : thing
-      if (data.kind === 'REMOVED') return type === 'GROUP' ? `Moderators removed ${what}.` : `Moderators removed ${what}. Open it to see why.`
+      // A removed group's owner opens it to read why and appeal (ADR-0053).
+      if (data.kind === 'REMOVED') return `Moderators removed ${what}. Open it to see why.`
       if (data.kind === 'WARNED') return `Moderators left a warning on ${what}.`
       if (data.kind === 'RESTORED') return `Moderators put ${what} back.`
       return `Moderators hid ${what}. Open it to see why.`

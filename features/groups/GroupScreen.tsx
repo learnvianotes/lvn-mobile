@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text'
 import { PostComments } from '@/features/discussion/PostComments'
 import { ContentModeration, ModerationNotice } from '@/features/moderation/ModerationNotice'
 import { ModerationQueue } from '@/features/moderation/ModerationQueue'
+import { RemovedGroupNotice } from '@/features/moderation/Standing'
 import { ReportLink } from '@/features/moderation/ReportSheet'
 import { ago } from '@/features/notifications/describe'
 import { useLocal } from '@/features/notes/hooks'
@@ -69,7 +70,8 @@ export function GroupScreen({ id }: { id: string }) {
       </Pressable>
     </View>
   )
-  if (!group) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This group is not available.</Text>}</View>
+  // A group platform moderators removed: its owner reads why here (ADR-0053); for everyone else it is not there.
+  if (!group) return <View className="bg-background flex-1">{back}{loading ? null : <RemovedGroupNotice id={id} />}</View>
   const member = !!group.viewerRole
   const project = group.type === 'PROJECT'
   const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : []), ...(group.viewerCan.moderate ? (['reports'] as const) : []), ...(group.viewerCan.manage ? (['settings'] as const) : [])] : []
