@@ -15,6 +15,7 @@ import { YourDataCard } from '@/features/data/YourDataCard'
 import { copy } from './copy'
 import { Notice } from './Notice'
 import { forgetPushToken } from '@/features/push/push'
+import { AccountStanding } from '@/features/moderation/Standing'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
 
@@ -26,6 +27,7 @@ export function AccountScreen() {
     <SafeAreaView className="bg-background flex-1">
       <ScrollView contentContainerClassName="gap-5 px-5 pb-32 pt-4">
         <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">{copy.account.title}</Text>
+        {viewer ? <AccountStanding userId={viewer.id} /> : null}
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {viewer ? <PeopleLinks viewer={viewer} /> : null}
         {viewer ? <YourDataCard /> : null}

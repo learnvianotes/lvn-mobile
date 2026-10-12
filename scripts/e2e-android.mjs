@@ -88,7 +88,7 @@ const vars = [`APP_ID=${APP_IDS[variant]}`, `API_URL=${apiUrl}`, `MAILPIT_URL=${
 const vm = opt('vm') ?? process.env.LVN_VM
 if (vm) {
   const community = await seedCommunity(apiUrl, vm)
-  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`, `TEACHER_EMAIL=${community.teacherEmail}`, `TEACHER_PASSWORD=${community.teacherPassword}`, `STAMP=${community.stamp}`].flatMap((v) => ['-e', v]))
+  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`, `TEACHER_EMAIL=${community.teacherEmail}`, `TEACHER_PASSWORD=${community.teacherPassword}`, `SUSPENDED_EMAIL=${community.suspendedEmail}`, `SUSPENDED_PASSWORD=${community.suspendedPassword}`, `STAMP=${community.stamp}`].flatMap((v) => ['-e', v]))
   console.log(`Community: ${community.email} and the group "${community.group}"`)
 }
 const run = spawnSync(maestroBin, ['--device', emulator, 'test', flows, ...vars, '--format', 'junit', '--output', 'dist/e2e/report.xml', '--test-output-dir', 'dist/e2e'], { cwd: root, stdio: 'inherit' })
@@ -118,9 +118,13 @@ async function seedCommunity(api, vmScript) {
   const learner = await account('learner', 'Ravi Kumar')
   const owner = await account('owner', 'Meera Iyer')
   const teacher = await account('teacher', 'Anita Desai')
+  // Account standing (lvn-backend ADR-0053): a platform admin suspends a third learner, who reads it on the phone.
+  const admin = await account('admin', 'Platform Admin')
+  const suspended = await account('suspended', 'Kiran Rao')
   const sql = [
     `UPDATE users.\\"User\\" SET \\"verifiedAt\\" = now(), \\"verificationMethod\\" = 'INSTITUTIONAL_EMAIL' WHERE id IN ('${learner.id}', '${owner.id}')`,
     `UPDATE users.\\"User\\" SET \\"verifiedAt\\" = now(), \\"verificationMethod\\" = 'TEACHER', \\"globalRole\\" = 'TEACHER' WHERE id = '${teacher.id}'`,
+    `UPDATE users.\\"User\\" SET \\"verifiedAt\\" = now(), \\"verificationMethod\\" = 'INSTITUTIONAL_EMAIL', \\"globalRole\\" = 'PLATFORM_ADMIN' WHERE id = '${admin.id}'`,
   ].join('; ')
   const verified = spawnSync(vmScript, ['ssh', `docker exec lvn-local-postgres psql -U lvn -d lvn -c "${sql}"`], { encoding: 'utf8' })
   if (verified.status !== 0) throw new Error(`verifying the accounts failed: ${verified.stderr}`)
@@ -129,5 +133,7 @@ async function seedCommunity(api, vmScript) {
   if (!made.createGroup.group) throw new Error(`createGroup failed: ${made.createGroup.userErrors[0]?.message}`)
   const body = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Welcome to the club' }] }] }
   await gql('mutation ($input: CreateGroupPostInput!) { createGroupPost(input: $input) { post { id } } }', { input: { groupId: made.createGroup.group.id, body } }, owner.token)
-  return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, stamp }
+  const suspension = await gql('mutation ($input: ModerateContentInput!) { moderateContent(input: $input) { ok userErrors { message } } }', { input: { entityType: 'USER', entityId: suspended.id, action: 'SUSPEND', reason: 'Posting the same link everywhere.', suspendDays: 3 } }, admin.token)
+  if (!suspension.moderateContent.ok) throw new Error(`suspending failed: ${suspension.moderateContent.userErrors[0]?.message}`)
+  return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, suspendedEmail: suspended.email, suspendedPassword: suspended.password, stamp }
 }
