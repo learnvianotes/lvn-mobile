@@ -1,0 +1,59 @@
+# AI tasks on the phone against the real model (lvn-backend ADR-0058, ADR-0059): a note's AI tasks summarise it, make
+# flashcards, and the chosen cards go into the note, which reaches the server. Needs a server whose AI answers (the
+# local environment's API asks the dev machine's Ollama); without it this flow does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- runScript:
+    file: scripts/ai-note.js
+    env:
+      TOKEN: ${output.token}
+- runFlow:
+    when:
+      true: ${output.ai === 'on'}
+    commands:
+      - tapOn: "Notes"
+      # The note was made after the app's first sync: pull to refresh.
+      - retry:
+          maxRetries: 3
+          commands:
+            - swipe:
+                start: "50%, 30%"
+                end: "50%, 75%"
+            - extendedWaitUntil:
+                visible: "Heaps"
+                timeout: 10000
+      - tapOn: "Heaps"
+      - tapOn: "AI tasks"
+      - tapOn: "Summarise"
+      # The model takes seconds on the dev machine's GPU; the first answer also loads it.
+      - scrollUntilVisible:
+          element: "Share this result"
+          direction: DOWN
+          timeout: 120000
+      - scrollUntilVisible:
+          element: "Flashcards"
+          direction: UP
+      - tapOn: "Flashcards"
+      - scrollUntilVisible:
+          element: "Keep card 1"
+          direction: DOWN
+          timeout: 120000
+      # Drop the first card; the rest go into the note.
+      - tapOn: "Keep card 1"
+      - scrollUntilVisible:
+          element: "Add .* to this note"
+          direction: DOWN
+      - tapOn: "Add .* to this note"
+      - extendedWaitUntil:
+          visible: "Added to this note."
+          timeout: 30000
+      - runScript:
+          file: scripts/server-notes.js
+          env:
+            TOKEN: ${output.token}
+      - assertTrue: ${output.cards.indexOf('"front"') >= 0}
+      - tapOn: "Back"
+      - assertVisible: "Binary heaps"

@@ -41,7 +41,7 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(),
 const local = (over: Partial<LocalNote> = {}): LocalNote => ({ id: NOTE, title: 'Plants', kind: 'NOTE', folderId: null, folderName: null, tags: [], ownerId: 'me', ownerName: 'Asha', access: 'OWNER', visibility: 'PRIVATE', publishedAt: null, deletedAt: null, updatedAt: new Date().toISOString(), localOnly: false, titleDirty: false, pendingTrash: null, ...over })
 const card = (id: string, type: LocalCard['type'], content: unknown): LocalCard => ({ id, noteId: NOTE, type, position: `a${id}`, revision: 1, content, dirty: false, deleted: false })
 const media = (id: string, mimeType: string, over: Record<string, unknown> = {}) => ({ __typename: 'MediaFile', id, url: `https://storage.test/${id}`, expiresAt: new Date(Date.now() + 600_000).toISOString(), mimeType, fileName: `${id}.bin`, sizeBytes: 1000, width: null, height: null, durationMs: null, thumbUrl: null, mediumUrl: null, largeUrl: null, posterUrl: null, playbackUrl: null, ...over })
-const mediaAnswer = (nodes: { id: string; content: unknown; media: unknown }[]) => ({ data: { note: { __typename: 'Note', id: NOTE, cards: { __typename: 'CardConnection', edges: nodes.map((node) => ({ __typename: 'CardEdge', node: { __typename: 'Card', ...node } })) } } } })
+const mediaAnswer = (nodes: { id: string; content: unknown; media: unknown }[], endCursor: string | null = null) => ({ data: { note: { __typename: 'Note', id: NOTE, cards: { __typename: 'CardConnection', edges: nodes.map((node) => ({ __typename: 'CardEdge', node: { __typename: 'Card', ...node } })), pageInfo: { __typename: 'PageInfo', hasNextPage: !!endCursor, endCursor } } } } })
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 
 beforeEach(() => {
@@ -77,6 +77,22 @@ it('shows a picture at the size made for phones, plays a video and a recording, 
   expect(screen.getByText('0:00 / 1:35')).toBeOnTheScreen()
   // A file the server has not described (offline, or someone else's private copy).
   expect(screen.getByText('A picture — connect to the internet to see it.')).toBeOnTheScreen()
+})
+
+it('a long note’s files come a page at a time, as many as the API gives at once', async () => {
+  const api = mockApi({
+    PhoneNoteMedia: (v) =>
+      v.after === 'page-2'
+        ? mediaAnswer([{ id: 'c101', content: { fileId: PIC, alt: 'A leaf' }, media: media(PIC, 'image/jpeg', { mediumUrl: 'https://storage.test/pic-960.webp' }) }])
+        : mediaAnswer([{ id: 'c1', content: { fileId: TAPE }, media: media(TAPE, 'audio/mpeg') }], 'page-2'),
+  })
+  await inApollo(
+    <MediaProvider noteId={NOTE} cardIds="c1,c101">
+      <CardView type="image" content={{ fileId: PIC, alt: 'A leaf' }} />
+    </MediaProvider>,
+  )
+  expect(await screen.findByTestId('image:https://storage.test/pic-960.webp')).toBeOnTheScreen()
+  expect(api.calls.filter((c) => c.op === 'PhoneNoteMedia').map((c) => c.variables.after ?? null)).toEqual(expect.arrayContaining([null, 'page-2']))
 })
 
 it('uploads a picture from the photos into the note as a picture card', async () => {
