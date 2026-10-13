@@ -10,6 +10,7 @@ import { TodayRing } from '@/features/home/TodayRing'
 import { EndRhythmPauseDocument, PauseRhythmDocument, RhythmDocument, SetRhythmPlanDocument, type RhythmPauseReason, type RhythmQuery } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
+import { BuddiesCard, FocusCard } from './FocusCard'
 import { Recommendations } from './Recommendations'
 
 type R = RhythmQuery['rhythm']
@@ -80,7 +81,9 @@ export function RhythmScreen() {
             ) : null}
             <Week r={r} />
             <Counters r={r} />
+            <FocusCard />
             <Recommendations />
+            <BuddiesCard shared={r.shareRhythm} />
             <Plan r={r} />
             <Pauses r={r} />
             <Text className="text-muted-foreground text-xs">Days are counted in {r.timeZone} and start at 4 in the morning.</Text>
