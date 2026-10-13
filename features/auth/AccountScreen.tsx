@@ -17,6 +17,7 @@ import { copy } from './copy'
 import { Notice } from './Notice'
 import { forgetPushToken } from '@/features/push/push'
 import { AccountStanding } from '@/features/moderation/Standing'
+import { AiAccountCard } from '@/features/ai/AiScreen'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
 
@@ -39,6 +40,7 @@ export function AccountScreen() {
         {viewer ? <PeopleLinks viewer={viewer} /> : null}
         {viewer ? <StudyDetailsCard /> : null}
         {viewer ? <LegacyDataCard /> : null}
+        {viewer ? <AiAccountCard className={card} /> : null}
         {viewer ? <YourDataCard /> : null}
         {viewer ? <ImportCard /> : null}
         <SignOutButton />

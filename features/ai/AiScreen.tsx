@@ -215,7 +215,7 @@ export function AiScreen({ id }: { id: string }) {
   )
 }
 
-function Allowance({ used, limit, resetsAt }: { used: number; limit: number | null; resetsAt: string }) {
+export function Allowance({ used, limit, resetsAt }: { used: number; limit: number | null; resetsAt: string }) {
   if (limit == null) return <Text className="text-muted-foreground text-xs">Your plan has no daily AI limit.</Text>
   const share = limit > 0 ? Math.min(1, used / limit) : 1
   return (
@@ -223,7 +223,7 @@ function Allowance({ used, limit, resetsAt }: { used: number; limit: number | nu
       <Text className="text-muted-foreground text-xs">
         {share >= 1 ? `You’ve used today’s AI allowance. It comes back at ${timeOf(resetsAt)}.` : `Today’s AI allowance: ${Math.round(share * 100)}% used · resets at ${timeOf(resetsAt)}`}
       </Text>
-      <View accessibilityRole="progressbar" accessibilityLabel="Today’s AI allowance" accessibilityValue={{ min: 0, max: limit, now: Math.min(used, limit) }} className="bg-secondary h-1.5 overflow-hidden rounded-full">
+      <View accessible accessibilityRole="progressbar" accessibilityLabel="Today’s AI allowance" accessibilityValue={{ min: 0, max: limit, now: Math.min(used, limit) }} className="bg-secondary h-1.5 overflow-hidden rounded-full">
         <View className={cn('h-full rounded-full', share >= 1 ? 'bg-destructive' : share >= 0.8 ? 'bg-amber-500' : 'bg-primary')} style={{ width: `${share * 100}%` }} />
       </View>
     </View>
@@ -372,6 +372,24 @@ function KeepCards({ artifact: a, canEdit }: { artifact: Artifact; canEdit: bool
         </View>
       ) : null}
       <Outcome message={message} />
+    </View>
+  )
+}
+
+/** The account screen's view of AI (P5b): whether it answers, and how much of today's allowance is used. */
+export function AiAccountCard({ className }: { className?: string }) {
+  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const { data } = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
+  if (!data) return null
+  const { aiStatus: status, myAiAllowance: allowance } = data
+  return (
+    <View className={className} accessibilityLabel="AI">
+      <View className="flex-row items-center gap-2" accessible accessibilityRole="header">
+        <Sparkles size={18} color={primary} />
+        <Text className="text-base font-semibold">AI</Text>
+      </View>
+      <Text className="text-muted-foreground text-sm">Open a note and tap AI tasks to summarise it, explain it, quiz yourself or make flashcards. Each day your plan gives you an allowance.</Text>
+      {status.available ? <Allowance used={allowance.usedToday} limit={allowance.limitToday} resetsAt={allowance.resetsAt} /> : <Text className="text-sm">{UNAVAILABLE[status.reason ?? 'NOT_CONFIGURED']}</Text>}
     </View>
   )
 }

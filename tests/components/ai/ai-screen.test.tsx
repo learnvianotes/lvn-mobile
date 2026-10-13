@@ -3,11 +3,12 @@ import { fireEvent, screen, waitFor, within } from '@testing-library/react-nativ
 import { router } from 'expo-router'
 import { Alert } from 'react-native'
 import { AiScreen } from '@/features/ai/AiScreen'
+import { AccountScreen } from '@/features/auth/AccountScreen'
 import { NoteScreen } from '@/features/notes/NoteScreen'
 import type { LocalNote } from '@/features/notes/model/types'
 import { syncNow } from '@/features/notes/sync/engine'
 import { createApolloClient } from '@/lib/apollo'
-import { mockApi, type Handler } from '../../support/api'
+import { mockApi, viewer, type Handler } from '../../support/api'
 import { renderInApp } from '../../support/render'
 
 /**
@@ -24,6 +25,7 @@ let mockCards: { id: string; noteId: string; type: string; position: string; rev
 jest.mock('@/features/notes/store/db', () => ({
   getNote: jest.fn(async (id: string) => mockNotes.find((n) => n.id === id) ?? null),
   getCards: jest.fn(async () => mockCards),
+  listNotes: jest.fn(async () => []),
   unsentNoteIds: jest.fn(async () => new Set()),
   outbox: jest.fn(async () => []),
   subscribe: () => () => {},
@@ -33,7 +35,7 @@ jest.mock('@/features/notes/sync/engine', () => {
   const idle = { state: 'idle', lastSyncedAt: null }
   return { syncSoon: jest.fn(), syncNow: jest.fn(async () => {}), getSyncStatus: () => idle, subscribeSyncStatus: () => () => {} }
 })
-jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => true } }))
+jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => true }, Link: ({ children }: { children: React.ReactNode }) => children }))
 
 const p = (text: string) => ({ type: 'paragraph', content: [{ type: 'text', text }] })
 const artifact = (over: Record<string, unknown> = {}) => ({
@@ -205,4 +207,17 @@ it('a note opens its AI tasks from its header; one made here waits until it has 
   await fireEvent.press(await screen.findByRole('button', { name: 'AI tasks' }))
   expect(alert).toHaveBeenCalledWith('Not sent yet', 'The note is still only on this phone. Once it has been sent, AI can read it.')
   expect(router.push).toHaveBeenCalledTimes(1)
+})
+
+it('the account screen shows today’s AI allowance, or why AI is off', async () => {
+  const account = { Viewer: () => ({ data: { viewer: viewer() } }), MyDataExports: () => ({ data: { myDataExports: [] } }), MyStanding: () => ({ data: { myStanding: { __typename: 'AccountStanding', suspendedUntil: null, suspensionReason: null, canAppeal: false, warnings: [] } } }) }
+  mockApi({ ...account, AiState: () => aiState({ usedToday: 150_000 }) })
+  const view = await inApollo(<AccountScreen />)
+  expect(await screen.findByText(/Today’s AI allowance: 75% used/)).toBeOnTheScreen()
+  expect(screen.getByRole('progressbar', { name: 'Today’s AI allowance' })).toHaveAccessibilityValue({ min: 0, max: 200_000, now: 150_000 })
+  await view.unmount()
+
+  mockApi({ ...account, AiState: () => aiState({ available: false, reason: 'BUDGET' }) })
+  await inApollo(<AccountScreen />)
+  expect(await screen.findByText('AI is resting until next month: this month’s AI budget is used up.')).toBeOnTheScreen()
 })
