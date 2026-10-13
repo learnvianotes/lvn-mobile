@@ -13,7 +13,7 @@ import { NotificationSettingsDocument, UpdateNotificationSettingsDocument, type 
 const LABEL: Partial<Record<NotificationCategory, string>> = {
   SHARE: 'Notes shared with you', COMMENT: 'Comments and replies', FOLLOW: 'New followers', CONNECTION: 'Connections', JOIN_REQUEST: 'Requests to join your groups and classes',
   JOIN_DECISION: 'Answers to your requests to join', CLASSROOM_INVITE: 'Class invites', CLASSROOM_POST: 'Class announcements', QUIZ_PUBLISHED: 'Quizzes in your classes', MENTOR_INVITE: 'Invites to mentor', DOUBT: 'Doubts', MENTION: 'Mentions of you',
-  VERIFICATION: 'Verification', DATA_EXPORT: 'Data exports', NOTES_IMPORT: 'Imports',
+  VERIFICATION: 'Verification', DATA_EXPORT: 'Data exports', NOTES_IMPORT: 'Imports', REVISION_REMINDER: 'Revision reminders for your exams',
 }
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
 

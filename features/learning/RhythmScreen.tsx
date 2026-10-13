@@ -70,6 +70,13 @@ export function RhythmScreen() {
         {r ? (
           <>
             <Today r={r} />
+            {r.suggestion ? (
+              <View accessibilityRole="summary" className="border-primary/30 bg-secondary rounded-2xl border px-4 py-3">
+                <Text className="text-sm">
+                  {r.suggestion.examName} is in {r.suggestion.daysLeft} {r.suggestion.daysLeft === 1 ? 'day' : 'days'}: try {r.suggestion.plannedDays} planned days a week until then.
+                </Text>
+              </View>
+            ) : null}
             <Week r={r} />
             <Counters r={r} />
             <Plan r={r} />
@@ -125,6 +132,21 @@ function Today({ r }: { r: R }) {
                   </Pressable>
                 ) : null}
               </View>
+            ) : item.kind === 'PLAN_TASK' ? (
+              <View key={item.kind} className="flex-row flex-wrap items-center gap-2">
+                <Text className="text-sm">
+                  Revision for {item.title}: {item.done} of {item.total}
+                </Text>
+                {item.done < item.total ? (
+                  <Pressable accessibilityRole="link" onPress={() => router.push('/exams')}>
+                    <Text className="text-primary text-sm font-semibold">Plan</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : item.kind === 'WEAK_TOPIC' ? (
+              <Text key={item.kind} className="text-sm">
+                Weak topic: {item.title ?? item.topicKey}
+              </Text>
             ) : null,
           )}
         </View>

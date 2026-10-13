@@ -22,12 +22,13 @@ const rhythm = (over: Record<string, unknown> = {}, today: Record<string, unknow
   countedDays: 1,
   met: false,
   week: statuses.map((status, i) => ({ __typename: 'RhythmDay', day: `2026-10-${String(12 + i).padStart(2, '0')}`, weekday: i + 1, planned: plan.includes(i + 1), counted: status === 'COUNTED', status })),
-  today: { __typename: 'RhythmToday', day: '2026-10-15', learningSeconds: 240, reviews: 3, counted: false, comeback: true, cameBack: false, items: [{ __typename: 'RhythmItem', kind: 'REVIEWS', done: 3, total: 8 }], ...today },
+  today: { __typename: 'RhythmToday', day: '2026-10-15', learningSeconds: 240, reviews: 3, counted: false, comeback: true, cameBack: false, items: [{ __typename: 'RhythmItem', kind: 'REVIEWS', done: 3, total: 8, title: null, topicKey: null }], ...today },
   weeksThisTerm: 9,
   weeksAllTime: 23,
   countedDaysAllTime: 140,
   pauses: [],
   pauseDaysLeft: 14,
+  suggestion: null,
   ...over,
 })
 const ok = (name: string, userErrors: unknown[] = []) => ({ data: { [name]: { __typename: 'OkPayload', ok: !userErrors.length, userErrors } } })
@@ -46,6 +47,23 @@ it('shows today’s ring and what is left, a comeback, the week and the counters
   expect(screen.getByText('1 of 4 days this week')).toBeOnTheScreen()
   expect(screen.getByLabelText('Days counted all time: 140')).toBeOnTheScreen()
   expect(screen.queryByText(/lost/i)).toBeNull()
+})
+
+it('shows today’s revision and a weak topic, and suggests a day more before an exam', async () => {
+  mockApi({
+    Rhythm: () => ({
+      data: {
+        rhythm: rhythm(
+          { suggestion: { __typename: 'RhythmSuggestion', plannedDays: 5, examId: PAUSE, examName: 'Operating Systems', daysLeft: 12 } },
+          { items: [{ __typename: 'RhythmItem', kind: 'PLAN_TASK', done: 0, total: 1, title: 'Operating Systems', topicKey: null }, { __typename: 'RhythmItem', kind: 'WEAK_TOPIC', done: 0, total: 1, title: 'Paging', topicKey: 'topic:x' }] },
+        ),
+      },
+    }),
+  })
+  await show()
+  expect(await screen.findByText('Revision for Operating Systems: 0 of 1')).toBeOnTheScreen()
+  expect(screen.getByText('Weak topic: Paging')).toBeOnTheScreen()
+  expect(screen.getByText('Operating Systems is in 12 days: try 5 planned days a week until then.')).toBeOnTheScreen()
 })
 
 it('says back on rhythm when a comeback day counts, and a met week', async () => {
