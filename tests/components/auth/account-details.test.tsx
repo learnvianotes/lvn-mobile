@@ -8,6 +8,7 @@ import { ImportCard } from '@/features/data/ImportCard'
 import { createApolloClient } from '@/lib/apollo'
 import { mockApi, viewer } from '../../support/api'
 import { renderInApp } from '../../support/render'
+import { fileBlob } from '../../support/blob'
 
 /**
  * The account on the phone (lvn-backend P3n): new terms to accept, study details, a college email, old-site data and
@@ -107,7 +108,7 @@ it('imports notes from a file on the phone, and asks before importing the same f
   const graphql = globalThis.fetch
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
-    if (url.startsWith('file://')) return { blob: async () => ({ size: 4096 }) } as unknown as Response
+    if (url.startsWith('file://')) return { blob: async () => fileBlob(4096) } as unknown as Response
     if (url === 'https://storage.test/put') return { ok: true } as Response
     return graphql(input, init)
   }) as typeof fetch

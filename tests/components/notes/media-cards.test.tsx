@@ -12,6 +12,7 @@ import * as actions from '@/features/notes/store/actions'
 import { createApolloClient } from '@/lib/apollo'
 import { mockApi } from '../../support/api'
 import { renderInApp } from '../../support/render'
+import { fileBlob } from '../../support/blob'
 
 /**
  * Media and structured cards on the phone (lvn-backend P3m): pictures, video, recordings and files from the server's
@@ -109,7 +110,8 @@ it('uploads a picture from the photos into the note as a picture card', async ()
   const graphql = globalThis.fetch
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
-    if (url.startsWith('file://')) return { blob: async () => ({ size: 2048 }) } as unknown as Response
+    // Android may type the file differently from what the picker said (by its extension).
+    if (url.startsWith('file://')) return { blob: async () => fileBlob(2048, 'image/jpg') } as unknown as Response
     if (url === 'https://storage.test/put') return (puts.push({ url, init }), { ok: true } as Response)
     return graphql(input, init)
   }) as typeof fetch
@@ -120,6 +122,8 @@ it('uploads a picture from the photos into the note as a picture card', async ()
   await waitFor(() => expect(actions.addCard).toHaveBeenCalledWith(NOTE, 'image', mockCards[0], { fileId: PIC, alt: '' }))
   expect(api.calls.find((c) => c.op === 'CreateNoteUpload')?.variables).toEqual({ input: { fileName: 'leaf.jpg', mimeType: 'image/jpeg', sizeBytes: 2048, purpose: 'ATTACHMENT', parentId: NOTE } })
   expect(puts[0]?.init).toMatchObject({ method: 'PUT', headers: { 'Content-Type': 'image/jpeg' } })
+  // Android sends a blob body with the blob's own type, whatever the header says: it must be the one signed for.
+  expect(puts[0]?.init?.body).toMatchObject({ size: 2048, type: 'image/jpeg' })
   expect(api.calls.find((c) => c.op === 'CompleteNoteUpload')?.variables).toEqual({ fileId: PIC })
 })
 

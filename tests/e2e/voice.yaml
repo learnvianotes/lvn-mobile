@@ -34,8 +34,12 @@ env:
           end: "50%, 79%"
       - tapOn: "Stop recording"
       - tapOn: "Keep it"
-      # The AI screen opens with the recording's transcription queued (or done: silence gives nothing to keep).
+      # The AI screen opens with the recording's transcription queued (or done: silence gives nothing to keep), below
+      # the tasks.
       - extendedWaitUntil:
-          visible: "Transcribe result"
+          visible: "Transcribe the recording"
           timeout: 60000
-      - assertVisible: "Transcribe the recording"
+      - scrollUntilVisible:
+          element: "Transcribe result"
+          direction: DOWN
+          timeout: 60000
