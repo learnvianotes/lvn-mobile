@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client/react'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { BookMarked, Clock, FileText, GraduationCap, Search, Users, X, Library } from 'lucide-react-native'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FlatList, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
@@ -62,6 +62,18 @@ export function ExploreScreen() {
   const [topic, setTopic] = useState<{ id: string; title: string } | null>(null)
   const [recent, setRecent] = useState<string[]>([])
   const [loadingMore, setLoadingMore] = useState(false)
+  // Home's search bar (focus), a recommendation's topic (topic, topicTitle) or its words (q) open Explore ready.
+  const params = useLocalSearchParams<{ focus?: string; q?: string; topic?: string; topicTitle?: string }>()
+  const input = useRef<TextInput>(null)
+  useEffect(() => {
+    if (params.focus) input.current?.focus()
+  }, [params.focus])
+  useEffect(() => {
+    if (params.topic && params.topicTitle) setTopic({ id: params.topic, title: params.topicTitle })
+  }, [params.topic, params.topicTitle])
+  useEffect(() => {
+    if (params.q) setQuery(params.q)
+  }, [params.q])
   useEffect(() => {
     void recentSearches().then(setRecent)
   }, [])
@@ -200,6 +212,7 @@ export function ExploreScreen() {
         <View className="bg-card border-border flex-row items-center gap-2 rounded-2xl border px-3">
           <Search size={18} color={muted} />
           <TextInput
+            ref={input}
             accessibilityLabel="Search notes, people, groups and topics"
             value={query}
             onChangeText={setQuery}

@@ -3,23 +3,28 @@ import { router } from 'expo-router'
 import { View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { useCreate, type CreateAction } from '@/features/shell/create'
 import { PressScale } from '@/features/shell/PressScale'
 
-const ACTIONS: { label: string; icon: LucideIcon; bg: string; fg: string }[] = [
-  { label: 'Notes', icon: NotebookPen, bg: 'bg-secondary', fg: '--color-primary' },
-  { label: 'Q&A', icon: MessagesSquare, bg: 'bg-sky-soft', fg: '--color-sky' },
-  { label: 'Camera', icon: Camera, bg: 'bg-rose-soft', fg: '--color-rose' },
-  { label: 'Voice', icon: Mic, bg: 'bg-warm-soft', fg: '--color-warm' },
-  { label: 'Upload', icon: Upload, bg: 'bg-success-soft', fg: '--color-success' },
+/**
+ * Tinted icon tiles from the UI board; each does what it says (lvn-backend ADR-0076): Notes opens the notes, Q&A asks
+ * AI, Camera turns a photo into notes, Voice records a voice note, Upload puts a file in a new note.
+ */
+const ACTIONS: { label: string; hint: string; icon: LucideIcon; bg: string; fg: string; go: string | CreateAction }[] = [
+  { label: 'Notes', hint: 'Opens your notes', icon: NotebookPen, bg: 'bg-secondary', fg: '--color-primary', go: '/notes' },
+  { label: 'Q&A', hint: 'Ask AI about your notes', icon: MessagesSquare, bg: 'bg-sky-soft', fg: '--color-sky', go: '/ask' },
+  { label: 'Camera', hint: 'Take a photo and turn it into notes', icon: Camera, bg: 'bg-rose-soft', fg: '--color-rose', go: 'Photo' },
+  { label: 'Voice', hint: 'Record a voice note', icon: Mic, bg: 'bg-warm-soft', fg: '--color-warm', go: 'Voice note' },
+  { label: 'Upload', hint: 'Put a PDF, picture or recording in a new note', icon: Upload, bg: 'bg-success-soft', fg: '--color-success', go: 'Upload' },
 ]
 
-/** Tinted icon tiles from the UI board. */
 export function QuickActions() {
   const colors = useCSSVariable(ACTIONS.map((a) => a.fg)) as (string | undefined)[]
+  const create = useCreate()
   return (
     <View className="flex-row justify-between">
-      {ACTIONS.map(({ label, icon: Icon, bg }, i) => (
-        <PressScale key={label} accessibilityRole="button" accessibilityLabel={label} onPress={label === 'Notes' ? () => router.push('/notes') : undefined}>
+      {ACTIONS.map(({ label, hint, icon: Icon, bg, go }, i) => (
+        <PressScale key={label} accessibilityRole="button" accessibilityLabel={label} accessibilityHint={hint} onPress={() => (go.startsWith('/') ? router.push(go as '/notes') : void create(go as CreateAction))}>
           <View className="items-center gap-1.5">
             <View className={`${bg} size-14 items-center justify-center rounded-2xl`}>
               <Icon size={22} color={String(colors[i] ?? '#4f46e5')} />

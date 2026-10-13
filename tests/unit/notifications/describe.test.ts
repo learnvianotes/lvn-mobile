@@ -1,10 +1,21 @@
 import { ago, describeNotification } from '@/features/notifications/describe'
 import { liveUrlFrom } from '@/lib/parse-env'
+import { LABEL } from '@/features/settings/categories'
 
 const meera = { id: 'u1', displayName: 'Meera Iyer' }
 const say = (n: Partial<Parameters<typeof describeNotification>[0]>) => describeNotification({ category: 'SHARE', path: '/notes/n1', data: null, actor: null, note: null, ...n })
 
 describe('notification sentences (lvn-backend ADR-0042)', () => {
+  it('says who asked to be Rhythm buddies, and who agreed (lvn-backend ADR-0072)', () => {
+    expect(say({ category: 'RHYTHM_BUDDY', path: '/rhythm', data: { kind: 'REQUESTED' }, actor: meera })).toBe('Meera Iyer asked you to be Rhythm buddies')
+    expect(say({ category: 'RHYTHM_BUDDY', path: '/rhythm', data: { kind: 'ACCEPTED' }, actor: meera })).toBe('Meera Iyer is now your Rhythm buddy')
+  })
+
+  it('names in settings every category people can set (lvn-backend preferences.service SETTABLE)', () => {
+    const settable = ['SHARE', 'COMMENT', 'FOLLOW', 'CONNECTION', 'JOIN_REQUEST', 'JOIN_DECISION', 'CLASSROOM_INVITE', 'CLASSROOM_POST', 'QUIZ_PUBLISHED', 'MENTOR_INVITE', 'DOUBT', 'MENTION', 'VERIFICATION', 'DATA_EXPORT', 'NOTES_IMPORT', 'REVISION_REMINDER', 'RHYTHM_BUDDY', 'RESOURCE'] as const
+    expect(settable.filter((c) => !LABEL[c])).toEqual([])
+  })
+
   it('match the web: shares, verification, exports and imports', () => {
     expect(say({ actor: meera, note: { id: 'n1', title: 'Heaps' } })).toBe('Meera Iyer shared “Heaps” with you')
     expect(say({ actor: meera })).toBe('Meera Iyer shared a note with you that you can no longer open')

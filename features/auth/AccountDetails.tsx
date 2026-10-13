@@ -9,7 +9,7 @@ import { ClaimLegacyDataDocument, DeclineLegacyDataDocument, PhoneAccountDetails
 import { copy } from './copy'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
-const YEARS: Record<YearOfStudy, string> = { YEAR_1: '1st year', YEAR_2: '2nd year', YEAR_3: '3rd year', YEAR_4: '4th year', YEAR_5: '5th year', POSTGRADUATE: 'Postgraduate', GRADUATED: 'Graduated', SCHOOL: 'School', NOT_STUDYING: 'Not studying' }
+export const YEARS: Record<YearOfStudy, string> = { YEAR_1: '1st year', YEAR_2: '2nd year', YEAR_3: '3rd year', YEAR_4: '4th year', YEAR_5: '5th year', POSTGRADUATE: 'Postgraduate', GRADUATED: 'Graduated', SCHOOL: 'School', NOT_STUDYING: 'Not studying' }
 
 /** A college or organisation email on the phone (ADR-0017): added or replaced here, its code entered on Verify. */
 export function InstitutionalEmailCard({ viewer }: { viewer: ViewerFieldsFragment }) {

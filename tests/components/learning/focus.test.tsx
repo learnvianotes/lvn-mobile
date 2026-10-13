@@ -1,5 +1,6 @@
 import { ApolloProvider } from '@apollo/client/react'
 import { fireEvent, screen, waitFor } from '@testing-library/react-native'
+import { router } from 'expo-router'
 import { ClassPerformance, ClassRhythm } from '@/features/classes/ClassInsights'
 import { BuddiesCard, FocusCard } from '@/features/learning/FocusCard'
 import { createApolloClient } from '@/lib/apollo'
@@ -34,6 +35,8 @@ it('starts a focus session, shows the time left, and ends it', async () => {
   await fireEvent.press(await screen.findByRole('button', { name: '45 min' }))
   await fireEvent.press(screen.getByRole('button', { name: 'Start focusing' }))
   await waitFor(() => expect(api.calls.find((c) => c.op === 'StartFocusSession')?.variables).toEqual({ input: { minutes: 45, breakMinutes: 5, meetUrl: null } }))
+  // Started, the dark focus screen opens (ADR-0076).
+  await waitFor(() => expect(router.push).toHaveBeenCalledWith('/focus'))
   expect(await screen.findByLabelText(/^2[34]:\d\d left$/)).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('button', { name: 'End the session' }))
   expect(await screen.findByText('11 minutes counted.')).toBeOnTheScreen()

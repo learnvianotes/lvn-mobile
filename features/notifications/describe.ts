@@ -82,6 +82,9 @@ export function describeNotification(n: Described): string {
       return data.decision === 'APPROVED' ? 'Your resource is in the catalogue' : 'Moderators did not approve your resource'
     case 'DATA_EXPORT':
       return 'Your data export is ready to download'
+    case 'RHYTHM_BUDDY':
+      // Someone asked to share Rhythm, or agreed to (lvn-backend ADR-0072).
+      return data.kind === 'ACCEPTED' ? `${actor} is now your Rhythm buddy` : `${actor} asked you to be Rhythm buddies`
     case 'NOTES_IMPORT': {
       const count = (k: string) => (typeof data[k] === 'number' ? (data[k] as number) : 0)
       const parts = [`${count('created')} ${count('created') === 1 ? 'note' : 'notes'} added`]

@@ -1,4 +1,5 @@
-# The centre button opens the create sheet; the backdrop, an option and the Android back button close it.
+# The centre button opens the create sheet; the backdrop, an option and the Android back button close it, and an option
+# opens what it makes.
 appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
@@ -14,6 +15,11 @@ env:
 - tapOn: "Create"
 - tapOn: "Quiz"
 - assertNotVisible: "Quick note"
+# Quiz starts a note with a quiz card (ADR-0076): no option of the sheet does nothing.
+- extendedWaitUntil:
+    visible: "Quiz, .*"
+    timeout: 15000
+- pressKey: Back
 - tapOn: "Create"
 - tapOn:
     point: "50%,15%"

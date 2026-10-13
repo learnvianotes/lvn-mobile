@@ -126,3 +126,16 @@ mutation ConfirmNoteImport($id: UUID!) {
     }
   }
 }
+
+# The Profile tab's header (lvn-backend ADR-0076): department and year, and how many people follow and are followed.
+query ProfileTab {
+  viewer {
+    id
+    followerCount
+    followingCount
+    profile {
+      department
+      yearOfStudy
+    }
+  }
+}

@@ -27,7 +27,7 @@ beforeEach(() => {
   jest.mocked(usePathname).mockReturnValue('/')
 })
 
-it('new terms wait for acceptance everywhere but the Profile tab', async () => {
+it('new terms wait for acceptance everywhere but Settings', async () => {
   let accepted = false
   const api = mockApi({
     TermsStatus: () => ({ data: { termsVersion: '2026-11-01', viewer: { __typename: 'User', id: ME, termsAccepted: accepted } } }),
@@ -37,14 +37,14 @@ it('new terms wait for acceptance everywhere but the Profile tab', async () => {
   expect(await screen.findByRole('header', { name: 'We have updated our terms' })).toBeOnTheScreen()
   expect(screen.getByRole('link', { name: 'Privacy Policy' })).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('link', { name: 'Not now — sign out' }))
-  expect(router.navigate).toHaveBeenCalledWith('/profile')
+  expect(router.navigate).toHaveBeenCalledWith('/settings')
   await fireEvent.press(screen.getByRole('button', { name: 'Accept and continue' }))
   await waitFor(() => expect(screen.queryByRole('header', { name: 'We have updated our terms' })).toBeNull())
   expect(api.calls.find((c) => c.op === 'AcceptTerms')?.variables).toEqual({ version: '2026-11-01' })
 })
 
-it('the Profile tab stays open with new terms, so people who do not agree can sign out', async () => {
-  jest.mocked(usePathname).mockReturnValue('/profile')
+it('Settings stays open with new terms, so people who do not agree can sign out (ADR-0076)', async () => {
+  jest.mocked(usePathname).mockReturnValue('/settings')
   mockApi({ TermsStatus: () => ({ data: { termsVersion: '2026-11-01', viewer: { __typename: 'User', id: ME, termsAccepted: false } } }) })
   await inApollo(<TermsGate />)
   await waitFor(() => expect(screen.queryByRole('header', { name: 'We have updated our terms' })).toBeNull())

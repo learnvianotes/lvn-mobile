@@ -12,7 +12,7 @@ env:
 - tapOn: "Groups & classes"
 - assertVisible: "Your groups"
 - tapOn: "Profile"
-- assertVisible: "Your account"
 - assertVisible: "Ravi Kumar"
+- assertVisible: "Settings"
 - tapOn: "Home"
 - assertVisible: "Make it happen"

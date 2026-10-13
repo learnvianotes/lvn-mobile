@@ -1,5 +1,5 @@
-# Focus mode on the phone, end to end (P6g): a new learner starts a 15-minute focus session from Rhythm, sees the
-# timer, ends it, and the server says what it counted.
+# Focus mode on the phone, end to end (P6g, ADR-0076): a new learner starts a 15-minute focus session from Rhythm; the
+# dark focus screen shows the timer, pauses (the server says what it counted), resumes, ends, and times a break.
 appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
@@ -16,13 +16,32 @@ env:
     element: "Start focusing"
 - tapOn: "15 min"
 - tapOn: "Start focusing"
+# Started, board A's dark focus screen opens (ADR-0076): the large timer, Pause (the time so far counts) and Resume.
 - extendedWaitUntil:
-    visible: "Focusing: 15 minutes, then a rest."
+    visible: "Focus mode"
     timeout: 15000
 - assertVisible: "1[45]:\\d\\d left"
-- tapOn: "End the session"
+- assertVisible: "Focusing"
+- tapOn: "Pause"
 - extendedWaitUntil:
-    visible: ".*minutes? counted\\."
+    visible: "Paused"
+    timeout: 15000
+- assertVisible: ".*minutes? counted\\."
+- tapOn: "Resume"
+- extendedWaitUntil:
+    visible: "Focusing"
+    timeout: 15000
+- tapOn: "End"
+- extendedWaitUntil:
+    visible: "Start"
+    timeout: 15000
+# A break is timed on the phone only.
+- tapOn: "Short Break"
+- assertVisible: "0[45]:\\d\\d left"
+- tapOn: "Skip break"
+- tapOn: "Close focus mode"
+- extendedWaitUntil:
+    visible: "This week"
     timeout: 15000
 - scrollUntilVisible:
     element: "Rhythm buddies"

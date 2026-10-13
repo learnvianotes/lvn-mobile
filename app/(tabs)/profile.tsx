@@ -1,3 +1,3 @@
-import { AccountScreen } from '@/features/auth/AccountScreen'
+import { ProfileTab } from '@/features/auth/ProfileTab'
 
-export default AccountScreen
+export default ProfileTab

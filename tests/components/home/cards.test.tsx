@@ -37,7 +37,7 @@ describe('HomeHeader', () => {
 
 describe('QuickActions', () => {
   it('offers the five capture actions as buttons', async () => {
-    await render(<QuickActions />)
+    await render(<ApolloProvider client={createApolloClient()}><QuickActions /></ApolloProvider>)
     for (const label of ['Notes', 'Q&A', 'Camera', 'Voice', 'Upload']) {
       expect(screen.getByRole('button', { name: label })).toBeOnTheScreen()
     }

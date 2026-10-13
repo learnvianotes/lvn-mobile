@@ -1,10 +1,13 @@
-# The account on the phone, end to end (P3n): study details saved on the Profile tab reach the server.
+# The account on the phone, end to end (P3n): study details saved in Settings reach the server, and show on the
+# Profile tab.
 appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
 ---
 - runFlow: subflows/signed-in.yaml
 - tapOn: "Profile"
+# The account is in Settings, behind the Profile tab's gear (ADR-0076).
+- tapOn: "Settings"
 - scrollUntilVisible:
     element: "Department"
 - tapOn: "Department"
@@ -18,4 +21,8 @@ env:
 - tapOn: "Save"
 - extendedWaitUntil:
     visible: "Saved"
+    timeout: 15000
+- tapOn: "Back"
+- extendedWaitUntil:
+    visible: "CSE · 2nd year"
     timeout: 15000

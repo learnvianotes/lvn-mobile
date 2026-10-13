@@ -7,7 +7,7 @@ import { Wordmark } from '@/components/brand/Logo'
 import { Text } from '@/components/ui/text'
 import { useLive } from '@/features/notifications/live'
 import { PressScale } from '@/features/shell/PressScale'
-import { UnreadNotificationCountDocument } from '@/graphql/generated/graphql'
+import { UnreadNotificationCountDocument, ViewerDocument } from '@/graphql/generated/graphql'
 
 /** The bell (lvn-backend ADR-0042): the unread count, refreshed by live events while the app is open. */
 function NotificationBell({ color }: { color: string }) {
@@ -29,21 +29,25 @@ function NotificationBell({ color }: { color: string }) {
   )
 }
 
+/** The word mark, the bell and the person's avatar (their Profile tab); the search bar opens Explore, ready to type. */
 export function HomeHeader() {
   const fg = String(useCSSVariable('--color-foreground') ?? '#1e1b2e')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#5f5f73')
+  const name = useQuery(ViewerDocument).data?.viewer?.displayName.trim() ?? ''
   return (
     <View className="gap-4">
       <View className="flex-row items-center justify-between">
         <Wordmark size={34} />
         <View className="flex-row items-center gap-2">
           <NotificationBell color={fg} />
-          <View className="bg-secondary size-10 items-center justify-center rounded-full">
-            <Text className="text-secondary-foreground font-bold">M</Text>
-          </View>
+          <PressScale accessibilityRole="button" accessibilityLabel="Your profile" hitSlop={8} onPress={() => router.push('/profile')}>
+            <View className="bg-secondary size-10 items-center justify-center rounded-full">
+              <Text className="text-secondary-foreground font-bold">{name.slice(0, 1).toUpperCase() || '·'}</Text>
+            </View>
+          </PressScale>
         </View>
       </View>
-      <PressScale feedback="none" accessibilityRole="search" accessibilityLabel="Search notes, topics and people">
+      <PressScale accessibilityRole="search" accessibilityLabel="Search notes, topics and people" onPress={() => router.push({ pathname: '/explore', params: { focus: String(Date.now()) } })}>
         <View className="bg-card border-border h-12 flex-row items-center gap-3 rounded-2xl border px-4">
           <Search size={18} color={muted} />
           <Text className="text-muted-foreground text-sm">Search notes, topics, people…</Text>

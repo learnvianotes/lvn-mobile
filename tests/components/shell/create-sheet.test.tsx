@@ -10,7 +10,7 @@ import { renderInApp as render } from '../../support/render'
 
 jest.mock('@/lib/haptics', () => ({ haptic: { tick: jest.fn(), press: jest.fn(), success: jest.fn() } }))
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }))
-jest.mock('@/features/notes/store/actions', () => ({ createNote: jest.fn(async () => 'n-new') }))
+jest.mock('@/features/notes/store/actions', () => ({ createNote: jest.fn(async () => 'n-new'), setTitle: jest.fn(async () => undefined), addCard: jest.fn() }))
 
 let role = 'STUDENT'
 beforeEach(() => {
