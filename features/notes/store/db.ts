@@ -26,6 +26,9 @@ const MIGRATIONS = [
    ALTER TABLE notes ADD COLUMN folder_name TEXT;
    ALTER TABLE notes ADD COLUMN tags TEXT NOT NULL DEFAULT '[]';
    DELETE FROM kv WHERE key = 'cursor';`,
+  // 3: learning events waiting to be sent (lvn-backend ADR-0067), oldest first.
+  `CREATE TABLE learning_outbox (id TEXT PRIMARY KEY NOT NULL, event TEXT NOT NULL, created_at TEXT NOT NULL);
+   CREATE INDEX learning_outbox_by_age ON learning_outbox (created_at, id);`,
 ]
 
 let db: SQLiteDatabase | null = null
@@ -230,6 +233,26 @@ export async function discard(clientOpId: string): Promise<void> {
 
 /** Everything, for signing out or another account on this phone. */
 export async function wipe(): Promise<void> {
-  open().execSync('DELETE FROM cards; DELETE FROM notes; DELETE FROM outbox; DELETE FROM kv;')
+  open().execSync('DELETE FROM cards; DELETE FROM notes; DELETE FROM outbox; DELETE FROM kv; DELETE FROM learning_outbox;')
   changed()
+}
+
+// ── Learning events waiting to be sent (lvn-backend ADR-0067) ───────────────────────────────────────────────────────
+
+export async function queueLearningEvent(event: { id: string; clientTs: string }, keep: number): Promise<number> {
+  const d = open()
+  await d.runAsync('INSERT OR IGNORE INTO learning_outbox (id, event, created_at) VALUES (?, ?, ?)', event.id, JSON.stringify(event), event.clientTs)
+  // Offline for long: the oldest go first.
+  await d.runAsync('DELETE FROM learning_outbox WHERE id IN (SELECT id FROM learning_outbox ORDER BY created_at DESC, id DESC LIMIT -1 OFFSET ?)', keep)
+  return (await d.getFirstAsync<{ n: number }>('SELECT count(*) AS n FROM learning_outbox'))?.n ?? 0
+}
+
+export async function waitingLearningEvents<T>(limit: number): Promise<T[]> {
+  const rows = await open().getAllAsync<{ event: string }>('SELECT event FROM learning_outbox ORDER BY created_at, id LIMIT ?', limit)
+  return rows.map((r) => JSON.parse(r.event) as T)
+}
+
+export async function removeLearningEvents(ids: string[]): Promise<void> {
+  if (!ids.length) return
+  await open().runAsync(`DELETE FROM learning_outbox WHERE id IN (${ids.map(() => '?').join(', ')})`, ...ids)
 }

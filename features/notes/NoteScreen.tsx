@@ -25,6 +25,7 @@ import { cardTypeFor, MediaProvider, UploadError, uploadToNote } from './media/N
 import { pickMedia, type MediaSource } from './media/pickMedia'
 import { MakeCopyButton, NoteStatus, useNoteActions } from './publishing/NoteActions'
 import { StudyAids } from '@/features/ai/StudyAids'
+import { useLearningTime } from '@/features/learning/useLearningTime'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -51,6 +52,8 @@ const NEW_MEDIA: { source: MediaSource; label: string }[] = [
 export function NoteScreen({ id }: { id: string }) {
   const note = useLocal(() => db.getNote(id), [id])
   const cards = useLocal(() => db.getCards(id), [id])
+  // Learning history (lvn-backend ADR-0067): the note opened, and the time it is read, offline too.
+  useLearningTime(note === undefined ? null : { entityType: 'NOTE', entityId: id }, 'NOTE_OPENED')
   if (note === undefined || cards === undefined) return <Loading />
   if (note === null) return <RemoteNote id={id} />
   // Media URLs are asked for again whenever a card is added or sent (its revision changes).
