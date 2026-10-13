@@ -8,6 +8,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { SearchDocument, type NoteKind, type NoteSource, type SearchQuery } from '@/graphql/generated/graphql'
 import { forget, recentSearches, remember } from './recent'
+import { track } from '@/lib/learning'
 
 const KINDS: { kind: NoteKind; label: string }[] = [
   { kind: 'NOTE', label: 'Notes' },
@@ -68,6 +69,12 @@ export function ExploreScreen() {
     const t = setTimeout(() => setSettled(query.trim()), 250)
     return () => clearTimeout(t)
   }, [query])
+  // Words left in place for two seconds are a search made (SEARCH_PERFORMED, lvn-backend ADR-0067); not the words.
+  useEffect(() => {
+    if (settled.length < 2) return
+    const t = setTimeout(() => void track('SEARCH_PERFORMED', { metadata: { scopes: 'ALL', words: settled.split(/\s+/).length } }), 2_000)
+    return () => clearTimeout(t)
+  }, [settled])
   const filtering = kinds.length > 0 || sources.length > 0 || !!topic
   const ready = settled.length >= 2 || filtering
   const variables = { query: settled, ...(filtering ? { filters: { kinds: kinds.length ? kinds : null, sources: sources.length ? sources : null, topicId: topic?.id ?? null } } : {}) }
