@@ -52,6 +52,8 @@ it('reviews today’s cards: Again comes back at the end, each grade sent once w
   await waitFor(() => expect(api.calls.filter((c) => c.op === 'ReviewCard').map((c) => (c.variables.input as { rating: string }).rating)).toEqual(['GOOD', 'AGAIN', 'EASY']))
   expect(new Set(api.calls.filter((c) => c.op === 'ReviewCard').map((c) => (c.variables.input as { clientOpId: string }).clientOpId)).size).toBe(3)
   expect(mockOutbox).toEqual([])
+  // Every grade went: nothing says one waits.
+  await waitFor(() => expect(screen.queryByText(/waits? to be sent/)).toBeNull())
 })
 
 it('offline, uses the cards last fetched and keeps the grades for later', async () => {

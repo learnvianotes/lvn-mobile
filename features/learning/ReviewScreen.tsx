@@ -66,6 +66,9 @@ export function ReviewScreen() {
     started.current = Date.now()
     await grade(card.cardId, rating, took)
     setWaiting(await waitingCount())
+    // Once the grade has gone (or could not), say what still waits.
+    await sendGrades()
+    setWaiting(await waitingCount())
   }
 
   return (
