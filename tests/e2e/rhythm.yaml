@@ -1,0 +1,47 @@
+# Rhythm on the phone, end to end (P6d): a new learner sees today and the week, plans six days a week, pauses for
+# exams from today and cancels the pause; the server keeps each change.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Profile"
+- scrollUntilVisible:
+    element: "Rhythm"
+- tapOn: "Rhythm"
+- extendedWaitUntil:
+    visible: "This week"
+    timeout: 15000
+# A new account's first week aims only for the planned days from today on.
+- assertVisible: "0 of \\d days this week"
+- assertVisible: ".*more learning minutes, or 10 more reviews, and today counts."
+- scrollUntilVisible:
+    element: "Save days"
+- tapOn: "Wednesday"
+- tapOn: "Friday"
+- tapOn: "Save days"
+- scrollUntilVisible:
+    element: "Saved. This week now aims for \\d days."
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Pause Rhythm"
+- tapOn: "Pause Rhythm"
+- scrollUntilVisible:
+    element: "Exams"
+- tapOn: "Exams"
+- scrollUntilVisible:
+    element: "Pause"
+- tapOn:
+    text: "Pause"
+- extendedWaitUntil:
+    visible: "Paused now"
+    timeout: 15000
+- scrollUntilVisible:
+    element: ".*11 of 14 pause days left this term."
+    direction: UP
+- scrollUntilVisible:
+    element: "Cancel the pause"
+- tapOn: "Cancel the pause"
+- extendedWaitUntil:
+    visible: "No pauses."
+    timeout: 15000

@@ -7,13 +7,21 @@ import { Text } from '@/components/ui/text'
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
 
-type Props = { done: number; dayBar: number; full: number; size?: number }
+type Props = {
+  done: number
+  dayBar: number
+  full: number
+  size?: number
+  /** What a screen reader says, and what the centre shows, when the ring is not counting reviews */
+  label?: string
+  centre?: { value: string; caption: string }
+}
 
 /**
  * The Today ring (ADR-0030): fills with learning actions only. A marker shows where the day counts (the low bar);
  * a full ring is a bonus. The fill animates in ~350 ms on the UI thread; reduced motion jumps straight to the value.
  */
-export function TodayRing({ done, dayBar, full, size = 112 }: Props) {
+export function TodayRing({ done, dayBar, full, size = 112, label, centre }: Props) {
   const stroke = 11
   const r = (size - stroke) / 2
   const c = 2 * Math.PI * r
@@ -40,7 +48,7 @@ export function TodayRing({ done, dayBar, full, size = 112 }: Props) {
       style={{ width: size, height: size }}
       accessible
       accessibilityRole="progressbar"
-      accessibilityLabel={`Today: ${done} of ${full} reviews. ${counted ? 'Day counted.' : `${dayBar - done} more to count today.`}`}
+      accessibilityLabel={label ?? `Today: ${done} of ${full} reviews. ${counted ? 'Day counted.' : `${dayBar - done} more to count today.`}`}
     >
       <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }}>
         <Circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
@@ -60,8 +68,8 @@ export function TodayRing({ done, dayBar, full, size = 112 }: Props) {
         <Circle cx={mx} cy={my} r={3.5} fill={counted ? success : primary} opacity={counted ? 0 : 0.9} />
       </Svg>
       <View className="absolute inset-0 items-center justify-center">
-        <Text className="text-2xl font-bold">{done}</Text>
-        <Text className="text-muted-foreground text-xs">of {full}</Text>
+        <Text className="text-2xl font-bold">{centre?.value ?? done}</Text>
+        <Text className="text-muted-foreground text-xs">{centre?.caption ?? `of ${full}`}</Text>
       </View>
     </View>
   )
