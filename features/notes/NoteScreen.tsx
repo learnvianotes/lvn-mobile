@@ -259,6 +259,18 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
                 <Text className="text-primary text-sm font-semibold">{m.label}</Text>
               </Pressable>
             ))}
+            {/* A voice note (lvn-backend ADR-0062): recorded on its own screen, then an audio card of this note. */}
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setAdding(false)
+                if (note.localOnly) return Alert.alert('Not sent yet', 'The note is still only on this phone. Once it has been sent, record voice notes in it.')
+                router.push(`/notes/record/${note.id}`)
+              }}
+              className="border-primary/40 bg-primary/10 rounded-full border px-3 py-2"
+            >
+              <Text className="text-primary text-sm font-semibold">Voice note</Text>
+            </Pressable>
           </View>
         ) : (
           <Pressable accessibilityRole="button" disabled={uploading} onPress={() => setAdding(true)} className="border-border flex-row items-center gap-2 self-start rounded-full border border-dashed px-4 py-2.5">

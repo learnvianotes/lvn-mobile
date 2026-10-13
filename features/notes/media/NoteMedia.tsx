@@ -110,7 +110,10 @@ export async function uploadFile(client: ApolloClient, picked: { uri: string; na
   if (!intent) throw new UploadError(res.data?.createUploadIntent.userErrors[0]?.message ?? 'The file could not be uploaded.')
   const headers: Record<string, string> = {}
   for (const h of intent.uploadHeaders) if (h.name.toLowerCase() !== 'content-length') headers[h.name] = h.value
-  const put = await fetch(intent.uploadUrl, { method: 'PUT', headers, body })
+  // Android sends a blob with the blob's own type (guessed from the file's extension) whatever Content-Type is given,
+  // and storage checks the type signed into the URL: the body takes the type the upload was asked for.
+  const typed = body.type === picked.mimeType ? body : body.slice(0, body.size, picked.mimeType)
+  const put = await fetch(intent.uploadUrl, { method: 'PUT', headers, body: typed })
   if (!put.ok) throw new UploadError('The file could not be uploaded. Try again.')
   const done = await client.mutate({ mutation: CompleteNoteUploadDocument, variables: { fileId: intent.fileId } })
   const problem = done.data?.completeUpload.userErrors[0]?.message

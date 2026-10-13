@@ -6,6 +6,7 @@ import { ReviewRequests, VerifyCard } from '@/features/verification/Verification
 import { createApolloClient } from '@/lib/apollo'
 import { mockApi } from '../../support/api'
 import { renderInApp } from '../../support/render'
+import { fileBlob } from '../../support/blob'
 
 /**
  * Verifying without a college email on the phone (lvn-backend ADR-0019): ask a teacher, send proof of study, withdraw;
@@ -55,7 +56,7 @@ it('sends proof of study from the phone’s files; a minor is offered a teacher 
   const graphql = globalThis.fetch
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
-    if (url.startsWith('file://')) return { blob: async () => ({ size: 2048 }) } as unknown as Response
+    if (url.startsWith('file://')) return { blob: async () => fileBlob(2048) } as unknown as Response
     if (url === 'https://storage.test/put') return { ok: true } as Response
     return graphql(input, init)
   }) as typeof fetch

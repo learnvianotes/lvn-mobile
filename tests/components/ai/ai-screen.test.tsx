@@ -64,7 +64,7 @@ const aiState = (over: { available?: boolean; reason?: string | null; usedToday?
   },
 })
 const noteAi = (list: unknown[], can: { edit: boolean; fork: boolean } = { edit: true, fork: true }) => ({
-  data: { note: { __typename: 'Note', id: NOTE, title: 'Binary search', viewerCan: { __typename: 'NotePermissions', ...can }, aiArtifacts: list } },
+  data: { note: { __typename: 'Note', id: NOTE, title: 'Binary search', viewerCan: { __typename: 'NotePermissions', ...can }, cards: { __typename: 'CardConnection', edges: [] }, aiArtifacts: list } },
 })
 const ran = (a: unknown) => ({ data: { runAiTask: { __typename: 'RunAiTaskPayload', artifact: a, userErrors: [] } } })
 const kept = (noteId: string) => ({ data: { keepAiCards: { __typename: 'KeepAiCardsPayload', noteId, userErrors: [] } } })

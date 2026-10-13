@@ -47,7 +47,16 @@ jest.mock('expo-video', () => {
 })
 jest.mock('expo-audio', () => {
   const player = { play: jest.fn(), pause: jest.fn(), seekTo: jest.fn(async () => undefined) }
-  return { useAudioPlayer: jest.fn(() => player), useAudioPlayerStatus: jest.fn(() => ({ playing: false, currentTime: 0, duration: 95 })) }
+  // Voice notes (ADR-0062): a recorder that "records" to a fixed file.
+  const recorder = { uri: null as string | null, prepareToRecordAsync: jest.fn(async () => undefined), record: jest.fn(), stop: jest.fn(async () => void (recorder.uri = 'file:///voice.m4a')) }
+  return {
+    useAudioPlayer: jest.fn(() => player),
+    useAudioPlayerStatus: jest.fn(() => ({ playing: false, currentTime: 0, duration: 95 })),
+    useAudioRecorder: jest.fn(() => recorder),
+    RecordingPresets: { HIGH_QUALITY: {} },
+    requestRecordingPermissionsAsync: jest.fn(async () => ({ granted: true })),
+    setAudioModeAsync: jest.fn(async () => undefined),
+  }
 })
 jest.mock('expo-image', () => {
   const { createElement } = require('react')

@@ -1,0 +1,45 @@
+# Voice notes on the phone (lvn-backend ADR-0062): the Create sheet's Voice note records with the microphone (the
+# emulator's is silent), keeps the recording as an audio card of a new note, and opens the AI screen with its
+# transcription queued. Needs a server whose AI answers; without it this flow does nothing past signing in.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- runScript:
+    file: scripts/ai-note.js
+    env:
+      TOKEN: ${output.token}
+- runFlow:
+    when:
+      true: ${output.ai === 'on'}
+    commands:
+      - tapOn: "Create"
+      - tapOn: "Voice note"
+      - extendedWaitUntil:
+          visible: "Start recording"
+          timeout: 30000
+      - tapOn: "Start recording"
+      # Android asks for the microphone the first time.
+      - runFlow:
+          when:
+            visible: "While using the app"
+          commands:
+            - tapOn: "While using the app"
+      - extendedWaitUntil:
+          visible: "Stop recording"
+          timeout: 10000
+      - swipe:
+          start: "50%, 80%"
+          end: "50%, 79%"
+      - tapOn: "Stop recording"
+      - tapOn: "Keep it"
+      # The AI screen opens with the recording's transcription queued (or done: silence gives nothing to keep), below
+      # the tasks.
+      - extendedWaitUntil:
+          visible: "Transcribe the recording"
+          timeout: 60000
+      - scrollUntilVisible:
+          element: "Transcribe result"
+          direction: DOWN
+          timeout: 60000

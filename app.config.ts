@@ -82,10 +82,13 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // that unless allowed. Sandbox and production use HTTPS only.
       ['expo-build-properties', { android: { usesCleartextTraffic: current === 'development' } }],
       // Pictures and files added to notes (lvn-backend P3m): the photo library and the camera, asked when first used.
-      ['expo-image-picker', { photosPermission: 'LearnViaNotes adds the photos you choose to your notes.', cameraPermission: 'LearnViaNotes takes photos for your notes.', microphonePermission: false }],
-      // Video and audio cards play in the note; nothing is recorded, so no microphone permission.
+      // Its microphone permission must not be `false`: that removes RECORD_AUDIO from the manifest, which voice notes
+      // need (tests/unit/app-config.test.ts).
+      ['expo-image-picker', { photosPermission: 'LearnViaNotes adds the photos you choose to your notes.', cameraPermission: 'LearnViaNotes takes photos for your notes.', microphonePermission: 'LearnViaNotes records your voice notes with the microphone.' }],
+      // Video and audio cards play in the note; voice notes are recorded (lvn-backend ADR-0062), so expo-audio asks for the
+      // microphone the first time someone records.
       ['expo-video', { supportsPictureInPicture: false }],
-      ['expo-audio', { microphonePermission: false }],
+      ['expo-audio', { microphonePermission: 'LearnViaNotes records your voice notes with the microphone.' }],
       [
         'expo-splash-screen',
         {
