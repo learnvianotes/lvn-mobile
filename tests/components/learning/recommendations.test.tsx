@@ -33,3 +33,24 @@ it('shows recommendations with why; a note opens, and one can be set aside', asy
   await waitFor(() => expect(api.calls.find((c) => c.op === 'DismissRecommendation')?.variables).toEqual({ input: { kind: 'EXAM_TOPIC', entityId: `topic:${TOPIC}` } }))
   await waitFor(() => expect(screen.queryByText('Paging')).toBeNull())
 })
+
+it('every recommendation opens something: a topic to revise or be quizzed on opens its notes in Explore (ADR-0076)', async () => {
+  mockApi({
+    Recommendations: () => ({
+      data: {
+        recommendations: [
+          rec({ kind: 'REVISE_TOPIC', reason: 'Not seen for a while', topicKey: `topic:${TOPIC}`, topicTitle: 'Paging', topic: { __typename: 'Topic', id: TOPIC } }),
+          rec({ kind: 'QUIZ_ON_TOPIC', reason: 'Check yourself', topicKey: 'core:dsa/binary-trees', topicTitle: null }),
+          rec({ kind: 'EXAM_TOPIC', reason: 'On your plan', topicKey: 'core:os/scheduling', topicTitle: 'Scheduling' }),
+        ],
+      },
+    }),
+  })
+  await renderInApp(<ApolloProvider client={createApolloClient()}><Recommendations /></ApolloProvider>)
+  await fireEvent.press(await screen.findByText('Paging'))
+  expect(router.push).toHaveBeenLastCalledWith({ pathname: '/explore', params: { topic: TOPIC, topicTitle: 'Paging' } })
+  await fireEvent.press(screen.getByText('dsa / binary trees'))
+  expect(router.push).toHaveBeenLastCalledWith({ pathname: '/explore', params: { q: 'dsa / binary trees' } })
+  await fireEvent.press(screen.getByText('Scheduling'))
+  expect(router.push).toHaveBeenLastCalledWith('/exams')
+})

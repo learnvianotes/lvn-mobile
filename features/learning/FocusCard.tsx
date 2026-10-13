@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@apollo/client/react'
+import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
 import { Linking, Pressable, Switch, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
@@ -64,9 +65,15 @@ export function FocusCard() {
   const phase = session ? phaseOf(session, now) : null
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
-      <Text className="text-lg font-bold" accessibilityRole="header">
-        Focus
-      </Text>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-lg font-bold" accessibilityRole="header">
+          Focus
+        </Text>
+        {/* Board A's dark focus screen: the timer large, pause and resume, Pomodoro and breaks (ADR-0076). */}
+        <Pressable accessibilityRole="link" onPress={() => router.push('/focus')}>
+          <Text className="text-primary text-sm font-semibold">Open focus mode</Text>
+        </Pressable>
+      </View>
       {session && phase ? (
         <>
           <Text className="text-4xl font-extrabold" accessibilityLabel={`${clock(phase.left)} left`}>
@@ -112,6 +119,7 @@ export function FocusCard() {
               const res = await start({ variables: { input: { minutes, breakMinutes: 5, meetUrl: meetUrl.trim() || null } } })
               const message = res.data?.startFocusSession.userErrors[0]?.message
               if (message) setProblem(message)
+              else router.push('/focus')
             }}
             className="bg-primary self-start rounded-xl px-4 py-2.5"
           >

@@ -10,7 +10,7 @@ import { renderInApp } from '../../support/render'
  * Explore on the phone (lvn-backend ADR-0056): notes, people, groups, classes and topics; kind and source chips; a
  * topic lists its notes; more results; recent searches kept on the phone.
  */
-jest.mock('expo-router', () => ({ router: { push: jest.fn() } }))
+jest.mock('expo-router', () => ({ router: { push: jest.fn() }, useLocalSearchParams: jest.fn(() => ({})) }))
 const mockStore = new Map<string, string>()
 jest.mock('@/features/notes/store/db', () => ({
   getValue: jest.fn(async (key: string) => mockStore.get(key) ?? null),
@@ -92,4 +92,20 @@ it('brings more notes of the same search', async () => {
   expect(screen.getByLabelText("Dijkstra's algorithm")).toBeOnTheScreen()
   expect(screen.queryByLabelText('More results')).toBeNull()
   expect(api.calls.filter((c) => c.op === 'Search').at(-1)?.variables).toEqual({ query: 'paths', after: 'c2' })
+})
+
+it('opens ready from elsewhere: words to search, or a topic to list (Home, recommendations; ADR-0076)', async () => {
+  const { useLocalSearchParams } = jest.requireMock('expo-router') as { useLocalSearchParams: jest.Mock }
+  const api = mockApi({ Search: () => results() })
+  useLocalSearchParams.mockReturnValue({ q: 'dijkstra' })
+  const first = await inApollo(<ExploreScreen />)
+  expect(screen.getByLabelText(SEARCH).props.value).toBe('dijkstra')
+  await waitFor(() => expect(api.calls.find((c) => c.op === 'Search')?.variables).toMatchObject({ query: 'dijkstra' }))
+  await first.unmount()
+
+  useLocalSearchParams.mockReturnValue({ topic: 't1', topicTitle: 'Shortest paths' })
+  await inApollo(<ExploreScreen />)
+  expect(await screen.findByText('About Shortest paths')).toBeOnTheScreen()
+  await waitFor(() => expect(api.calls.at(-1)?.variables).toMatchObject({ filters: { topicId: 't1' } }))
+  useLocalSearchParams.mockReturnValue({})
 })

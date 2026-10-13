@@ -10,6 +10,7 @@ import { MarkNotificationsReadDocument, NotificationsDocument, type Notification
 import { ago, describeNotification } from './describe'
 import { useLive } from './live'
 import { TurnOnPush } from '@/features/push/TurnOnPush'
+import { phonePath } from './route'
 
 const PAGE = 20
 const ICONS: Partial<Record<NotificationFieldsFragment['category'], typeof Bell>> = { SHARE: Share2, VERIFICATION: BadgeCheck, DATA_EXPORT: Download, NOTES_IMPORT: FileInput, FOLLOW: UserPlus, CONNECTION: Handshake, JOIN_REQUEST: DoorOpen, JOIN_DECISION: Users, CLASSROOM_INVITE: GraduationCap, CLASSROOM_POST: Megaphone, QUIZ_PUBLISHED: ListChecks, REVISION_REMINDER: CalendarClock, COMMENT: MessageSquare, MENTOR_INVITE: School, DOUBT: CircleHelp, MODERATION: ShieldAlert }
@@ -44,7 +45,7 @@ export function NotificationsScreen() {
 
   const open = (n: NotificationFieldsFragment) => {
     if (!n.readAt) void markRead({ ids: [n.id] })
-    router.push(n.path as Href)
+    router.push(phonePath(n.path, n.category) as Href)
   }
 
   return (

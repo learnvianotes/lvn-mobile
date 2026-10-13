@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from '@apollo/client/react'
-import { router } from 'expo-router'
+import { router, useLocalSearchParams } from 'expo-router'
 import { Globe, Lock, Plus, Search, Users } from 'lucide-react-native'
 import { useEffect, useState } from 'react'
 import { Pressable, ScrollView, TextInput, View } from 'react-native'
@@ -34,6 +34,11 @@ export function CommunityScreen() {
   const myIds = new Set(mine.data?.myGroups.map((g) => g.id))
   const discover = (found.data?.discoverGroups ?? []).filter((g) => !myIds.has(g.id))
   const [section, setSection] = useState<Section>('activity')
+  // The Profile tab's My groups and My classrooms open the places (section=places).
+  const asked = useLocalSearchParams<{ section?: string }>().section
+  useEffect(() => {
+    if (asked && asked in SECTIONS) setSection(asked as Section)
+  }, [asked])
   return (
     <ScrollView className="bg-background flex-1" contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 100, gap: 16 }} keyboardShouldPersistTaps="handled">
       <Text className="text-2xl font-extrabold" accessibilityRole="header">

@@ -18,7 +18,7 @@ env:
 # The row is one control on Android, labelled with its state: "Unread: …".
 - assertVisible: "Unread: Your data export is ready to download"
 - tapOn: "Unread: Your data export is ready to download"
-# The Profile tab opens at the top; the data card is further down.
+# The export opens Settings (the account, behind the Profile tab's gear) at the top; the data card is further down.
 - extendedWaitUntil:
     visible: "Your account"
     timeout: 15000

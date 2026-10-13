@@ -8,13 +8,9 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { TurnOnPush } from '@/features/push/TurnOnPush'
-import { NotificationSettingsDocument, UpdateNotificationSettingsDocument, type NotificationCategory } from '@/graphql/generated/graphql'
+import { NotificationSettingsDocument, UpdateNotificationSettingsDocument } from '@/graphql/generated/graphql'
+import { LABEL } from './categories'
 
-const LABEL: Partial<Record<NotificationCategory, string>> = {
-  SHARE: 'Notes shared with you', COMMENT: 'Comments and replies', FOLLOW: 'New followers', CONNECTION: 'Connections', JOIN_REQUEST: 'Requests to join your groups and classes',
-  JOIN_DECISION: 'Answers to your requests to join', CLASSROOM_INVITE: 'Class invites', CLASSROOM_POST: 'Class announcements', QUIZ_PUBLISHED: 'Quizzes in your classes', MENTOR_INVITE: 'Invites to mentor', DOUBT: 'Doubts', MENTION: 'Mentions of you',
-  VERIFICATION: 'Verification', DATA_EXPORT: 'Data exports', NOTES_IMPORT: 'Imports', REVISION_REMINDER: 'Revision reminders for your exams',
-}
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
 
 /** Notification settings on the phone (lvn-backend ADR-0050): the same choices as the web, saved as they change. */

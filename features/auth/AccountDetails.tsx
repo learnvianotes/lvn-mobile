@@ -5,11 +5,11 @@ import { View } from 'react-native'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { Choices, Field, Outcome, Pill, Toggle } from '@/features/shell/Form'
-import { ClaimLegacyDataDocument, DeclineLegacyDataDocument, PhoneAccountDetailsDocument, SetInstitutionalEmailDocument, UpdateProfileDocument, ViewerDocument, type ViewerFieldsFragment, type YearOfStudy } from '@/graphql/generated/graphql'
+import { ClaimLegacyDataDocument, DeclineLegacyDataDocument, PhoneAccountDetailsDocument, ProfileTabDocument, SetInstitutionalEmailDocument, UpdateProfileDocument, ViewerDocument, type ViewerFieldsFragment, type YearOfStudy } from '@/graphql/generated/graphql'
 import { copy } from './copy'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
-const YEARS: Record<YearOfStudy, string> = { YEAR_1: '1st year', YEAR_2: '2nd year', YEAR_3: '3rd year', YEAR_4: '4th year', YEAR_5: '5th year', POSTGRADUATE: 'Postgraduate', GRADUATED: 'Graduated', SCHOOL: 'School', NOT_STUDYING: 'Not studying' }
+export const YEARS: Record<YearOfStudy, string> = { YEAR_1: '1st year', YEAR_2: '2nd year', YEAR_3: '3rd year', YEAR_4: '4th year', YEAR_5: '5th year', POSTGRADUATE: 'Postgraduate', GRADUATED: 'Graduated', SCHOOL: 'School', NOT_STUDYING: 'Not studying' }
 
 /** A college or organisation email on the phone (ADR-0017): added or replaced here, its code entered on Verify. */
 export function InstitutionalEmailCard({ viewer }: { viewer: ViewerFieldsFragment }) {
@@ -60,16 +60,18 @@ export function InstitutionalEmailCard({ viewer }: { viewer: ViewerFieldsFragmen
 export function StudyDetailsCard() {
   const { data } = useQuery(PhoneAccountDetailsDocument, { fetchPolicy: 'cache-and-network' })
   const profile = data?.viewer?.profile
+  // Kept here: the form starts again from the server's values whenever they change (a save refreshes them).
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   if (!data?.viewer) return null
-  return <StudyDetailsForm key={JSON.stringify(profile)} initial={profile ?? null} />
+  return <StudyDetailsForm key={JSON.stringify(profile)} initial={profile ?? null} message={message} setMessage={setMessage} />
 }
 
-function StudyDetailsForm({ initial }: { initial: { department: string | null; yearOfStudy: YearOfStudy | null; showOnProfile: boolean } | null }) {
-  const [update, updating] = useMutation(UpdateProfileDocument)
+function StudyDetailsForm({ initial, message, setMessage }: { initial: { department: string | null; yearOfStudy: YearOfStudy | null; showOnProfile: boolean } | null; message: { ok: boolean; text: string } | null; setMessage: (m: { ok: boolean; text: string } | null) => void }) {
+  // The Profile tab's header shows department and year (ADR-0076): it reads them again once saved.
+  const [update, updating] = useMutation(UpdateProfileDocument, { refetchQueries: [ProfileTabDocument] })
   const [department, setDepartment] = useState(initial?.department ?? '')
   const [year, setYear] = useState<YearOfStudy | ''>(initial?.yearOfStudy ?? '')
   const [show, setShow] = useState(initial?.showOnProfile ?? false)
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const save = async () => {
     const p = await attempt(() => update({ variables: { input: { department: department.trim() || null, yearOfStudy: year || null, showOnProfile: show } } }))
     setMessage(p ? { ok: false, text: p } : { ok: true, text: 'Saved' })

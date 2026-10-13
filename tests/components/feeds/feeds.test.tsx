@@ -7,7 +7,7 @@ import { mockApi } from '../../support/api'
 import { renderInApp } from '../../support/render'
 
 /** Feeds in the Community tab (lvn-backend ADR-0049): the activity of your places, and the Following feed. */
-jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }))
+jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() }, useLocalSearchParams: () => ({}) }))
 
 const GROUP = '01920000-0000-7000-8000-0000000a0009'
 const meera = { __typename: 'User', id: 'u2', displayName: 'Meera Iyer', handle: 'meera' }

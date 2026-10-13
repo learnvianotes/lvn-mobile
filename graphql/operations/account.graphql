@@ -126,3 +126,19 @@ mutation ConfirmNoteImport($id: UUID!) {
     }
   }
 }
+
+# The Profile tab's header (lvn-backend ADR-0076): department and year, and how many people follow and are followed.
+# The profile has no id, so it is cached whole: the same fields as PhoneAccountDetails, or each would replace the
+# other's and Settings' form would load again under the person (losing its "Saved").
+query ProfileTab {
+  viewer {
+    id
+    followerCount
+    followingCount
+    profile {
+      department
+      yearOfStudy
+      showOnProfile
+    }
+  }
+}

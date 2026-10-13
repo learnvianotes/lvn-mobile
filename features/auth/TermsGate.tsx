@@ -28,7 +28,7 @@ export function TermsGate() {
   const status = useQuery(TermsStatusDocument, { fetchPolicy: 'cache-and-network' })
   const [accept, accepting] = useMutation(AcceptTermsDocument)
   const [error, setError] = useState<string | null>(null)
-  const open = status.data?.viewer?.termsAccepted === false && pathname !== '/profile'
+  const open = status.data?.viewer?.termsAccepted === false && pathname !== '/settings'
   if (!open) return null
   const agree = async () => {
     setError(null)
@@ -52,7 +52,7 @@ export function TermsGate() {
           ))}
           <Outcome message={error ? { ok: false, text: error } : null} />
           <View className="flex-row flex-wrap items-center justify-between gap-2">
-            <Pressable accessibilityRole="link" onPress={() => router.navigate('/profile')} className="py-2">
+            <Pressable accessibilityRole="link" onPress={() => router.navigate('/settings')} className="py-2">
               <Text className="text-muted-foreground text-sm">Not now — sign out</Text>
             </Pressable>
             <Pill label="Accept and continue" primary disabled={accepting.loading} onPress={() => void agree()} />

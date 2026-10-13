@@ -1,7 +1,7 @@
 import { ApolloProvider } from '@apollo/client/react'
 import { fireEvent, screen } from '@testing-library/react-native'
 import { router } from 'expo-router'
-import { AccountScreen } from '@/features/auth/AccountScreen'
+import { ProfileTab } from '@/features/auth/ProfileTab'
 import { ProfileScreen } from '@/features/people/ProfileScreen'
 import { SkillsScreen } from '@/features/people/SkillsScreen'
 import { createApolloClient } from '@/lib/apollo'
@@ -10,6 +10,7 @@ import { renderInApp } from '../../support/render'
 
 /** A teacher's Skills tab edited on the phone (lvn-backend ADR-0012, ADR-0044), and where the account screen leads. */
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() }, Link: ({ children }: { children: React.ReactNode }) => children }))
+jest.mock('@/features/notes/store/db', () => ({ listNotes: jest.fn(async () => []), subscribe: () => () => {} }))
 
 const ME = '01920000-0000-7000-8000-00000000aaaa'
 const mine = (role = 'TEACHER') => ({
@@ -78,15 +79,15 @@ it('a teacher reaches it from their own profile', async () => {
   expect(router.push).toHaveBeenCalledWith('/skills')
 })
 
-it('the account screen leads teachers to Skills and platform admins to the queue', async () => {
+it('the Profile tab leads teachers to Skills and platform admins to the queue', async () => {
   mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'TEACHER' }) } }), MyDataExports: () => ({ data: { myDataExports: [] } }) })
-  await inApollo(<AccountScreen />)
+  await inApollo(<ProfileTab />)
   await fireEvent.press(await screen.findByRole('link', { name: /Your Skills tab/ }))
   expect(router.push).toHaveBeenCalledWith('/skills')
   expect(screen.queryByRole('link', { name: /Moderation queue/ })).toBeNull()
 
   mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN' }) } }), MyDataExports: () => ({ data: { myDataExports: [] } }) })
-  await inApollo(<AccountScreen />)
+  await inApollo(<ProfileTab />)
   await fireEvent.press(await screen.findByRole('link', { name: /Moderation queue/ }))
   expect(router.push).toHaveBeenCalledWith('/admin/moderation')
 })

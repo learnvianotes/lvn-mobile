@@ -105,10 +105,12 @@ tags: [auth]
     visible: "Make it happen"
     timeout: 10000
 
-# The account tab shows who is signed in; signing out returns to the welcome screen.
+# The Profile tab shows who is signed in; Settings, behind its gear, the account; signing out returns to the welcome
+# screen.
 - tapOn: "Profile"
-- assertVisible: "Your account"
 - assertVisible: "Asha Rao"
+- tapOn: "Settings"
+- assertVisible: "Your account"
 - assertVisible: ".*${output.email}"
 - scrollUntilVisible:
     element:

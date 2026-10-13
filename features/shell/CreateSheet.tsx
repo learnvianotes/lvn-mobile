@@ -1,26 +1,21 @@
-import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
+import { useQuery } from '@apollo/client/react'
 import { Camera, FileUp, FolderGit2, Layers, ListChecks, Megaphone, Mic, NotebookPen, PenLine, Zap, type LucideIcon } from 'lucide-react-native'
 import { Portal } from '@rn-primitives/portal'
-import { router } from 'expo-router'
 import { useEffect } from 'react'
-import { Alert, BackHandler, Pressable, View } from 'react-native'
+import { BackHandler, Pressable, View } from 'react-native'
 import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
-import { pickMedia } from '@/features/notes/media/pickMedia'
-import { UploadError, uploadToNote } from '@/features/notes/media/NoteMedia'
-import { addCard, createNote, setTitle } from '@/features/notes/store/actions'
-import * as db from '@/features/notes/store/db'
-import { syncNow } from '@/features/notes/sync/engine'
-import { RunAiTaskDocument, ViewerDocument } from '@/graphql/generated/graphql'
+import { ViewerDocument } from '@/graphql/generated/graphql'
+import { useCreate, type CreateAction } from './create'
 import { PressScale } from './PressScale'
 
 /**
  * The centre sheet of spec §13.1: Note, Quick Note, Voice Note, Photo, Upload, Quiz, Flashcard; then a project for
  * everyone, and a blog post or a post for teachers (lvn-backend ADR-0014, ADR-0052).
  */
-const OPTIONS: { label: string; icon: LucideIcon }[] = [
+const OPTIONS: { label: CreateAction; icon: LucideIcon }[] = [
   { label: 'Note', icon: NotebookPen },
   { label: 'Quick note', icon: Zap },
   { label: 'Voice note', icon: Mic },
@@ -29,10 +24,10 @@ const OPTIONS: { label: string; icon: LucideIcon }[] = [
   { label: 'Quiz', icon: ListChecks },
   { label: 'Flashcards', icon: Layers },
 ]
-const KINDS: { label: string; icon: LucideIcon; kind: 'PROJECT' | 'BLOG' | 'POST'; teachers?: boolean }[] = [
-  { label: 'Project', icon: FolderGit2, kind: 'PROJECT' },
-  { label: 'Blog post', icon: PenLine, kind: 'BLOG', teachers: true },
-  { label: 'Post', icon: Megaphone, kind: 'POST', teachers: true },
+const KINDS: { label: CreateAction; icon: LucideIcon; teachers?: boolean }[] = [
+  { label: 'Project', icon: FolderGit2 },
+  { label: 'Blog post', icon: PenLine, teachers: true },
+  { label: 'Post', icon: Megaphone, teachers: true },
 ]
 
 /**
@@ -50,47 +45,13 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
     return () => sub.remove()
   }, [open, onClose])
   const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
-  const client = useApolloClient()
-  const [runTask] = useMutation(RunAiTaskDocument)
+  const create = useCreate()
   const viewer = useQuery(ViewerDocument, { skip: !open })
   const teacher = viewer.data?.viewer?.globalRole === 'TEACHER'
   const kinds = KINDS.filter((k) => !k.teachers || teacher)
-  const stamp = () => new Date().toLocaleString([], { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })
-  /** A new note of the person's, on the server (recordings and photos upload to it). */
-  const newNote = async (title: string) => {
-    const id = await createNote({ id: '', name: '' })
-    await setTitle(id, title)
-    await syncNow(client)
-    return id
-  }
-  // Note, a quick note, a project, a blog post or a post is written on the phone (it syncs later). A voice note and a
-  // photo go to the server at once: transcribed, or tidied into notes, by AI (lvn-backend ADR-0062).
-  const choose = async (label: string) => {
+  const choose = async (label: CreateAction) => {
     onClose()
-    const kind = KINDS.find((k) => k.label === label)?.kind
-    if (label === 'Note' || label === 'Quick note' || kind) {
-      const id = await createNote({ id: '', name: '' }, kind)
-      router.push(`/notes/${id}`)
-    } else if (label === 'Voice note') {
-      const id = await newNote(`Voice note, ${stamp()}`)
-      router.push(`/notes/record/${id}?transcribe=1`)
-    } else if (label === 'Photo') {
-      const picked = await pickMedia('camera')
-      if (picked === 'denied') return Alert.alert('No camera', 'Allow LearnViaNotes to use the camera in the phone’s settings to take photos for notes.')
-      if (!picked) return
-      const id = await newNote(`Quick note, ${stamp()}`)
-      router.push(`/notes/${id}`)
-      try {
-        if ((await db.getNote(id))?.localOnly) throw new UploadError('Connect to the internet to make notes from a photo.')
-        const fileId = await uploadToNote(client, id, picked)
-        await addCard(id, 'image', null, { fileId, alt: '' })
-        await syncNow(client)
-        await runTask({ variables: { input: { noteId: id, task: 'QUICK_NOTE' } } })
-        router.push(`/notes/ai/${id}`)
-      } catch (e) {
-        Alert.alert('Not made', e instanceof UploadError ? e.message : 'The photo could not be turned into notes. It is in the note; try Tidy into notes from AI tasks.')
-      }
-    }
+    await create(label)
   }
   return (
     <Portal name="create-sheet">

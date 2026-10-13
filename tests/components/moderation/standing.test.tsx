@@ -1,6 +1,6 @@
 import { ApolloProvider } from '@apollo/client/react'
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native'
-import { AccountScreen } from '@/features/auth/AccountScreen'
+import { ProfileTab } from '@/features/auth/ProfileTab'
 import { GroupScreen } from '@/features/groups/GroupScreen'
 import { PlatformQueueScreen } from '@/features/moderation/PlatformQueueScreen'
 import { createApolloClient } from '@/lib/apollo'
@@ -19,7 +19,7 @@ const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client=
 
 beforeEach(() => jest.clearAllMocks())
 
-it('a suspended person reads until when and why, what still works, and appeals once; warnings are listed', async () => {
+it('a suspended person reads on the Profile tab until when and why, what still works, and appeals once; warnings are listed', async () => {
   let appealed = false
   const api = mockApi({
     Viewer: () => ({ data: { viewer: viewer() } }),
@@ -27,7 +27,7 @@ it('a suspended person reads until when and why, what still works, and appeals o
     MyStanding: () => standing({ suspendedUntil: new Date(Date.now() + 7 * 86_400_000).toISOString(), suspensionReason: 'Posting the same link everywhere.', canAppeal: !appealed, warnings: [{ __typename: 'AccountWarning', reason: 'Keep comments about the work.', at: new Date().toISOString() }] }),
     AppealModeration: () => ((appealed = true), ok('appealModeration')),
   })
-  await inApollo(<AccountScreen />)
+  await inApollo(<ProfileTab />)
   expect(await screen.findByText(/^Your account is suspended until /)).toBeOnTheScreen()
   expect(screen.getByText('Posting the same link everywhere.')).toBeOnTheScreen()
   expect(screen.getByText(/nothing you do reaches other people/)).toBeOnTheScreen()
@@ -41,7 +41,7 @@ it('a suspended person reads until when and why, what still works, and appeals o
 
 it('an account in good standing shows nothing about it', async () => {
   mockApi({ Viewer: () => ({ data: { viewer: viewer() } }), MyDataExports: () => ({ data: { myDataExports: [] } }), MyStanding: () => standing() })
-  await inApollo(<AccountScreen />)
+  await inApollo(<ProfileTab />)
   await screen.findByText('Asha Rao')
   expect(screen.queryByText(/suspended/)).toBeNull()
   expect(screen.queryByText(/warning/)).toBeNull()

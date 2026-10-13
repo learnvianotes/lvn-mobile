@@ -1,11 +1,27 @@
-# Home tab (P6h): a greeting, today's ring and the week from Rhythm, the next exam (or a way to add one), and
-# recommendations that say why; the cards open Exams and Rhythm.
+# Home tab (P6h, ADR-0076): a greeting, today's ring and the week from Rhythm, the next exam (or a way to add one), and
+# recommendations that say why; the search bar, Q&A and the avatar open their screens, the cards Exams and Rhythm.
 appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
 ---
 - runFlow: subflows/signed-in.yaml
 - assertVisible: "Keep learning, .*"
+# No dead controls on Home (ADR-0076): the search bar opens Explore, Q&A opens Ask AI, the avatar the Profile tab.
+- tapOn: "Search notes, topics and people"
+- extendedWaitUntil:
+    visible: "Explore"
+    timeout: 15000
+- tapOn: "Home"
+- tapOn: "Q&A"
+- extendedWaitUntil:
+    visible: "Ask AI"
+    timeout: 15000
+- pressKey: Back
+- tapOn: "Your profile"
+- extendedWaitUntil:
+    visible: "Settings"
+    timeout: 15000
+- tapOn: "Home"
 - scrollUntilVisible:
     element: "Your rhythm"
     direction: DOWN

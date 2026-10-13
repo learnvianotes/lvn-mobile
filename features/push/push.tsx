@@ -6,6 +6,7 @@ import { useEffect } from 'react'
 import { Platform } from 'react-native'
 import type { ApolloClient } from '@apollo/client'
 import { RegisterDeviceDocument, UnregisterDeviceDocument } from '@/graphql/generated/graphql'
+import { phonePath } from '@/features/notifications/route'
 
 const TOKEN_KEY = 'lvn.pushToken'
 
@@ -16,8 +17,9 @@ Notifications.setNotificationHandler({
 
 /** The notification's in-app path, if it carries one (ADR-0021: ids, category and path only). */
 function pathOf(response: Notifications.NotificationResponse | null): string | null {
-  const path = response?.notification.request.content.data?.path
-  return typeof path === 'string' && path.startsWith('/') && !path.startsWith('//') ? path : null
+  const data = response?.notification.request.content.data
+  const path = data?.path
+  return typeof path === 'string' && path.startsWith('/') && !path.startsWith('//') ? phonePath(path, data?.category) : null
 }
 
 /**

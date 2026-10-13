@@ -171,7 +171,7 @@ describe('signed in', () => {
     expect(screen.getByLabelText('Search notes, topics and people')).toBeVisible()
   })
 
-  it('shows the account and signs out back to the welcome screen', async () => {
+  it('shows the account in Settings and signs out back to the welcome screen', async () => {
     const api = mockApi({
       Viewer: () => ({ data: { viewer: viewer({ verified: true, verificationMethod: 'TEACHER' }) } }),
       SignOut: () => ({ data: { signOut: ok } }),
@@ -179,6 +179,8 @@ describe('signed in', () => {
     await signIn()
     await render('./app', { initialUrl: '/profile' })
     expect(screen.getByText('Asha Rao')).toBeVisible()
+    // The account is in Settings, behind the Profile tab's gear (ADR-0076).
+    await press(screen.getByRole('button', { name: 'Settings' }))
     expect(screen.getByText('by a teacher')).toBeVisible()
     await press(screen.getByText('Sign out'))
     expect(screen.getByText('Sign up with email')).toBeVisible()

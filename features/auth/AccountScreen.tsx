@@ -1,51 +1,67 @@
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { BadgeCheck } from 'lucide-react-native'
+import { ArrowLeft, BadgeCheck, Bell, ChevronRight } from 'lucide-react-native'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Button } from '@/components/ui/button'
-import { SafeAreaView } from '@/components/ui/safe-area-view'
 import { Text } from '@/components/ui/text'
 import { SignOutDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { signedOut } from '@/lib/auth/session'
 import { ImportCard } from '@/features/data/ImportCard'
 import { YourDataCard } from '@/features/data/YourDataCard'
-import { ReviewRequests, VerifyCard } from '@/features/verification/Verification'
 import { InstitutionalEmailCard, LegacyDataCard, StudyDetailsCard } from './AccountDetails'
 import { copy } from './copy'
 import { Notice } from './Notice'
 import { forgetPushToken } from '@/features/push/push'
-import { AccountStanding } from '@/features/moderation/Standing'
 import { AiAccountCard } from '@/features/ai/AiScreen'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
 
 /**
- * The account on the phone: who is signed in, standing, verification, the college email, study details, old-site
- * data, your data and imports, sign-out (Phase 1, lvn-backend P3n).
+ * Settings, behind the Profile tab's gear (lvn-backend ADR-0076): who is signed in and how they are verified, the
+ * college email, study details, old-site data, AI, notification settings, your data and imports, and sign-out
+ * (Phase 1, lvn-backend P3n).
  */
 export function AccountScreen() {
   const { data, loading } = useQuery(ViewerDocument)
   const viewer = data?.viewer
+  const insets = useSafeAreaInsets()
+  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   return (
-    <SafeAreaView className="bg-background flex-1">
-      <ScrollView contentContainerClassName="gap-5 px-5 pb-32 pt-4">
-        <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">{copy.account.title}</Text>
-        {viewer ? <AccountStanding userId={viewer.id} /> : null}
+    <View className="bg-background flex-1">
+      <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="rounded-full p-2">
+          <ArrowLeft size={22} color={fg} />
+        </Pressable>
+        <Text className="text-lg font-bold" accessibilityRole="header">
+          {copy.account.title}
+        </Text>
+      </View>
+      <ScrollView contentContainerClassName="gap-5 px-5 pt-2" contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}>
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
-        {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
-        {viewer && !viewer.verified ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
-        {viewer?.globalRole === 'TEACHER' && viewer.verified ? <ReviewRequests /> : null}
-        {viewer ? <PeopleLinks viewer={viewer} /> : null}
         {viewer ? <StudyDetailsCard /> : null}
         {viewer ? <LegacyDataCard /> : null}
         {viewer ? <AiAccountCard className={card} /> : null}
+        {viewer ? <NotificationSettingsLink /> : null}
         {viewer ? <YourDataCard /> : null}
         {viewer ? <ImportCard /> : null}
         <SignOutButton />
       </ScrollView>
-    </SafeAreaView>
+    </View>
+  )
+}
+
+function NotificationSettingsLink() {
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  return (
+    <Pressable accessibilityRole="link" onPress={() => router.push('/notification-settings')} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border px-5 py-4">
+      <Bell size={20} color={primary} />
+      <Text className="flex-1 font-semibold">Notification settings</Text>
+      <ChevronRight size={18} color={muted} />
+    </Pressable>
   )
 }
 
@@ -104,80 +120,5 @@ function SignOutButton() {
     >
       <Text className="text-destructive">{copy.account.signOut}</Text>
     </Button>
-  )
-}
-
-/**
- * Your profile as others see it, your followers, following and blocked people (lvn-backend ADR-0043), notification
- * settings; a teacher's Skills tab, and the platform's moderation queue for platform admins.
- */
-function PeopleLinks({ viewer }: { viewer: ViewerFieldsFragment }) {
-  return (
-    <View className={card}>
-      <Pressable accessibilityRole="link" onPress={() => router.push(`/u/${viewer.handle}`)} className="flex-row items-center justify-between">
-        <Text className="font-semibold">See your profile</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/people')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Followers, following and blocked people</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/exams')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Exams</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/rhythm')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Rhythm</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/review')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Review flashcards</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/history')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Learning history</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/notification-settings')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Notification settings</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/resources')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Resources</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/resources/saved')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Saved resources</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      <Pressable accessibilityRole="link" onPress={() => router.push('/resources/mine')} className="flex-row items-center justify-between">
-        <Text className="font-semibold">Your resources</Text>
-        <Text className="text-muted-foreground">›</Text>
-      </Pressable>
-      {viewer.globalRole === 'STUDENT' && !viewer.restrictedMinor ? (
-        <Pressable accessibilityRole="link" onPress={() => router.push('/teach')} className="flex-row items-center justify-between">
-          <Text className="font-semibold">{viewer.teacherStatus === 'PENDING' ? 'Teacher application: being reviewed' : viewer.teacherStatus === 'DECLINED' ? 'Teacher application: not approved — apply again' : 'Teach on LearnViaNotes'}</Text>
-          <Text className="text-muted-foreground">›</Text>
-        </Pressable>
-      ) : null}
-      {viewer.globalRole === 'TEACHER' || viewer.teacherStatus === 'PENDING' ? (
-        <Pressable accessibilityRole="link" onPress={() => router.push('/skills')} className="flex-row items-center justify-between">
-          <Text className="font-semibold">Your Skills tab</Text>
-          <Text className="text-muted-foreground">›</Text>
-        </Pressable>
-      ) : null}
-      {viewer.globalRole === 'PLATFORM_ADMIN' ? (
-        <Pressable accessibilityRole="link" onPress={() => router.push('/admin/verification')} className="flex-row items-center justify-between">
-          <Text className="font-semibold">Proof of study to review</Text>
-          <Text className="text-muted-foreground">›</Text>
-        </Pressable>
-      ) : null}
-      {viewer.globalRole === 'PLATFORM_ADMIN' ? (
-        <Pressable accessibilityRole="link" onPress={() => router.push('/admin/moderation')} className="flex-row items-center justify-between">
-          <Text className="font-semibold">Moderation queue</Text>
-          <Text className="text-muted-foreground">›</Text>
-        </Pressable>
-      ) : null}
-    </View>
   )
 }

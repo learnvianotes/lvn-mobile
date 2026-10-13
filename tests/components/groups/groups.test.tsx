@@ -8,7 +8,7 @@ import { mockApi } from '../../support/api'
 import { renderInApp } from '../../support/render'
 
 /** Groups on the phone (lvn-backend ADR-0045): the Community tab, asking to join, posts, sharing a note, requests. */
-jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }))
+jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() }, useLocalSearchParams: () => ({}) }))
 jest.mock('@/features/notes/store/db', () => ({ listNotes: jest.fn(async () => [{ id: 'n1', title: 'Binary heaps' }]), subscribe: () => () => {} }))
 
 const GROUP = '01920000-0000-7000-8000-0000000a0001'
