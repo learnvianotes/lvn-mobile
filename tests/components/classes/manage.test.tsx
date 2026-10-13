@@ -14,7 +14,7 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn(), re
 jest.mock('@/features/notes/store/db', () => ({ listNotes: jest.fn(async () => []), subscribe: () => () => {} }))
 
 const CLASS = '01920000-0000-7000-8000-0000000c0001'
-const can = (over: Record<string, boolean> = {}) => ({ __typename: 'ClassroomActions', requestJoin: false, acceptInvite: false, review: true, post: true, manage: true, leave: false, ...over })
+const can = (over: Record<string, boolean> = {}) => ({ __typename: 'ClassroomActions', publishQuiz: false, requestJoin: false, acceptInvite: false, review: true, post: true, manage: true, leave: false, ...over })
 const classroom = (over: Record<string, unknown> = {}) => ({ __typename: 'Classroom', id: CLASS, name: 'Physics 9A', description: 'Mechanics', memberCount: 3, viewerRole: 'TEACHER', teacher: { __typename: 'User', id: 't1', displayName: 'Meera Iyer' }, createdAt: '2026-10-01T10:00:00.000Z', joinCode: 'K7PQ2MXA', viewerRequestId: null, viewerInviteId: null, viewerCan: can(), ...over })
 const member = (id: string, displayName: string, role: string) => ({ __typename: 'ClassroomMember', role, joinedAt: '2026-10-01T10:00:00.000Z', user: { __typename: 'User', id, displayName, handle: displayName.split(' ')[0]!.toLowerCase() } })
 const people = (list: unknown[], viewerRole = 'TEACHER') => ({ data: { classroom: { __typename: 'Classroom', id: CLASS, viewerRole, members: list, joinRequests: [] } } })

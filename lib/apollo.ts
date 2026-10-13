@@ -28,7 +28,8 @@ export function createApolloClient(): ApolloClient {
   return new ApolloClient({
     link: new HttpLink({ uri: env.EXPO_PUBLIC_API_URL, fetch: authFetch }),
     // A note's people and tags are whole lists: the server's answer replaces what was cached (after an unshare, say).
-    cache: new InMemoryCache({ typePolicies: { Note: { fields: { shares: { merge: false }, tags: { merge: false }, topics: { merge: false } } } } }),
+    // A quiz choice's id is unique only within its question, so choices are kept inside their question, not by id.
+    cache: new InMemoryCache({ typePolicies: { Note: { fields: { shares: { merge: false }, tags: { merge: false }, topics: { merge: false } } }, ClassQuizChoice: { keyFields: false } } }),
     defaultOptions: { watchQuery: { fetchPolicy: 'cache-and-network' } },
   })
 }

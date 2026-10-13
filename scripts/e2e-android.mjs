@@ -91,15 +91,15 @@ const vars = [`APP_ID=${APP_IDS[variant]}`, `API_URL=${apiUrl}`, `MAILPIT_URL=${
 const vm = opt('vm') ?? process.env.LVN_VM
 if (vm) {
   const community = await seedCommunity(apiUrl, vm)
-  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`, `TEACHER_EMAIL=${community.teacherEmail}`, `TEACHER_PASSWORD=${community.teacherPassword}`, `SUSPENDED_EMAIL=${community.suspendedEmail}`, `SUSPENDED_PASSWORD=${community.suspendedPassword}`, `STAMP=${community.stamp}`].flatMap((v) => ['-e', v]))
+  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`, `TEACHER_EMAIL=${community.teacherEmail}`, `TEACHER_PASSWORD=${community.teacherPassword}`, `SUSPENDED_EMAIL=${community.suspendedEmail}`, `SUSPENDED_PASSWORD=${community.suspendedPassword}`, `STAMP=${community.stamp}`, `CLASS_NAME=${community.className}`, `QUIZ_TITLE=${community.quizTitle}`].flatMap((v) => ['-e', v]))
   console.log(`Community: ${community.email} and the group "${community.group}"`)
 }
 const run = spawnSync(maestroBin, ['--device', emulator, 'test', flows, ...vars, '--format', 'junit', '--output', 'dist/e2e/report.xml', '--test-output-dir', 'dist/e2e'], { cwd: root, stdio: 'inherit' })
 process.exit(run.status ?? 1)
 
 /**
- * A verified learner and a verified teacher for the phone, and a public group someone else owns with a post in it, on
- * the local environment:
+ * A verified learner and a verified teacher for the phone, a public group someone else owns with a post in it, and a
+ * class the learner is in with a quiz its teacher published (lvn-backend ADR-0064), on the local environment:
  * accounts through the API, verification through the VM's database (as lvn-backend's lifecycle check does).
  */
 async function seedCommunity(api, vmScript) {
@@ -138,5 +138,21 @@ async function seedCommunity(api, vmScript) {
   await gql('mutation ($input: CreateGroupPostInput!) { createGroupPost(input: $input) { post { id } } }', { input: { groupId: made.createGroup.group.id, body } }, owner.token)
   const suspension = await gql('mutation ($input: ModerateContentInput!) { moderateContent(input: $input) { ok userErrors { message } } }', { input: { entityType: 'USER', entityId: suspended.id, action: 'SUSPEND', reason: 'Posting the same link everywhere.', suspendDays: 3 } }, admin.token)
   if (!suspension.moderateContent.ok) throw new Error(`suspending failed: ${suspension.moderateContent.userErrors[0]?.message}`)
-  return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, suspendedEmail: suspended.email, suspendedPassword: suspended.password, stamp }
+  // quiz.yaml: the learner takes a quiz in a class they were let into.
+  const className = `Maestro class ${stamp}`
+  const klass = (await gql('mutation ($input: CreateClassroomInput!) { createClassroom(input: $input) { classroom { id joinCode } userErrors { message } } }', { input: { name: className } }, teacher.token)).createClassroom.classroom
+  if (!klass) throw new Error('createClassroom failed')
+  await gql('mutation ($input: RequestToJoinClassroomInput!) { requestToJoinClassroom(input: $input) { classroom { id } } }', { input: { code: klass.joinCode } }, learner.token)
+  const asking = (await gql('query ($id: UUID!) { classroom(id: $id) { joinRequests { id } } }', { id: klass.id }, teacher.token)).classroom.joinRequests
+  await gql('mutation ($input: ReviewClassroomJoinRequestInput!) { reviewClassroomJoinRequest(input: $input) { classroom { id } } }', { input: { requestId: asking[0].id, decision: 'APPROVED' } }, teacher.token)
+  const quizTitle = `Maestro quiz ${stamp}`
+  const say = (text) => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text }] }] })
+  const choice = (id, text) => ({ id, content: [{ type: 'text', text }] })
+  const questions = [
+    { question: say('What makes most of a cell’s ATP?'), choices: [choice('c1', 'Mitochondria'), choice('c2', 'Ribosomes')], correct: ['c1'], multiple: false, explanation: say('Respiration happens in the mitochondria.') },
+    { question: say('Where does glycolysis happen?'), choices: [choice('c1', 'Matrix'), choice('c2', 'Cytoplasm')], correct: ['c2'], multiple: false },
+  ]
+  const quiz = await gql('mutation ($input: PublishClassQuizInput!) { publishClassQuiz(input: $input) { quiz { id } userErrors { message } } }', { input: { classroomId: klass.id, title: quizTitle, questions } }, teacher.token)
+  if (!quiz.publishClassQuiz.quiz) throw new Error(`publishClassQuiz failed: ${quiz.publishClassQuiz.userErrors[0]?.message}`)
+  return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, suspendedEmail: suspended.email, suspendedPassword: suspended.password, stamp, className, quizTitle }
 }

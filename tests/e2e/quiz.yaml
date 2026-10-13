@@ -1,0 +1,58 @@
+# A class quiz on the phone (lvn-backend ADR-0064): a learner in a class opens the quiz its teacher published, answers
+# without seeing the answers, and is scored by the server; then reads each question's result and the explanation.
+# The class, the learner's place in it and the quiz come from scripts/e2e-android.mjs with --vm; without it this flow
+# does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof QUIZ_TITLE !== 'undefined' && QUIZ_TITLE !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${COMMUNITY_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${COMMUNITY_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Community"
+      - tapOn: "Groups & classes"
+      - scrollUntilVisible:
+          element: ${CLASS_NAME}
+          direction: DOWN
+      - tapOn: ${CLASS_NAME}
+      - tapOn: "Quizzes"
+      - extendedWaitUntil:
+          visible: "Not taken yet"
+          timeout: 15000
+      - tapOn: "Open ${QUIZ_TITLE}"
+      - extendedWaitUntil:
+          visible: "Mitochondria"
+          timeout: 15000
+      - assertNotVisible: "Respiration happens in the mitochondria."
+      - tapOn: "Mitochondria"
+      - scrollUntilVisible:
+          element: "Cytoplasm"
+          direction: DOWN
+      - tapOn: "Cytoplasm"
+      - scrollUntilVisible:
+          element: "Submit answers"
+          direction: DOWN
+      - tapOn: "Submit answers"
+      - extendedWaitUntil:
+          visible: "You got 2 of 2"
+          timeout: 20000
+      - scrollUntilVisible:
+          element: "Respiration happens in the mitochondria."
+          direction: DOWN
