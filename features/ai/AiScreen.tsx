@@ -17,6 +17,7 @@ import {
   ScrollText,
   SearchCheck,
   Share2,
+  SpellCheck,
   Sparkles,
   Trash2,
   type LucideIcon,
@@ -36,6 +37,7 @@ import { Outcome, Pill, ScreenHeader } from '@/features/shell/Form'
 import {
   AiArtifactDocument,
   AiStateDocument,
+  ApplyAiChangesDocument,
   DeleteAiArtifactDocument,
   KeepAiCardsDocument,
   NoteAiArtifactsDocument,
@@ -53,7 +55,8 @@ import { AnswerList, AskForm } from './AskAi'
 /**
  * AI tasks on a note, on the phone (lvn-backend ADR-0059; the web's features/ai/AiPanel): one menu for every task,
  * results beside the note that only their maker sees, and cards kept in one tap — into this note for people who may
- * edit it, otherwise into a new private note, which the phone then pulls.
+ * edit it, otherwise into a new private note, which the phone then pulls. Clean-up (ADR-0063) proposes changes to the
+ * note's own words instead, which its editor checks and applies.
  */
 
 type Artifact = AiArtifactFieldsFragment
@@ -73,6 +76,7 @@ export const TASK_LABEL: Record<AiTask, string> = {
   OUTLINE_TO_NOTE: 'Outline → note',
   TRANSCRIBE: 'Transcribe',
   QUICK_NOTE: 'Tidy into notes',
+  CLEAN_UP: 'Clean up the text',
 }
 const HINT: Record<AiTask, string> = {
   SUMMARIZE: 'The note in a few lines',
@@ -89,6 +93,7 @@ const HINT: Record<AiTask, string> = {
   OUTLINE_TO_NOTE: 'An outline made full',
   TRANSCRIBE: 'A recording, as text to keep',
   QUICK_NOTE: 'Your rough notes and photos, made clean',
+  CLEAN_UP: 'Mends words a PDF’s conversion broke, for you to check',
 }
 const TASKS: { task: AiTask; icon: LucideIcon }[] = [
   { task: 'SUMMARIZE', icon: ScrollText },
@@ -103,7 +108,10 @@ const TASKS: { task: AiTask; icon: LucideIcon }[] = [
   { task: 'CREATE_NOTES', icon: NotebookPen },
   { task: 'OUTLINE_TO_NOTE', icon: ListTree },
   { task: 'QUICK_NOTE', icon: Wand2 },
+  { task: 'CLEAN_UP', icon: SpellCheck },
 ]
+/** Work on the person's own words: only for people who may edit the note. */
+const EDITORS_ONLY = new Set<AiTask>(['QUICK_NOTE', 'CLEAN_UP'])
 /** Make something new from the note: they need the right to copy it and are always kept as a new note (ADR-0025). */
 const DERIVATIVE = new Set<AiTask>(['CREATE_NOTES', 'OUTLINE_TO_NOTE'])
 const LANGUAGE: Record<AiLanguage, string> = { HINDI: 'Hindi', TELUGU: 'Telugu', ENGLISH: 'English' }
@@ -133,7 +141,7 @@ export function AiScreen({ id }: { id: string }) {
   const off = status ? !status.available : false
   // A note on the phone says whether it has code; one read online leaves the server to say.
   const hasCode = localCards?.length ? localCards.some((c) => c.type === 'code') : undefined
-  const tasks = TASKS.filter(({ task }) => (DERIVATIVE.has(task) ? !!note?.viewerCan.fork : task === 'EXPLAIN_CODE' ? hasCode !== false : task === 'QUICK_NOTE' ? !!note?.viewerCan.edit : true))
+  const tasks = TASKS.filter(({ task }) => (DERIVATIVE.has(task) ? !!note?.viewerCan.fork : task === 'EXPLAIN_CODE' ? hasCode !== false : EDITORS_ONLY.has(task) ? !!note?.viewerCan.edit : true))
   // Its recordings, each transcribed on its own (ADR-0062).
   const recordings = (note?.cards.edges ?? []).map((e) => e.node).filter((c) => c.type === 'audio' || c.type === 'video')
   const disabled = off || spent || running.loading || !note
@@ -337,6 +345,7 @@ function Result({ noteId, artifact: a, canEdit, onRetry }: { noteId: string; art
       ) : null}
       {a.status === 'READY' && a.markdown != null ? <Markdown source={a.markdown} /> : null}
       {a.status === 'READY' && a.cards ? <KeepCards artifact={a} canEdit={canEdit} /> : null}
+      {a.status === 'READY' && a.changes ? <ApplyChanges artifact={a} /> : null}
     </View>
   )
 }
@@ -406,6 +415,91 @@ function KeepCards({ artifact: a, canEdit }: { artifact: Artifact; canEdit: bool
           {done.into === 'NEW_NOTE' ? <Pill label="Open it" onPress={() => router.push(`/notes/${done.noteId}`)} /> : null}
         </View>
       ) : null}
+      <Outcome message={message} />
+    </View>
+  )
+}
+
+/**
+ * Clean-up's changes (ADR-0063): each card's words now and mended, chosen by default, applied through the normal save;
+ * the phone then pulls the mended cards. A card edited since keeps its words, and the person is told.
+ */
+function ApplyChanges({ artifact: a }: { artifact: Artifact }) {
+  const client = useApolloClient()
+  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const changes = a.changes ?? []
+  const open = changes.filter((c) => !c.applied)
+  const [chosen, setChosen] = useState<ReadonlySet<string>>(() => new Set(open.map((c) => c.cardId)))
+  const [apply, applying] = useMutation(ApplyAiChangesDocument)
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
+  if (!changes.length) return <Text className="text-muted-foreground text-sm">Nothing needs mending.</Text>
+
+  const picked = open.filter((c) => chosen.has(c.cardId)).map((c) => c.cardId)
+  const toggle = (id: string) =>
+    setChosen((s) => {
+      const next = new Set(s)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  const save = async () => {
+    setMessage(null)
+    let applied: string[] = []
+    const problem = await attempt(async () => {
+      const res = await apply({
+        variables: { input: { artifactId: a.id, cardIds: picked } },
+        update(cache, { data }) {
+          const done = data?.applyAiChanges.applied ?? []
+          if (!done.length) return
+          cache.modify({
+            id: cache.identify({ __typename: 'AiArtifact', id: a.id }),
+            fields: {
+              changes: (existing) => (Array.isArray(existing) ? existing.map((c: { cardId: string; applied: boolean }) => (done.includes(c.cardId) ? { ...c, applied: true } : c)) : existing),
+              keptAt: () => new Date().toISOString(),
+            },
+          })
+        },
+      })
+      applied = res.data?.applyAiChanges.applied ?? []
+      return res
+    }, 'The changes weren’t applied. Try again.')
+    if (problem) return setMessage({ ok: false, text: problem })
+    // What was sent is settled: applied, or refused for a card edited since (sending it again changes nothing).
+    setChosen((s) => new Set([...s].filter((id) => !picked.includes(id))))
+    // The phone's copy of the note follows.
+    if (applied.length) await syncNow(client).catch(() => undefined)
+    const refused = picked.length - applied.length
+    setMessage({ ok: true, text: [`Applied ${applied.length} change${applied.length === 1 ? '' : 's'}.`, refused ? (refused === 1 ? '1 card was edited since, so it was left as it is.' : `${refused} cards were edited since, so they were left as they are.`) : null].filter(Boolean).join(' ') })
+  }
+
+  return (
+    <View className="gap-3">
+      <Text className="text-muted-foreground text-xs">Only what conversion broke is mended: split words, misread letters, stray page numbers. Check each change; the ones you keep replace the card’s words.</Text>
+      {changes.map((c, i) => {
+        const on = c.applied || chosen.has(c.cardId)
+        return (
+          <View key={c.cardId} className={cn('flex-row gap-3 rounded-2xl border p-3', on ? 'border-primary/40' : 'border-border opacity-60')}>
+            {c.applied ? (
+              <View accessible accessibilityLabel={`Change ${i + 1} applied`} className="mt-0.5 size-5 items-center justify-center">
+                <Check size={16} color={primary} />
+              </View>
+            ) : (
+              <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={`Change ${i + 1}`} onPress={() => toggle(c.cardId)} hitSlop={8} className={cn('mt-0.5 size-5 items-center justify-center rounded border', on ? 'bg-primary border-primary' : 'border-border')}>
+                {on ? <Check size={14} color="white" /> : null}
+              </Pressable>
+            )}
+            <View className="flex-1 gap-1">
+              <Text accessibilityLabel={`Now: ${c.before}`} className="text-muted-foreground text-sm line-through">
+                {c.before}
+              </Text>
+              <Text accessibilityLabel={`Mended: ${c.after}`} className="text-sm">
+                {c.after}
+              </Text>
+            </View>
+          </View>
+        )
+      })}
+      {open.length ? <Pill label={!picked.length ? 'Apply changes' : picked.length === 1 ? 'Apply 1 change' : `Apply ${picked.length} changes`} primary disabled={!picked.length || applying.loading} onPress={() => void save()} /> : null}
       <Outcome message={message} />
     </View>
   )
