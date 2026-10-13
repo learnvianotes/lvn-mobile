@@ -1,6 +1,6 @@
 import { useApolloClient, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Cloud, CloudOff, Plus, Square, Trash2, Volume2 } from 'lucide-react-native'
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Cloud, CloudOff, Plus, Sparkles, Square, Trash2, Volume2 } from 'lucide-react-native'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -106,6 +106,21 @@ function ReadAloudButton({ reader }: { reader: ReturnType<typeof useReadAloud> }
   )
 }
 
+/** Opens the note's AI tasks (lvn-backend ADR-0059); a note made here waits until the server has it. */
+function AiButton({ noteId, localOnly }: { noteId: string; localOnly?: boolean }) {
+  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="AI tasks"
+      onPress={() => (localOnly ? Alert.alert('Not sent yet', 'The note is still only on this phone. Once it has been sent, AI can read it.') : router.push(`/notes/ai/${noteId}`))}
+      className="rounded-full p-2"
+    >
+      <Sparkles size={21} color={primary} />
+    </Pressable>
+  )
+}
+
 function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
@@ -182,6 +197,7 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
     <KeyboardAvoidingView className="bg-background flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Header>
         <SyncBadge unsent={unsent} />
+        <AiButton noteId={note.id} localOnly={note.localOnly} />
         <ReadAloudButton reader={reader} />
         {note.access === 'OWNER' ? owner.button : null}
       </Header>
@@ -265,6 +281,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
     <View className="bg-background flex-1">
       <Header>
         {note.deletedAt ? null : <MakeCopyButton noteId={note.id} />}
+        {note.deletedAt ? null : <AiButton noteId={note.id} />}
         <ReadAloudButton reader={reader} />
       </Header>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40, gap: 14 }}>

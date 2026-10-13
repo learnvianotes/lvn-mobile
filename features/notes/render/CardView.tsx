@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text'
 import type { CardType } from '@/lib/contracts/domain/enums'
 import { cardAnchor, type CardAnchor, type Doc, type Inline } from '@/lib/contracts/validation'
 import { cn } from '@/lib/utils'
+import { Markdown } from './Markdown'
 import { MediaView } from './MediaView'
 import { InlineText, RichDoc } from './RichText'
 
@@ -53,8 +54,9 @@ export function CardView({ type, content, highlighted, onOpenFile, onAnchor }: {
             ))}
           </View>
         )
-      case 'code':
       case 'markdown':
+        return <Markdown source={c.source as string} />
+      case 'code':
       case 'diagram':
         return (
           <View className="bg-secondary overflow-hidden rounded-2xl">
