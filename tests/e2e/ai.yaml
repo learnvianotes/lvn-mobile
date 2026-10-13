@@ -55,14 +55,17 @@ env:
       - scrollUntilVisible:
           element: "Keep card 1"
           direction: UP
-      # Drop the first card; the rest go into the note.
+      # Drop the first card; the rest go into the note. The button is brought to the middle of the screen: at the bottom
+      # edge, beside the gesture bar, a tap can miss it.
       - tapOn: "Keep card 1"
       - scrollUntilVisible:
           element: "Add .* to this note"
           direction: DOWN
+          centerElement: true
       - tapOn: "Add .* to this note"
-      - extendedWaitUntil:
-          visible: "Added to this note."
+      - scrollUntilVisible:
+          element: "Added to this note."
+          direction: DOWN
           timeout: 30000
       - runScript:
           file: scripts/server-notes.js
