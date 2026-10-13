@@ -5,7 +5,7 @@ import { View } from 'react-native'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { Choices, Field, Outcome, Pill, Toggle } from '@/features/shell/Form'
-import { ClaimLegacyDataDocument, DeclineLegacyDataDocument, PhoneAccountDetailsDocument, SetInstitutionalEmailDocument, UpdateProfileDocument, ViewerDocument, type ViewerFieldsFragment, type YearOfStudy } from '@/graphql/generated/graphql'
+import { ClaimLegacyDataDocument, DeclineLegacyDataDocument, PhoneAccountDetailsDocument, ProfileTabDocument, SetInstitutionalEmailDocument, UpdateProfileDocument, ViewerDocument, type ViewerFieldsFragment, type YearOfStudy } from '@/graphql/generated/graphql'
 import { copy } from './copy'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
@@ -65,7 +65,8 @@ export function StudyDetailsCard() {
 }
 
 function StudyDetailsForm({ initial }: { initial: { department: string | null; yearOfStudy: YearOfStudy | null; showOnProfile: boolean } | null }) {
-  const [update, updating] = useMutation(UpdateProfileDocument)
+  // The Profile tab's header shows department and year (ADR-0076): it reads them again once saved.
+  const [update, updating] = useMutation(UpdateProfileDocument, { refetchQueries: [ProfileTabDocument] })
   const [department, setDepartment] = useState(initial?.department ?? '')
   const [year, setYear] = useState<YearOfStudy | ''>(initial?.yearOfStudy ?? '')
   const [show, setShow] = useState(initial?.showOnProfile ?? false)
