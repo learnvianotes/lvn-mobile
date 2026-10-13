@@ -1,0 +1,42 @@
+# Exams on the phone, end to end (P6e): a new learner adds an exam three weeks away on a curated topic, found by name;
+# its card shows Readiness and the plan; Rhythm suggests a day more a week before it.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Profile"
+- scrollUntilVisible:
+    element: "Exams"
+- tapOn: "Exams"
+- tapOn: "Add an exam"
+- tapOn: "Exam"
+- inputText: "Midterm"
+- hideKeyboard
+# Fourteen days ahead by default, a week more.
+- tapOn: "A week later"
+- tapOn: "Find a topic"
+- inputText: "arrays & hash"
+- hideKeyboard
+- extendedWaitUntil:
+    visible: "Add Arrays & Hashing"
+    timeout: 15000
+- tapOn: "Add Arrays & Hashing"
+- tapOn: "Add the exam"
+- extendedWaitUntil:
+    visible: "Readiness 0%"
+    timeout: 15000
+- assertVisible: "In 21 days"
+- tapOn: "Midterm"
+- extendedWaitUntil:
+    visible: "Revision plan"
+    timeout: 15000
+- assertVisible: "No flashcards or quizzes yet"
+- pressKey: Back
+- pressKey: Back
+- scrollUntilVisible:
+    element: "Rhythm"
+- tapOn: "Rhythm"
+- extendedWaitUntil:
+    visible: "Midterm is in 21 days: try 5 planned days a week until then."
+    timeout: 15000
