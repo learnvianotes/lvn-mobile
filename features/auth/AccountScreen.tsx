@@ -142,7 +142,13 @@ function PeopleLinks({ viewer }: { viewer: ViewerFieldsFragment }) {
         <Text className="font-semibold">Notification settings</Text>
         <Text className="text-muted-foreground">›</Text>
       </Pressable>
-      {viewer.globalRole === 'TEACHER' ? (
+      {viewer.globalRole === 'STUDENT' && !viewer.restrictedMinor ? (
+        <Pressable accessibilityRole="link" onPress={() => router.push('/teach')} className="flex-row items-center justify-between">
+          <Text className="font-semibold">{viewer.teacherStatus === 'PENDING' ? 'Teacher application: being reviewed' : viewer.teacherStatus === 'DECLINED' ? 'Teacher application: not approved — apply again' : 'Teach on LearnViaNotes'}</Text>
+          <Text className="text-muted-foreground">›</Text>
+        </Pressable>
+      ) : null}
+      {viewer.globalRole === 'TEACHER' || viewer.teacherStatus === 'PENDING' ? (
         <Pressable accessibilityRole="link" onPress={() => router.push('/skills')} className="flex-row items-center justify-between">
           <Text className="font-semibold">Your Skills tab</Text>
           <Text className="text-muted-foreground">›</Text>

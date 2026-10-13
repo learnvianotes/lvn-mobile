@@ -18,7 +18,7 @@ jest.mock('expo-web-browser', () => ({ openBrowserAsync: jest.fn(async () => ({ 
 const person = (id: string, displayName: string, handle: string) => ({ __typename: 'User', id, displayName, handle })
 const meera = person('t1', 'Meera Iyer', 'meera')
 const ravi = person('s1', 'Ravi Kumar', 'ravi')
-const request = (over: Record<string, unknown> = {}) => ({ __typename: 'VerificationRequest', id: 'r1', method: 'TEACHER', status: 'PENDING', message: null, reason: null, createdAt: new Date().toISOString(), decidedAt: null, requester: ravi, teacher: meera, ...over })
+const request = (over: Record<string, unknown> = {}) => ({ __typename: 'VerificationRequest', id: 'r1', purpose: 'ACCOUNT', institution: null, subjects: null, method: 'TEACHER', status: 'PENDING', message: null, reason: null, createdAt: new Date().toISOString(), decidedAt: null, requester: ravi, teacher: meera, ...over })
 const none = { userErrors: [] }
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 

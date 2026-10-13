@@ -18,7 +18,8 @@ export function ClassesSection() {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const { data, refetch } = useQuery(MyClassroomsDocument, { fetchPolicy: 'cache-and-network' })
   const viewer = useQuery(ViewerDocument)
-  const teacher = viewer.data?.viewer?.globalRole === 'TEACHER'
+  // Verified teachers, and teacher applicants who prepare classes while they wait (lvn-backend ADR-0073).
+  const teacher = viewer.data?.viewer?.globalRole === 'TEACHER' || viewer.data?.viewer?.teacherStatus === 'PENDING'
   const [answer] = useMutation(AnswerClassroomInviteDocument)
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)

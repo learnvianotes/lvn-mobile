@@ -1,0 +1,34 @@
+# Becoming a teacher on the phone (lvn-backend ADR-0073), "try now, verify later": a new learner applies from the
+# Profile tab, sets up a class while the application waits, and the class says students can join once they are
+# verified. The approval needs a platform admin: lvn-backend's lifecycle check covers it on the same environment.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Profile"
+- scrollUntilVisible:
+    element: "Teach on LearnViaNotes"
+    centerElement: true
+- tapOn: "Teach on LearnViaNotes"
+- extendedWaitUntil:
+    visible: "Apply to teach"
+    timeout: 15000
+- tapOn: "Where you teach"
+- inputText: "Govt. Junior College, Guntur"
+- tapOn: "What you teach (optional)"
+- inputText: "Physics"
+- hideKeyboard
+- tapOn: "Apply to teach"
+- extendedWaitUntil:
+    visible: "Your application is being reviewed"
+    timeout: 15000
+- tapOn: "Set up a class →"
+- tapOn: "Name"
+- inputText: "Physics 11A"
+- hideKeyboard
+- tapOn: "Create class"
+- extendedWaitUntil:
+    visible: "Students can join this class once you are verified as a teacher.*"
+    timeout: 15000
+- assertVisible: "Physics 11A"
