@@ -46,10 +46,15 @@ env:
           element: "Flashcards"
           direction: UP
       - tapOn: "Flashcards"
+      # The cards end with their Add button: wait for it, then go back up to the first card (scrolling down to a small
+      # checkbox can pass it when the model answers fast).
       - scrollUntilVisible:
-          element: "Keep card 1"
+          element: "Add .* to this note"
           direction: DOWN
           timeout: 120000
+      - scrollUntilVisible:
+          element: "Keep card 1"
+          direction: UP
       # Drop the first card; the rest go into the note.
       - tapOn: "Keep card 1"
       - scrollUntilVisible:

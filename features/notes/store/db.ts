@@ -29,6 +29,8 @@ const MIGRATIONS = [
   // 3: learning events waiting to be sent (lvn-backend ADR-0067), oldest first.
   `CREATE TABLE learning_outbox (id TEXT PRIMARY KEY NOT NULL, event TEXT NOT NULL, created_at TEXT NOT NULL);
    CREATE INDEX learning_outbox_by_age ON learning_outbox (created_at, id);`,
+  // 4: flashcard grades waiting to be sent (lvn-backend ADR-0068), in the order they were given.
+  `CREATE TABLE review_outbox (client_op_id TEXT PRIMARY KEY NOT NULL, card_id TEXT NOT NULL, grade TEXT NOT NULL, reviewed_at TEXT NOT NULL);`,
 ]
 
 let db: SQLiteDatabase | null = null
@@ -233,7 +235,7 @@ export async function discard(clientOpId: string): Promise<void> {
 
 /** Everything, for signing out or another account on this phone. */
 export async function wipe(): Promise<void> {
-  open().execSync('DELETE FROM cards; DELETE FROM notes; DELETE FROM outbox; DELETE FROM kv; DELETE FROM learning_outbox;')
+  open().execSync('DELETE FROM cards; DELETE FROM notes; DELETE FROM outbox; DELETE FROM kv; DELETE FROM learning_outbox; DELETE FROM review_outbox;')
   changed()
 }
 
@@ -255,4 +257,19 @@ export async function waitingLearningEvents<T>(limit: number): Promise<T[]> {
 export async function removeLearningEvents(ids: string[]): Promise<void> {
   if (!ids.length) return
   await open().runAsync(`DELETE FROM learning_outbox WHERE id IN (${ids.map(() => '?').join(', ')})`, ...ids)
+}
+
+// ── Flashcard grades waiting to be sent (lvn-backend ADR-0068) ──────────────────────────────────────────────────────────
+
+export async function queueGrade<T extends { clientOpId: string; cardId: string; reviewedAt: string }>(grade: T): Promise<void> {
+  await open().runAsync('INSERT OR IGNORE INTO review_outbox (client_op_id, card_id, grade, reviewed_at) VALUES (?, ?, ?, ?)', grade.clientOpId, grade.cardId, JSON.stringify(grade), grade.reviewedAt)
+}
+
+export async function waitingGrades<T>(): Promise<T[]> {
+  const rows = await open().getAllAsync<{ grade: string }>('SELECT grade FROM review_outbox ORDER BY reviewed_at, client_op_id')
+  return rows.map((r) => JSON.parse(r.grade) as T)
+}
+
+export async function removeGrade(clientOpId: string): Promise<void> {
+  await open().runAsync('DELETE FROM review_outbox WHERE client_op_id = ?', clientOpId)
 }

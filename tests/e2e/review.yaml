@@ -1,0 +1,54 @@
+# Flashcard reviews and the learning history on the phone, end to end (P6b, P6c): a flashcard written on the phone is
+# in today's reviews at once; graded Easy, the session is done; the server counts the review on today's learning day.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Notes"
+- tapOn: "New note"
+- tapOn: "Title"
+- inputText: "Queues"
+- hideKeyboard
+# The first card opens in the rich-text editor; close it.
+- tapOn: "Done"
+- tapOn: "Add a card"
+- tapOn: "Flashcard"
+- tapOn: "Front"
+- inputText: "FIFO"
+# The keyboard covers the Back field; "Back" is also the screen's back button: the field below Front.
+- hideKeyboard
+- tapOn:
+    text: "Back"
+    below: "Front"
+- inputText: "First in, first out"
+- hideKeyboard
+- tapOn: "Done"
+- extendedWaitUntil:
+    visible: "Saved"
+    timeout: 20000
+# Back from the note, and from My notes, to the tabs.
+- pressKey: Back
+- assertVisible: "Queues"
+- pressKey: Back
+- tapOn: "Profile"
+- scrollUntilVisible:
+    element: "Review flashcards"
+- tapOn: "Review flashcards"
+- extendedWaitUntil:
+    visible: "FIFO"
+    timeout: 15000
+- assertVisible: "1 of 1"
+- tapOn: "Show the answer"
+- assertVisible: "First in, first out"
+- tapOn: "Easy"
+- assertVisible: "Done for today"
+- assertVisible: "1 card reviewed."
+- assertNotVisible: ".*waits? to be sent.*"
+- tapOn: "Back"
+- scrollUntilVisible:
+    element: "Learning history"
+- tapOn: "Learning history"
+- extendedWaitUntil:
+    visible: ".*1 card reviewed.*"
+    timeout: 15000
