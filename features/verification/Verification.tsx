@@ -37,7 +37,8 @@ export function VerifyCard({ restrictedMinor }: { restrictedMinor: boolean }) {
   const [withdraw] = useMutation(WithdrawVerificationRequestDocument)
   const [mode, setMode] = useState<'teacher' | 'documents' | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const requests = mine.data?.myVerificationRequests ?? []
+  // Account verification only: applications to teach have their own screen (lvn-backend ADR-0073).
+  const requests = (mine.data?.myVerificationRequests ?? []).filter((r) => r.purpose === 'ACCOUNT')
   const pending = requests.find((r) => r.status === 'PENDING')
   const last = requests[0]
   const done = async () => {
@@ -245,6 +246,13 @@ function RequestCard({ request: r, onDone }: { request: Request; onDone: () => v
           {r.requester.displayName} <Text className="text-muted-foreground text-sm font-normal">@{r.requester.handle}</Text>
         </Text>
       </Pressable>
+      {r.purpose === 'TEACHER_ROLE' ? (
+        <Text className="text-sm">
+          <Text className="text-primary font-semibold">Applies to teach · </Text>
+          Teaches at {r.institution}
+          {r.subjects ? ` · ${r.subjects}` : ''}
+        </Text>
+      ) : null}
       {r.message ? <Text className="bg-secondary rounded-xl px-3 py-2 text-sm">{r.message}</Text> : null}
       {r.documents.map((d) => (
         <Pressable key={d.fileId} accessibilityRole="button" accessibilityLabel={`Open ${d.fileName}`} onPress={() => void open(d.fileId)} className="flex-row items-center gap-2 py-1">

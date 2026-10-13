@@ -82,6 +82,11 @@ export function ClassScreen({ id }: { id: string }) {
     <View className="bg-background flex-1">
       {back}
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
+        {classroom.viewerRole === 'TEACHER' && !classroom.viewerCan.review ? (
+          <Pressable accessibilityRole="link" onPress={() => router.push('/teach')} className="border-primary/30 bg-secondary rounded-2xl border px-4 py-3">
+            <Text className="text-sm">Students can join this class once you are verified as a teacher. Until then, set it up: announcements, quizzes and notes are ready for them.</Text>
+          </Pressable>
+        ) : null}
         <View className="bg-card border-border gap-2 rounded-3xl border p-5">
           <View className="flex-row items-center gap-1.5">
             <GraduationCap size={14} color={accent} />

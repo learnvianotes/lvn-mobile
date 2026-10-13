@@ -18,6 +18,8 @@ export function describeNotification(n: Described): string {
       return n.note ? `${actor} shared “${n.note.title || 'Untitled note'}” with you` : `${actor} shared a note with you that you can no longer open`
     case 'VERIFICATION':
       if (data.kind === 'REQUESTED') return `${actor} asked you to verify their account`
+      // An application to teach (lvn-backend ADR-0073).
+      if (data.purpose === 'TEACHER_ROLE') return data.decision === 'APPROVED' ? 'You’re a verified teacher now: your classes can take students' : 'Your application to teach wasn’t approved; see why on Teach'
       if (data.decision === 'APPROVED') return n.actor ? `${actor} verified your account` : 'Your account is verified'
       return 'Your verification was not accepted. You can try again from your profile.'
     case 'FOLLOW':

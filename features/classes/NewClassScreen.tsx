@@ -16,7 +16,8 @@ export function NewClassScreen() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const teacher = viewer.data?.viewer?.globalRole === 'TEACHER'
+  // Verified teachers, and teacher applicants who prepare classes while they wait (lvn-backend ADR-0073).
+  const teacher = viewer.data?.viewer?.globalRole === 'TEACHER' || viewer.data?.viewer?.teacherStatus === 'PENDING'
   const submit = async () => {
     let id: string | undefined
     const problem = await attempt(async () => {

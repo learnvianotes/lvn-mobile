@@ -57,6 +57,7 @@ export const viewer = (over: Record<string, unknown> = {}) => ({
   registrationComplete: true,
   verified: false,
   verificationMethod: null,
+  teacherStatus: 'NONE',
   globalRole: 'STUDENT',
   restrictedMinor: false,
   institutionalEmail: null,

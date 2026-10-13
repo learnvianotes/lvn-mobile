@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { Link } from 'expo-router'
 import { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
@@ -45,6 +45,8 @@ export function SignUpForm() {
   const [signUp] = useMutation(SignUpDocument)
   const finish = useFinishSignIn()
   const [general, setGeneral] = useState<string | null>(null)
+  // "Teach" leads to the application to teach after sign-up (lvn-backend ADR-0073).
+  const [teaches, setTeaches] = useState(false)
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { displayName: '', email: '', password: '', dob: { day: '', month: '', year: '' }, institutionalEmail: '', terms: false as unknown as true },
@@ -67,7 +69,7 @@ export function SignUpForm() {
         },
       })
       const payload = data!.signUp
-      if (payload.session) return await finish(payload.session, institutionalEmail ? '/verify' : undefined)
+      if (payload.session) return await finish(payload.session, teaches ? '/teach' : institutionalEmail ? '/verify' : undefined)
       // The API names `dateOfBirth`; the form's field is `dob`.
       const problems = payload.userErrors.map((p) => (p.field?.at(-1) === 'dateOfBirth' ? { ...p, field: ['input', 'dob'] } : p))
       setGeneral(applyProblems(problems, form.setError, FIELDS))
@@ -87,6 +89,24 @@ export function SignUpForm() {
       <ProviderButtons />
       <View className="gap-4">
         {general ? <Notice>{general}</Notice> : null}
+        <View className="gap-2">
+          <Text className="text-sm font-medium">I’m here to</Text>
+          <View className="flex-row gap-2" accessibilityRole="radiogroup">
+            {([false, true] as const).map((v) => (
+              <Pressable
+                key={String(v)}
+                testID={v ? 'sign-up-teach' : 'sign-up-learn'}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: teaches === v }}
+                onPress={() => setTeaches(v)}
+                className={`flex-1 items-center rounded-xl border px-3 py-2.5 ${teaches === v ? 'border-primary bg-secondary' : 'border-border'}`}
+              >
+                <Text className={`font-medium ${teaches === v ? 'text-primary' : ''}`}>{v ? 'Teach' : 'Learn'}</Text>
+              </Pressable>
+            ))}
+          </View>
+          {teaches ? <Text className="text-muted-foreground text-xs">After sign-up, tell us where you teach. You can set up classes at once; students can join once we verify you.</Text> : null}
+        </View>
         <Controller
           control={form.control}
           name="displayName"
