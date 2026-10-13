@@ -120,7 +120,7 @@ it('converts the PDF into cards: the new note opens, follows the engine and sync
   mockAccess = 'OWNER'
   const { syncNow } = jest.requireMock('@/features/notes/sync/engine') as { syncNow: jest.Mock }
   const NEW = '01920000-0000-7000-8000-00000000a0cc'
-  const conversion = (status: string, extra: object = {}) => ({ __typename: 'PdfConversion', id: 'c1', status, progress: status === 'DONE' ? 100 : 15, pages: 2, scannedPages: 0, cards: null, error: null, ...extra })
+  const conversion = (status: string, extra: object = {}) => ({ __typename: 'PdfConversion', id: 'c1', status, progress: status === 'DONE' ? 100 : 15, pages: 2, scannedPages: 0, cards: null, aiPages: null, aiRejected: null, error: null, ...extra })
   let checks = 0
   const api = mockApi({
     PhoneNoteFile: () => ({ data: { noteFile: file } }),
@@ -149,11 +149,12 @@ it('follows a conversion in progress and pulls its cards when it is done', async
     PhonePdfConversion: () => {
       checks++
       const status = checks < 2 ? 'PARSING' : 'DONE'
-      return { data: { note: { __typename: 'Note', id: NOTE, pdfConversion: { __typename: 'PdfConversion', id: 'c1', status, progress: status === 'DONE' ? 100 : 15, pages: 2, scannedPages: 1, cards: status === 'DONE' ? 7 : null, error: null } } } }
+      return { data: { note: { __typename: 'Note', id: NOTE, pdfConversion: { __typename: 'PdfConversion', id: 'c1', status, progress: status === 'DONE' ? 100 : 15, pages: 2, scannedPages: 1, cards: status === 'DONE' ? 7 : null, aiPages: status === 'DONE' ? 1 : null, aiRejected: status === 'DONE' ? 0 : null, error: null } } } }
     },
   })
   await show()
   expect(await screen.findByText('Reading the PDF… 15%')).toBeTruthy()
-  expect(await screen.findByText('Made 7 cards from 2 pages. Check them beside the PDF.', {}, { timeout: 8000 })).toBeTruthy()
+  // The scanned page the OCR was unsure of was read again by AI (lvn-backend ADR-0063).
+  expect(await screen.findByText('Made 7 cards from 2 pages. Check them beside the PDF. AI read 1 unclear page again. To mend words the conversion broke, use Clean up the text in AI tasks.', {}, { timeout: 8000 })).toBeTruthy()
   await waitFor(() => expect(syncNow).toHaveBeenCalled())
 }, 15000)

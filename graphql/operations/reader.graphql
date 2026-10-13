@@ -82,6 +82,9 @@ fragment PhoneConversionFields on PdfConversion {
   pages
   scannedPages
   cards
+  # Pages read again by AI, and readings set aside (lvn-backend ADR-0063)
+  aiPages
+  aiRejected
   error
 }
 

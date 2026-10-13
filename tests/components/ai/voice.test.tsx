@@ -26,7 +26,7 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(),
 
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 const aiState = { data: { aiStatus: { __typename: 'AiStatus', available: true, reason: null }, myAiAllowance: { __typename: 'AiAllowance', usedToday: 0, limitToday: 200_000, resetsAt: '2026-10-14T00:00:00.000Z' } } }
-const ran = { data: { runAiTask: { __typename: 'AiArtifactPayload', artifact: { __typename: 'AiArtifact', id: 'a1', task: 'TRANSCRIBE', status: 'QUEUED', language: 'ENGLISH', markdown: null, title: null, cards: null, error: null, fromPublishedVersion: false, truncated: false, keptAt: null, createdAt: '2026-10-13T10:00:00.000Z' }, userErrors: [] } } }
+const ran = { data: { runAiTask: { __typename: 'AiArtifactPayload', artifact: { __typename: 'AiArtifact', id: 'a1', task: 'TRANSCRIBE', status: 'QUEUED', language: 'ENGLISH', markdown: null, title: null, cards: null, changes: null, error: null, fromPublishedVersion: false, truncated: false, keptAt: null, createdAt: '2026-10-13T10:00:00.000Z' }, userErrors: [] } } }
 
 beforeEach(() => jest.clearAllMocks())
 

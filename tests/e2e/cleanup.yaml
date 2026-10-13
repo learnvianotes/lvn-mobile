@@ -1,0 +1,49 @@
+# Clean-up of a converted note against the real model (lvn-backend ADR-0063): the AI screen proposes mended words for
+# the note's cards, the owner applies them, and the note on the server has them. Needs a server whose AI answers;
+# without it this flow does nothing past signing in.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- runScript:
+    file: scripts/scan-note.js
+    env:
+      TOKEN: ${output.token}
+- runFlow:
+    when:
+      true: ${output.ai === 'on'}
+    commands:
+      - tapOn: "Notes"
+      # The note was made after the app's first sync: pull to refresh.
+      - retry:
+          maxRetries: 3
+          commands:
+            - swipe:
+                start: "50%, 30%"
+                end: "50%, 75%"
+            - extendedWaitUntil:
+                visible: "Respiration scan"
+                timeout: 10000
+      - tapOn: "Respiration scan"
+      - tapOn: "AI tasks"
+      - scrollUntilVisible:
+          element: "Clean up the text"
+          direction: DOWN
+      - tapOn: "Clean up the text"
+      # The model takes seconds on the dev machine's GPU; the changes come below the tasks.
+      - scrollUntilVisible:
+          element: "Apply .* changes?"
+          direction: DOWN
+          timeout: 120000
+      - tapOn: "Apply .* changes?"
+      - extendedWaitUntil:
+          visible: "Applied .*"
+          timeout: 30000
+      - runScript:
+          file: scripts/scan-note.js
+          env:
+            TOKEN: ${output.token}
+            NOTE_ID: ${output.noteId}
+            CHECK: "1"
+      - assertTrue: ${output.mended === 'yes'}

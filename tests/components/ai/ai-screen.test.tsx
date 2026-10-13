@@ -48,6 +48,7 @@ const artifact = (over: Record<string, unknown> = {}) => ({
   markdown: null,
   title: null,
   cards: null,
+  changes: null,
   error: null,
   fromPublishedVersion: false,
   truncated: false,
@@ -249,4 +250,44 @@ it('stays on the note when another query of it is refused (a refused answer is n
   await waitFor(() => expect(mediaCalls).toBeGreaterThan(1))
   expect(screen.getByText('A heap keeps the smallest item on top.')).toBeOnTheScreen()
   expect(screen.getByText(/Ask AI about/)).toBeOnTheScreen()
+})
+
+it('cleans up a converted note: checks each change, drops one, applies the rest and pulls the mended cards (ADR-0063)', async () => {
+  const [A, B, C] = ['01920000-0000-7000-8000-00000000c0c1', '01920000-0000-7000-8000-00000000c0c2', '01920000-0000-7000-8000-00000000c0c3']
+  const change = (cardId: string, before: string, after: string) => ({ __typename: 'AiChange', cardId, before, after, applied: false })
+  const api = await open({
+    NoteAiArtifacts: () => noteAi([]),
+    RunAiTask: () => ran(artifact({ task: 'CLEAN_UP', status: 'QUEUED' })),
+    AiArtifact: () => ({
+      data: {
+        aiArtifact: artifact({
+          task: 'CLEAN_UP',
+          changes: [change(A, 'Binary search halves the ran- ge.', 'Binary search halves the range.'), change(B, 'It needs sorted in put 12 Algorithms.', 'It needs sorted input.'), change(C, 'Tbe running time is O(log n).', 'The running time is O(log n).')],
+        }),
+      },
+    }),
+    // The third card was edited meanwhile: it keeps its words.
+    ApplyAiChanges: () => ({ data: { applyAiChanges: { __typename: 'ApplyAiChangesPayload', applied: [A], userErrors: [] } } }),
+  })
+  await fireEvent.press(await screen.findByRole('button', { name: 'Clean up the text' }))
+  expect(await screen.findByLabelText('Mended: Binary search halves the range.', {}, { timeout: 6000 })).toBeOnTheScreen()
+  expect(screen.getByLabelText('Now: Binary search halves the ran- ge.')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('checkbox', { name: 'Change 2' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Apply 2 changes' }))
+  expect(await screen.findByText('Applied 1 change. 1 card was edited since, so it was left as it is.')).toBeOnTheScreen()
+  expect(api.calls.find((c) => c.op === 'RunAiTask')?.variables).toEqual({ input: { noteId: NOTE, task: 'CLEAN_UP', language: 'ENGLISH' } })
+  expect(api.calls.find((c) => c.op === 'ApplyAiChanges')?.variables).toEqual({ input: { artifactId: ART, cardIds: [A, C] } })
+  expect(syncNow).toHaveBeenCalled()
+  // What was applied is marked; what was sent is no longer chosen, and the dropped change can still be applied.
+  expect(screen.getByLabelText('Change 1 applied')).toBeOnTheScreen()
+  expect(screen.getByRole('button', { name: 'Apply changes' })).toBeDisabled()
+  await fireEvent.press(screen.getByRole('checkbox', { name: 'Change 2' }))
+  expect(screen.getByRole('button', { name: 'Apply 1 change' })).toBeEnabled()
+}, 15_000)
+
+it('offers clean-up only to people who may edit the note, and says when nothing needs mending', async () => {
+  await open({ NoteAiArtifacts: () => noteAi([artifact({ task: 'CLEAN_UP', changes: [] })], { edit: false, fork: true }) })
+  expect(await screen.findByText('Nothing needs mending.')).toBeOnTheScreen()
+  expect(screen.getByRole('button', { name: 'Summarise' })).toBeOnTheScreen()
+  expect(screen.queryByRole('button', { name: 'Clean up the text' })).toBeNull()
 })
