@@ -75,6 +75,9 @@ export function describeNotification(n: Described): string {
     }
     case 'CONNECTION':
       return data.kind === 'ACCEPTED' ? `${actor} accepted your connection request` : `${actor} wants to connect with you`
+    case 'RESOURCE':
+      // Moderators decided on a resource the viewer sent (lvn-backend ADR-0074); the notification opens it.
+      return data.decision === 'APPROVED' ? 'Your resource is in the catalogue' : 'Moderators did not approve your resource'
     case 'DATA_EXPORT':
       return 'Your data export is ready to download'
     case 'NOTES_IMPORT': {

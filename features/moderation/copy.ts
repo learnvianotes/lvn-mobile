@@ -21,8 +21,9 @@ export const REPORT_TITLE: Record<ReportEntityType, string> = {
   CLASSROOM_POST: 'Report this announcement',
   DOUBT: 'Report this doubt',
   GROUP: 'Report this group',
+  RESOURCE: 'Report this resource',
 }
 
-export const ENTITY: Record<ReportEntityType, string> = { NOTE: 'Note', USER: 'Account', COMMENT: 'Comment', GROUP_POST: 'Post', CLASSROOM_POST: 'Announcement', DOUBT: 'Doubt', GROUP: 'Group' }
+export const ENTITY: Record<ReportEntityType, string> = { NOTE: 'Note', USER: 'Account', COMMENT: 'Comment', GROUP_POST: 'Post', CLASSROOM_POST: 'Announcement', DOUBT: 'Doubt', GROUP: 'Group', RESOURCE: 'Resource' }
 
 export const STATE: Record<ModerationState, string> = { OK: 'Up', PENDING_REVIEW: 'Held', HIDDEN: 'Hidden', REMOVED: 'Removed' }

@@ -1,0 +1,60 @@
+# Resources on the phone (lvn-backend ADR-0074): a verified learner adds a course from the Profile tab with a topic from
+# the curated list, and it waits for moderators. Adding one needs a verified account, which only the database gives:
+# scripts/e2e-android.mjs makes the learner when run with --vm; without it this flow does nothing. Approval is the
+# moderators' (lvn-web's live test and lvn-backend's lifecycle check cover it on the same environment).
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof COMMUNITY_EMAIL !== 'undefined' && COMMUNITY_EMAIL !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${COMMUNITY_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${COMMUNITY_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Profile"
+      - scrollUntilVisible:
+          element: "Your resources"
+          centerElement: true
+      - tapOn: "Your resources"
+      - tapOn: "Add a resource"
+      - tapOn: "Link"
+      # Each run's own link: one link is one resource.
+      - inputText: "https://nptel.ac.in/courses/106102064?run=${STAMP}"
+      - hideKeyboard
+      - tapOn: "Course"
+      - tapOn: "Title"
+      - inputText: "Data Structures and Algorithms, NPTEL"
+      - hideKeyboard
+      - scrollUntilVisible:
+          element: "Find a topic"
+          centerElement: true
+      - tapOn: "Find a topic"
+      - inputText: "array"
+      - hideKeyboard
+      - extendedWaitUntil:
+          visible: "Add .*"
+          timeout: 15000
+      - tapOn: "Add .*"
+      - scrollUntilVisible:
+          element: "Send to moderators"
+          centerElement: true
+      - tapOn: "Send to moderators"
+      - extendedWaitUntil:
+          visible: "Waiting for moderators: only you can see it until they approve it."
+          timeout: 20000
+      - assertVisible: "Data Structures and Algorithms, NPTEL"

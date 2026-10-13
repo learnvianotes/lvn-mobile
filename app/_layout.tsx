@@ -82,6 +82,10 @@ export default function RootLayout() {
                 <Stack.Screen name="history" />
                 <Stack.Screen name="rhythm" />
                 <Stack.Screen name="teach" />
+                <Stack.Screen name="resources/new" />
+                <Stack.Screen name="resources/mine" />
+                <Stack.Screen name="resources/[id]/index" />
+                <Stack.Screen name="resources/[id]/edit" />
                 <Stack.Screen name="exams/index" />
                 <Stack.Screen name="exams/[id]" />
                 <Stack.Screen name="review" />

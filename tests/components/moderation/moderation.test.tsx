@@ -69,7 +69,7 @@ it('a member reports someone else’s post, and appeals once against hiding thei
 
 it('group moderators review the group’s reports: mute the author, hide with a reason', async () => {
   let open = true
-  const item = { __typename: 'ModerationCase', suspendedUntil: null, removedGroup: null, entityType: 'GROUP_POST', entityId: 'p2', scope: 'GROUP', scopeId: GROUP, openedAt: new Date().toISOString(), note: null, group: null, user: null, appeal: null, content: content({}), reports: [{ __typename: 'ModerationReport', reason: 'HARASSMENT', details: 'Rude to everyone', createdAt: new Date().toISOString(), reporter: { __typename: 'User', id: ME, displayName: 'Asha Rao' } }] }
+  const item = { __typename: 'ModerationCase', resource: null, suspendedUntil: null, removedGroup: null, entityType: 'GROUP_POST', entityId: 'p2', scope: 'GROUP', scopeId: GROUP, openedAt: new Date().toISOString(), note: null, group: null, user: null, appeal: null, content: content({}), reports: [{ __typename: 'ModerationReport', reason: 'HARASSMENT', details: 'Rude to everyone', createdAt: new Date().toISOString(), reporter: { __typename: 'User', id: ME, displayName: 'Asha Rao' } }] }
   const api = mockApi({
     Viewer: () => ({ data: { viewer: viewer() } }),
     Group: () => ({ data: { group: group({ viewerRole: 'MODERATOR', viewerCan: can({ post: true, moderate: true, leave: true }) }) } }),
@@ -111,7 +111,7 @@ it('the owner reads the platform moderators’ warning on the group', async () =
 it('class staff put back a held comment from the class’s reports', async () => {
   let open = true
   const ccan = { __typename: 'ClassroomActions', publishQuiz: false, requestJoin: false, acceptInvite: false, review: true, post: true, manage: true, leave: false }
-  const item = { __typename: 'ModerationCase', suspendedUntil: null, removedGroup: null, entityType: 'COMMENT', entityId: 'c1', scope: 'CLASSROOM', scopeId: CLASS, openedAt: new Date().toISOString(), note: null, group: null, user: null, appeal: null, content: content({ entityType: 'COMMENT', id: 'c1', excerpt: 'Buy followers here', moderation: 'PENDING_REVIEW', path: `/classes/${CLASS}` }), reports: [{ __typename: 'ModerationReport', reason: 'SPAM', details: null, createdAt: new Date().toISOString(), reporter: null }] }
+  const item = { __typename: 'ModerationCase', resource: null, suspendedUntil: null, removedGroup: null, entityType: 'COMMENT', entityId: 'c1', scope: 'CLASSROOM', scopeId: CLASS, openedAt: new Date().toISOString(), note: null, group: null, user: null, appeal: null, content: content({ entityType: 'COMMENT', id: 'c1', excerpt: 'Buy followers here', moderation: 'PENDING_REVIEW', path: `/classes/${CLASS}` }), reports: [{ __typename: 'ModerationReport', reason: 'SPAM', details: null, createdAt: new Date().toISOString(), reporter: null }] }
   const api = mockApi({
     Viewer: () => ({ data: { viewer: viewer() } }),
     Classroom: () => ({ data: { classroom: { __typename: 'Classroom', id: CLASS, name: 'Physics 9A', description: null, memberCount: 31, viewerRole: 'TEACHER', teacher: asha, createdAt: '2026-10-01T10:00:00.000Z', joinCode: 'K7PQ2MXA', viewerRequestId: null, viewerInviteId: null, viewerCan: ccan } } }),
@@ -133,7 +133,7 @@ it('class staff put back a held comment from the class’s reports', async () =>
 it('platform admins review every scope on the phone: a note, a group, an account and a class’s case', async () => {
   let decided = false
   const reportBy = (reason: string) => [{ __typename: 'ModerationReport', reason, details: null, createdAt: new Date().toISOString(), reporter: { __typename: 'User', id: ME, displayName: 'Asha Rao' } }]
-  const base = { __typename: 'ModerationCase', suspendedUntil: null, removedGroup: null, scopeId: null, openedAt: new Date().toISOString(), note: null, group: null, user: null, content: null, appeal: null }
+  const base = { __typename: 'ModerationCase', resource: null, suspendedUntil: null, removedGroup: null, scopeId: null, openedAt: new Date().toISOString(), note: null, group: null, user: null, content: null, appeal: null }
   const cases = [
     { ...base, entityType: 'NOTE', entityId: 'n1', scope: 'PLATFORM', note: { __typename: 'Note', id: 'n1', title: 'Exam answers', excerpt: 'Leaked paper', visibility: 'PUBLIC', moderation: 'HIDDEN', moderationReason: 'Copied', deleted: false, owner: meera }, appeal: { __typename: 'ModerationAppeal', message: 'These are my own answers.', createdAt: new Date().toISOString() }, reports: reportBy('COPYRIGHT') },
     { ...base, entityType: 'GROUP', entityId: GROUP, scope: 'PLATFORM', group: { __typename: 'Group', id: GROUP, name: 'Algorithms study' }, reports: reportBy('SPAM') },
