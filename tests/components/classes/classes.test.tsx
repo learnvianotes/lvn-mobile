@@ -15,7 +15,7 @@ jest.mock('@/features/notes/store/db', () => ({ listNotes: jest.fn(async () => [
 
 const CLASS = '01920000-0000-7000-8000-0000000c0001'
 const teacherRef = { __typename: 'User', id: 't1', displayName: 'Meera Iyer' }
-const can = (over: Record<string, boolean> = {}) => ({ __typename: 'ClassroomActions', requestJoin: false, acceptInvite: false, review: false, post: false, manage: false, leave: false, ...over })
+const can = (over: Record<string, boolean> = {}) => ({ __typename: 'ClassroomActions', publishQuiz: false, requestJoin: false, acceptInvite: false, review: false, post: false, manage: false, leave: false, ...over })
 const classroom = (over: Record<string, unknown> = {}) => ({ __typename: 'Classroom', id: CLASS, name: 'Physics 9A', description: null, memberCount: 31, viewerRole: null, teacher: teacherRef, createdAt: '2026-10-01T10:00:00.000Z', joinCode: null, viewerRequestId: null, viewerInviteId: null, viewerCan: can(), ...over })
 const asTeacher = () => classroom({ viewerRole: 'TEACHER', joinCode: 'K7PQ2MXA', viewerCan: can({ review: true, post: true, manage: true }) })
 const doc = (s: string) => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: s }] }] })

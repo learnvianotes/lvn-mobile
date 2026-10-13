@@ -37,15 +37,16 @@ import { env } from '@/lib/env'
 import type { Doc } from '@/lib/contracts/validation'
 import { ActionSheet } from '@/features/shell/ActionSheet'
 import { ClassSettings, memberActions } from './ClassManage'
+import { ClassQuizzes } from './quizzes/ClassQuizzes'
 import { CLASS_ROLE } from './shared'
 
-type Tab = 'posts' | 'notes' | 'people' | 'requests' | 'reports' | 'settings'
-const TABS: Record<Tab, string> = { posts: 'Announcements', notes: 'Notes', people: 'People', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
+type Tab = 'posts' | 'quizzes' | 'notes' | 'people' | 'requests' | 'reports' | 'settings'
+const TABS: Record<Tab, string> = { posts: 'Announcements', quizzes: 'Quizzes', notes: 'Notes', people: 'People', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
 type Run = () => Promise<{ data?: unknown }>
 type Member = NonNullable<NonNullable<ClassroomPeopleQuery['classroom']>['members']>[number]
 
 /**
- * One class on the phone (lvn-backend ADR-0046): announcements and notes for members; for staff the code to share,
+ * One class on the phone (lvn-backend ADR-0046): announcements, quizzes (ADR-0064) and notes for members; for staff the code to share,
  * posting, people and invites, requests and reports; for the teacher roles, handing the class over and settings.
  */
 export function ClassScreen({ id }: { id: string }) {
@@ -75,7 +76,7 @@ export function ClassScreen({ id }: { id: string }) {
   )
   if (!classroom) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This class is not available.</Text>}</View>
   const staff = classroom.viewerCan.review
-  const tabs: Tab[] = classroom.viewerRole ? ['posts', 'notes', ...(staff ? (['people', 'requests', 'reports'] as const) : []), ...(classroom.viewerCan.manage ? (['settings'] as const) : [])] : []
+  const tabs: Tab[] = classroom.viewerRole ? ['posts', 'quizzes', 'notes', ...(staff ? (['people', 'requests', 'reports'] as const) : []), ...(classroom.viewerCan.manage ? (['settings'] as const) : [])] : []
   return (
     <View className="bg-background flex-1">
       {back}
@@ -139,6 +140,7 @@ export function ClassScreen({ id }: { id: string }) {
               ))}
             </View>
             {tab === 'posts' ? <Posts classroom={classroom} /> : null}
+            {tab === 'quizzes' ? <ClassQuizzes classroom={classroom} /> : null}
             {tab === 'notes' ? <Notes classroom={classroom} /> : null}
             {tab === 'people' ? <People classroom={classroom} onChanged={() => void refetch()} /> : null}
             {tab === 'requests' ? <Requests classroom={classroom} onChanged={() => void refetch()} /> : null}

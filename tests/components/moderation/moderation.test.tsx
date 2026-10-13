@@ -110,7 +110,7 @@ it('the owner reads the platform moderators’ warning on the group', async () =
 
 it('class staff put back a held comment from the class’s reports', async () => {
   let open = true
-  const ccan = { __typename: 'ClassroomActions', requestJoin: false, acceptInvite: false, review: true, post: true, manage: true, leave: false }
+  const ccan = { __typename: 'ClassroomActions', publishQuiz: false, requestJoin: false, acceptInvite: false, review: true, post: true, manage: true, leave: false }
   const item = { __typename: 'ModerationCase', suspendedUntil: null, removedGroup: null, entityType: 'COMMENT', entityId: 'c1', scope: 'CLASSROOM', scopeId: CLASS, openedAt: new Date().toISOString(), note: null, group: null, user: null, appeal: null, content: content({ entityType: 'COMMENT', id: 'c1', excerpt: 'Buy followers here', moderation: 'PENDING_REVIEW', path: `/classes/${CLASS}` }), reports: [{ __typename: 'ModerationReport', reason: 'SPAM', details: null, createdAt: new Date().toISOString(), reporter: null }] }
   const api = mockApi({
     Viewer: () => ({ data: { viewer: viewer() } }),

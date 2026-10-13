@@ -45,6 +45,9 @@ export function describeNotification(n: Described): string {
       return `${actor} invited you to ${place ?? 'a class'}`
     case 'CLASSROOM_POST':
       return `${actor} posted an announcement in ${place ?? 'a class'}`
+    case 'QUIZ_PUBLISHED':
+      // A quiz published to the viewer's class (lvn-backend ADR-0064); the notification opens it.
+      return `${actor} published a quiz in ${place ?? 'a class'}`
     case 'MENTION': {
       // Someone named the viewer with @handle (lvn-backend ADR-0054); where, never what they wrote.
       const thing = data.entityType === 'GROUP_POST' ? 'a post' : 'a comment'
