@@ -24,6 +24,7 @@ import { NoteCredits } from '@/features/workspaces/Credits'
 import { cardTypeFor, MediaProvider, UploadError, uploadToNote } from './media/NoteMedia'
 import { pickMedia, type MediaSource } from './media/pickMedia'
 import { MakeCopyButton, NoteStatus, useNoteActions } from './publishing/NoteActions'
+import { StudyAids } from '@/features/ai/StudyAids'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -265,6 +266,8 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
             <Text className="text-primary font-semibold">{uploading ? 'Uploading…' : 'Add a card'}</Text>
           </Pressable>
         )}
+        {/* A public note's study aids (lvn-backend ADR-0061): their progress, and hiding them, for the owner. */}
+        {note.publishedAt && !note.localOnly ? <StudyAids noteId={note.id} /> : null}
         {/* What readers said about the published note (lvn-backend ADR-0047); notes made on the phone have none yet. */}
         {note.publishedAt && !note.localOnly ? <Discussion target={{ type: 'NOTE', id: note.id }} /> : null}
       </ScrollView>
@@ -301,6 +304,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
             <CardView type={c.type} content={c.content} highlighted={reader.current === c.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: c.id }))} />
           </Pressable>
         ))}
+        {note.deletedAt ? null : <StudyAids noteId={note.id} />}
         {note.deletedAt ? null : <Discussion target={{ type: 'NOTE', id: note.id }} />}
       </ScrollView>
     </View>
