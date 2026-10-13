@@ -25,16 +25,20 @@ env:
     direction: DOWN
 - tapOn: "Back"
 - setAirplaneMode: disabled
-# Back online: the batch goes; the server lists the note among those opened today.
+# Back online: the notes sync again, and the waiting events go with the same signal; the server lists the note among
+# those opened today.
+- extendedWaitUntil:
+    visible: "Synced just now"
+    timeout: 60000
 - repeat:
     while:
       true: ${output.opened == undefined || output.opened.indexOf('Read offline') < 0}
-    times: 15
+    times: 10
     commands:
       - runScript:
           file: scripts/learning-events.js
           env:
             TOKEN: ${output.token}
-      - waitForAnimationToEnd:
-          timeout: 3000
+      - swipe:
+          direction: DOWN
 - assertTrue: ${output.opened.indexOf('Read offline') >= 0}
