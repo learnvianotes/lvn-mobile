@@ -33,6 +33,7 @@ export function describeNotification(n: Described): string {
       const reply = data.kind === 'REPLY'
       if (n.note) return reply ? `${actor} replied to your comment on “${n.note.title || 'Untitled note'}”` : `${actor} commented on “${n.note.title || 'Untitled note'}”`
       if (place) return reply ? `${actor} replied to your comment in ${place}` : `${actor} commented in ${place}`
+      if (!reply && n.path.startsWith('/resources/')) return `${actor} commented on your resource`
       return `${actor} commented on something you can no longer open`
     }
     case 'MENTOR_INVITE':
@@ -76,7 +77,8 @@ export function describeNotification(n: Described): string {
     case 'CONNECTION':
       return data.kind === 'ACCEPTED' ? `${actor} accepted your connection request` : `${actor} wants to connect with you`
     case 'RESOURCE':
-      // Moderators decided on a resource the viewer sent (lvn-backend ADR-0074); the notification opens it.
+      // Someone recommended one to the viewer (ADR-0075), or moderators decided on one they sent (ADR-0074).
+      if (data.kind === 'RECOMMENDED') return `${actor} recommended a resource to you`
       return data.decision === 'APPROVED' ? 'Your resource is in the catalogue' : 'Moderators did not approve your resource'
     case 'DATA_EXPORT':
       return 'Your data export is ready to download'

@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router, type Href } from 'expo-router'
-import { BookOpen, CalendarClock, ListChecks, RotateCcw, TrendingUp, X } from 'lucide-react-native'
+import { BookOpen, CalendarClock, ListChecks, RotateCcw, TrendingUp, X, Library } from 'lucide-react-native'
 import { Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
@@ -9,10 +9,10 @@ import { haptic } from '@/lib/haptics'
 
 type Rec = RecommendationsQuery['recommendations'][number]
 
-const ICONS: Record<RecommendationKind, typeof BookOpen> = { EXAM_TOPIC: CalendarClock, REVISE_TOPIC: RotateCcw, CONTINUE_NOTE: BookOpen, QUIZ_ON_TOPIC: ListChecks, POPULAR_NOTE: TrendingUp }
+const ICONS: Record<RecommendationKind, typeof BookOpen> = { EXAM_TOPIC: CalendarClock, REVISE_TOPIC: RotateCcw, CONTINUE_NOTE: BookOpen, QUIZ_ON_TOPIC: ListChecks, POPULAR_NOTE: TrendingUp, RESOURCE: Library }
 const coreName = (key: string) => key.replace(/^core:/, '').replace('/', ' / ').replace(/-/g, ' ')
 /** A note opens; a topic of an exam opens the exams; other topics are only named. */
-const hrefOf = (r: Rec): Href | null => (r.note ? `/notes/${r.note.id}` : r.kind === 'EXAM_TOPIC' ? '/exams' : null)
+const hrefOf = (r: Rec): Href | null => (r.note ? `/notes/${r.note.id}` : r.resource ? `/resources/${r.resource.id}` : r.kind === 'EXAM_TOPIC' ? '/exams' : null)
 
 /**
  * Recommended for the viewer on the phone (lvn-backend ADR-0071): each with why, best first; one can be set aside for
@@ -33,8 +33,8 @@ export function Recommendations({ limit = 6 }: { limit?: number }) {
       {!items.length ? <Text className="text-muted-foreground text-sm">Nothing to recommend yet. Read a few notes, add an exam or take a quiz, and suggestions appear here.</Text> : null}
       {items.map((r) => {
         const Icon = ICONS[r.kind]
-        const title = r.noteTitle || r.topicTitle || (r.topicKey ? coreName(r.topicKey) : 'Untitled')
-        const entityId = r.note?.id ?? r.topicKey ?? ''
+        const title = r.resource?.title || r.noteTitle || r.topicTitle || (r.topicKey ? coreName(r.topicKey) : 'Untitled')
+        const entityId = r.resource?.id ?? r.note?.id ?? r.topicKey ?? ''
         const href = hrefOf(r)
         return (
           <View key={`${r.kind}:${entityId}`} className="bg-muted flex-row items-start gap-3 rounded-xl px-3 py-2.5">

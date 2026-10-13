@@ -15,7 +15,7 @@ describe('HomeScreen', () => {
       Viewer: () => new Error('not here'),
       Rhythm: () => new Error('not here'),
       Exams: () => ({ data: { exams: [] } }),
-      Recommendations: () => ({ data: { recommendations: [{ __typename: 'Recommendation', kind: 'CONTINUE_NOTE', score: 55, reason: 'You were reading this on Monday, 12 October', noteTitle: 'Dijkstra', topicKey: null, topicTitle: null, note: { __typename: 'Note', id: '01920000-0000-7000-8000-00000000a001' }, topic: null }] } }),
+      Recommendations: () => ({ data: { recommendations: [{ __typename: 'Recommendation', resource: null, kind: 'CONTINUE_NOTE', score: 55, reason: 'You were reading this on Monday, 12 October', noteTitle: 'Dijkstra', topicKey: null, topicTitle: null, note: { __typename: 'Note', id: '01920000-0000-7000-8000-00000000a001' }, topic: null }] } }),
     })
     await renderInApp(
       <ApolloProvider client={createApolloClient()}>

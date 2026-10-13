@@ -107,6 +107,14 @@ query Search($query: String!, $filters: SearchFilters, $after: String) {
       name
       memberCount
     }
+    resources {
+      id
+      type
+      title
+      host
+      author
+      saveCount
+    }
   }
 }
 

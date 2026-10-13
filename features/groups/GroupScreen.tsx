@@ -8,6 +8,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { PostComments } from '@/features/discussion/PostComments'
 import { ContentModeration, ModerationNotice } from '@/features/moderation/ModerationNotice'
+import { PlaceResources } from '@/features/resources/PlaceResources'
 import { ModerationQueue } from '@/features/moderation/ModerationQueue'
 import { RemovedGroupNotice } from '@/features/moderation/Standing'
 import { ReportLink } from '@/features/moderation/ReportSheet'
@@ -36,8 +37,8 @@ import { Doubts, Ideas, WorkspaceHeader } from '@/features/workspaces/WorkspaceP
 import { GroupMembers, GroupSettings, InviteMentor, ShowcaseSetting } from './GroupManage'
 import { attempt, ROLE, textToDoc } from './shared'
 
-type Tab = 'posts' | 'ideas' | 'doubts' | 'notes' | 'members' | 'requests' | 'reports' | 'settings'
-const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Doubts', notes: 'Notes', members: 'Members', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
+type Tab = 'posts' | 'ideas' | 'doubts' | 'notes' | 'resources' | 'members' | 'requests' | 'reports' | 'settings'
+const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Doubts', notes: 'Notes', resources: 'Resources', members: 'Members', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
 
 /**
  * One group on the phone (lvn-backend ADR-0045, ADR-0048): joining or asking to; for members, posts (write, and pin or
@@ -74,7 +75,7 @@ export function GroupScreen({ id }: { id: string }) {
   if (!group) return <View className="bg-background flex-1">{back}{loading ? null : <RemovedGroupNotice id={id} />}</View>
   const member = !!group.viewerRole
   const project = group.type === 'PROJECT'
-  const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : []), ...(group.viewerCan.moderate ? (['reports'] as const) : []), ...(group.viewerCan.manage ? (['settings'] as const) : [])] : []
+  const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'resources', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : []), ...(group.viewerCan.moderate ? (['reports'] as const) : []), ...(group.viewerCan.manage ? (['settings'] as const) : [])] : []
   const Icon = group.privacy === 'PRIVATE' ? Lock : Globe
   return (
     <View className="bg-background flex-1">
@@ -137,6 +138,7 @@ export function GroupScreen({ id }: { id: string }) {
             {tab === 'ideas' ? <Ideas group={group} /> : null}
             {tab === 'doubts' ? <Doubts group={group} /> : null}
             {tab === 'notes' ? <Notes group={group} /> : null}
+            {tab === 'resources' ? <PlaceResources to={{ groupId: group.id }} /> : null}
             {tab === 'members' ? (
               <View className="gap-3">
                 {group.viewerCan.inviteMentor ? <InviteMentor groupId={group.id} /> : null}

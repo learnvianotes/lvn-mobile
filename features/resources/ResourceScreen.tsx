@@ -6,11 +6,14 @@ import { useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Text } from '@/components/ui/text'
+import { Discussion } from '@/features/discussion/Discussion'
 import { ReportLink } from '@/features/moderation/ReportSheet'
 import { ScreenHeader } from '@/features/shell/Form'
 import { DeleteResourceDocument, MyResourcesDocument, ResourceDocument } from '@/graphql/generated/graphql'
 import { cn } from '@/lib/utils'
+import { savesText, SaveToggle } from './Catalogue'
 import { STATUS_LABEL, TYPE_LABEL } from './copy'
+import { RecommendSheet } from './RecommendSheet'
 
 /** A resource on the phone (lvn-backend ADR-0074): public once approved; its submitter sees it while it waits, with why if rejected. */
 export function ResourceScreen({ id }: { id: string }) {
@@ -18,6 +21,7 @@ export function ResourceScreen({ id }: { id: string }) {
   const { data } = useQuery(ResourceDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const [remove, removing] = useMutation(DeleteResourceDocument, { refetchQueries: [MyResourcesDocument] })
   const [error, setError] = useState<string | null>(null)
+  const [recommending, setRecommending] = useState(false)
   const r = data?.resource
   if (!data) return <ScreenHeader />
   if (!r) {
@@ -66,6 +70,15 @@ export function ResourceScreen({ id }: { id: string }) {
         <Pressable accessibilityRole="link" onPress={() => void WebBrowser.openBrowserAsync(r.url)} className="bg-primary self-start rounded-xl px-4 py-2.5">
           <Text className="text-primary-foreground font-semibold">Open {r.host}</Text>
         </Pressable>
+        {r.status === 'APPROVED' ? (
+          <View className="flex-row flex-wrap items-center gap-3">
+            <SaveToggle resource={r} />
+            <Text className="text-muted-foreground text-sm">{savesText(r.saveCount)}</Text>
+            <Pressable accessibilityRole="button" onPress={() => setRecommending(true)} className="border-border rounded-full border px-3 py-1.5">
+              <Text className="text-sm font-semibold">Recommend</Text>
+            </Pressable>
+          </View>
+        ) : null}
         {r.description ? <Text>{r.description}</Text> : null}
         {r.topics.length ? (
           <View className="flex-row flex-wrap gap-2">
@@ -93,7 +106,9 @@ export function ResourceScreen({ id }: { id: string }) {
           ) : null}
           {r.viewerCan.report ? <ReportLink entityType="RESOURCE" entityId={r.id} authorId={r.submittedBy.id} /> : null}
         </View>
+        {r.status === 'APPROVED' ? <Discussion target={{ type: 'RESOURCE', id: r.id }} /> : null}
       </ScrollView>
+      <RecommendSheet resourceId={r.id} open={recommending} onClose={() => setRecommending(false)} />
     </View>
   )
 }

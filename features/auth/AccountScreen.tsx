@@ -142,6 +142,14 @@ function PeopleLinks({ viewer }: { viewer: ViewerFieldsFragment }) {
         <Text className="font-semibold">Notification settings</Text>
         <Text className="text-muted-foreground">›</Text>
       </Pressable>
+      <Pressable accessibilityRole="link" onPress={() => router.push('/resources')} className="flex-row items-center justify-between">
+        <Text className="font-semibold">Resources</Text>
+        <Text className="text-muted-foreground">›</Text>
+      </Pressable>
+      <Pressable accessibilityRole="link" onPress={() => router.push('/resources/saved')} className="flex-row items-center justify-between">
+        <Text className="font-semibold">Saved resources</Text>
+        <Text className="text-muted-foreground">›</Text>
+      </Pressable>
       <Pressable accessibilityRole="link" onPress={() => router.push('/resources/mine')} className="flex-row items-center justify-between">
         <Text className="font-semibold">Your resources</Text>
         <Text className="text-muted-foreground">›</Text>

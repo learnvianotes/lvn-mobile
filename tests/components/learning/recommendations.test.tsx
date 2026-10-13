@@ -11,7 +11,7 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn(), re
 
 const NOTE = '01920000-0000-7000-8000-00000000a001'
 const TOPIC = '01920000-0000-7000-8000-0000000070a1'
-const rec = (over: Record<string, unknown>) => ({ __typename: 'Recommendation', score: 50, noteTitle: null, topicKey: null, topicTitle: null, note: null, topic: null, ...over })
+const rec = (over: Record<string, unknown>) => ({ __typename: 'Recommendation', resource: null, score: 50, noteTitle: null, topicKey: null, topicTitle: null, note: null, topic: null, ...over })
 
 it('shows recommendations with why; a note opens, and one can be set aside', async () => {
   let items = [

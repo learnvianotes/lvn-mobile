@@ -44,7 +44,7 @@ describe('QuickActions', () => {
   })
 })
 
-const rec = (over: Record<string, unknown>) => ({ __typename: 'Recommendation', score: 50, noteTitle: null, topicKey: null, topicTitle: null, note: null, topic: null, kind: 'CONTINUE_NOTE' as const, reason: '', ...over }) as never
+const rec = (over: Record<string, unknown>) => ({ __typename: 'Recommendation', resource: null, score: 50, noteTitle: null, topicKey: null, topicTitle: null, note: null, topic: null, kind: 'CONTINUE_NOTE' as const, reason: '', ...over }) as never
 const EXAM = '01920000-0000-7000-8000-0000000e0001'
 const exam = (over: Record<string, unknown> = {}) => ({ __typename: 'Exam', id: EXAM, name: 'Operating Systems', date: '2026-10-25', daysLeft: 12, past: false, readiness: 34, target: 80, targetToday: 40, topics: [{ __typename: 'ExamTopic', key: 'topic:a', title: 'Paging', recall: null, accuracy: 0.2, mastery: 0.08 }], tasks: [], ...over })
 
