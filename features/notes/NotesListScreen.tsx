@@ -1,6 +1,6 @@
 import { useApolloClient } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { AlertTriangle, ArrowLeft, CloudOff, NotebookPen, Plus, RotateCcw, Trash2 } from 'lucide-react-native'
+import { AlertTriangle, ArrowLeft, CloudOff, NotebookPen, Plus, RotateCcw, Sparkles, Trash2 } from 'lucide-react-native'
 import { useState } from 'react'
 import { FlatList, Pressable, RefreshControl, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -95,6 +95,9 @@ export function NotesListScreen() {
           </Text>
           <Text className="text-muted-foreground text-xs">{status.state === 'offline' ? 'Offline — your changes are saved on this phone' : status.state === 'syncing' ? 'Syncing…' : status.lastSyncedAt ? `Synced ${ago(status.lastSyncedAt)}` : ' '}</Text>
         </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Ask AI" onPress={() => router.push('/ask')} className="rounded-full p-2">
+          <Sparkles size={20} color={fg} />
+        </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={trash ? 'Show my notes' : 'Show the trash'} onPress={() => setTrash((t) => !t)} className="rounded-full p-2">
           {trash ? <NotebookPen size={20} color={fg} /> : <Trash2 size={20} color={fg} />}
         </Pressable>

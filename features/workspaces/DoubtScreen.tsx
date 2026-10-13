@@ -14,6 +14,7 @@ import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
 import { AnswerDoubtDocument, DeleteDoubtDocument, DoubtDocument, ReopenDoubtDocument, ResolveDoubtDocument } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
+import { AnswerList, AskForm } from '@/features/ai/AskAi'
 import { StatusChip } from './WorkspaceParts'
 
 /**
@@ -90,6 +91,12 @@ export function DoubtScreen({ id }: { id: string }) {
                 </Pressable>
               ) : null}
             </View>
+          </View>
+          {/* Ask AI on a doubt (lvn-backend ADR-0015, ADR-0060): over the workspace's notes; the answer is the asker's. */}
+          <View className="border-primary/40 gap-3 rounded-2xl border border-dashed p-4">
+            <Text className="text-muted-foreground text-sm">AI reads the notes shared with this workspace and this thread. Its answer is for you; post it yourself if it helps.</Text>
+            <AskForm scope="WORKSPACE" doubtId={id} />
+            <AnswerList doubtId={id} />
           </View>
           <Text className="text-lg font-bold">{d.answers.length === 1 ? '1 answer' : d.answers.length ? `${d.answers.length} answers` : 'No answers'}</Text>
           {d.answers.map((a) => (

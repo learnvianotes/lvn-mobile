@@ -46,6 +46,7 @@ import {
 } from '@/graphql/generated/graphql'
 import type { CardType } from '@/lib/contracts/domain/enums'
 import { cn } from '@/lib/utils'
+import { AnswerList, AskForm } from './AskAi'
 
 /**
  * AI tasks on a note, on the phone (lvn-backend ADR-0059; the web's features/ai/AiPanel): one menu for every task,
@@ -167,6 +168,13 @@ export function AiScreen({ id }: { id: string }) {
           </Text>
         ) : null}
         {allowance && !off ? <Allowance used={allowance.usedToday} limit={allowance.limitToday} resetsAt={allowance.resetsAt} /> : null}
+
+        {note ? (
+          <View className="gap-3">
+            <AskForm scope="THIS_NOTE" noteId={id} offNotice={false} />
+            <AnswerList noteId={id} />
+          </View>
+        ) : null}
 
         <View className="flex-row flex-wrap justify-between gap-y-2" accessibilityLabel="Tasks">
           {tasks.map(({ task, icon: Icon }) => (
