@@ -12,15 +12,16 @@ env:
 - extendedWaitUntil:
     visible: "This week"
     timeout: 15000
-- assertVisible: "0 of 4 days this week"
+# A new account's first week aims only for the planned days from today on.
+- assertVisible: "0 of \\d days this week"
 - assertVisible: ".*more learning minutes, or 10 more reviews, and today counts."
 - scrollUntilVisible:
     element: "Save days"
 - tapOn: "Wednesday"
 - tapOn: "Friday"
 - tapOn: "Save days"
-- extendedWaitUntil:
-    visible: "Saved. This week now aims for 6 days."
+- scrollUntilVisible:
+    element: "Saved. This week now aims for \\d days."
     timeout: 15000
 - scrollUntilVisible:
     element: "Pause Rhythm"
