@@ -40,7 +40,8 @@ const quiz = (attempts: Attempt[]) => {
     myAttempts: attempts.map((a) => ({ __typename: 'QuizAttempt', submittedAt: '2026-10-13T10:00:00.000Z', ...a, answers: a.answers.map((x) => ({ __typename: 'QuizAnswer', ...x })) })),
     questions: [
       { __typename: 'ClassQuizQuestion', id: Q1, position: 0, question: doc('What makes most of the ATP?'), choices: [{ __typename: 'ClassQuizChoice', id: 'c1', content: inline('Mitochondria') }, { __typename: 'ClassQuizChoice', id: 'c2', content: inline('Ribosomes') }], multiple: false, correct: shown ? ['c1'] : null, explanation: shown ? doc('Respiration happens there.') : null },
-      { __typename: 'ClassQuizQuestion', id: Q2, position: 1, question: doc('Which are products?'), choices: [{ __typename: 'ClassQuizChoice', id: 'a', content: inline('Water') }, { __typename: 'ClassQuizChoice', id: 'b', content: inline('Oxygen') }, { __typename: 'ClassQuizChoice', id: 'c', content: inline('Carbon dioxide') }], multiple: true, correct: shown ? ['a', 'c'] : null, explanation: null },
+      // Choice ids repeat across questions, as in quizzes made with AI: each question shows its own choices.
+      { __typename: 'ClassQuizQuestion', id: Q2, position: 1, question: doc('Which are products?'), choices: [{ __typename: 'ClassQuizChoice', id: 'c1', content: inline('Water') }, { __typename: 'ClassQuizChoice', id: 'c2', content: inline('Oxygen') }, { __typename: 'ClassQuizChoice', id: 'c3', content: inline('Carbon dioxide') }], multiple: true, correct: shown ? ['c1', 'c3'] : null, explanation: null },
     ],
   }
 }
@@ -70,7 +71,7 @@ it('takes a quiz without its answers; a dropped submission is sent again as the 
     SubmitQuizAttempt: (v) => {
       if (drop) return ((drop = false), new Error('Network request failed'))
       const answers = (v.input as { answers: { questionId: string; choiceIds: string[] }[] }).answers
-      const right = (id: string, chosen: string[]) => (id === Q1 ? chosen.join() === 'c1' : [...chosen].sort().join() === 'a,c')
+      const right = (id: string, chosen: string[]) => (id === Q1 ? chosen.join() === 'c1' : [...chosen].sort().join() === 'c1,c3')
       const attempt = { id: `att${attempts.length + 1}`, score: answers.filter((a) => right(a.questionId, a.choiceIds)).length, total: 2, answers: answers.map((a) => ({ ...a, correct: right(a.questionId, a.choiceIds) })) }
       attempts = [attempt, ...attempts]
       return { data: { submitQuizAttempt: { __typename: 'QuizAttemptPayload', attempt: { __typename: 'QuizAttempt', id: attempt.id, score: attempt.score, total: attempt.total }, quiz: quiz(attempts), userErrors: [] } } }
@@ -89,7 +90,7 @@ it('takes a quiz without its answers; a dropped submission is sent again as the 
   const sent = api.calls.filter((c) => c.op === 'SubmitQuizAttempt').map((c) => c.variables.input as { clientOpId: string; answers: unknown })
   expect(sent).toHaveLength(2)
   expect(sent[1]!.clientOpId).toBe(sent[0]!.clientOpId)
-  expect(sent[1]!.answers).toEqual([{ questionId: Q1, choiceIds: ['c1'] }, { questionId: Q2, choiceIds: ['a'] }])
+  expect(sent[1]!.answers).toEqual([{ questionId: Q1, choiceIds: ['c1'] }, { questionId: Q2, choiceIds: ['c1'] }])
   expect(screen.getByLabelText('Question 1: right')).toBeOnTheScreen()
   expect(screen.getByLabelText('Question 2: wrong')).toBeOnTheScreen()
   expect(screen.getByText('Respiration happens there.')).toBeOnTheScreen()
