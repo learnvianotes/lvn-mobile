@@ -29,12 +29,18 @@ env:
 - scrollUntilVisible:
     element: "Exams"
 - tapOn: "Exams"
+- scrollUntilVisible:
+    element: "Pause"
 - tapOn:
     text: "Pause"
 - extendedWaitUntil:
     visible: "Paused now"
     timeout: 15000
-- assertVisible: ".*11 of 14 pause days left this term."
+- scrollUntilVisible:
+    element: ".*11 of 14 pause days left this term."
+    direction: UP
+- scrollUntilVisible:
+    element: "Cancel the pause"
 - tapOn: "Cancel the pause"
 - extendedWaitUntil:
     visible: "No pauses."
