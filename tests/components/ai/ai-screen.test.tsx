@@ -4,6 +4,7 @@ import { router } from 'expo-router'
 import { Alert } from 'react-native'
 import { AiScreen } from '@/features/ai/AiScreen'
 import { AccountScreen } from '@/features/auth/AccountScreen'
+import { MediaProvider } from '@/features/notes/media/NoteMedia'
 import { NoteScreen } from '@/features/notes/NoteScreen'
 import type { LocalNote } from '@/features/notes/model/types'
 import { syncNow } from '@/features/notes/sync/engine'
@@ -220,4 +221,32 @@ it('the account screen shows today’s AI allowance, or why AI is off', async ()
   mockApi({ ...account, AiState: () => aiState({ available: false, reason: 'BUDGET' }) })
   await inApollo(<AccountScreen />)
   expect(await screen.findByText('AI is resting until next month: this month’s AI budget is used up.')).toBeOnTheScreen()
+})
+
+it('stays on the note when another query of it is refused (a refused answer is not cached over the note)', async () => {
+  let mediaCalls = 0
+  mockApi({
+    AiState: () => aiState(),
+    NoteAiArtifacts: () => noteAi([artifact({ markdown: 'A heap keeps the smallest item on top.' })]),
+    // The phone's media query once asked for more cards than the API gives at once: refused, with `note: null`.
+    PhoneNoteMedia: () =>
+      ++mediaCalls > 1
+        ? { data: { note: null }, errors: [{ message: 'Ask for between 1 and 100 items.', path: ['note', 'cards'], extensions: { code: 'VALIDATION' } }] }
+        : { data: { note: { __typename: 'Note', id: NOTE, cards: { __typename: 'CardConnection', edges: [], pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } } } } },
+  })
+  const client = createApolloClient()
+  const ui = (cardIds: string) => (
+    <ApolloProvider client={client}>
+      <MediaProvider noteId={NOTE} cardIds={cardIds}>
+        <AiScreen id={NOTE} />
+      </MediaProvider>
+    </ApolloProvider>
+  )
+  const view = await renderInApp(ui('c1'))
+  expect(await screen.findByText('A heap keeps the smallest item on top.')).toBeOnTheScreen()
+  // Cards changed (kept AI cards arrived by sync): the media are asked for again, and refused.
+  await view.rerender(ui('c1,c2'))
+  await waitFor(() => expect(mediaCalls).toBeGreaterThan(1))
+  expect(screen.getByText('A heap keeps the smallest item on top.')).toBeOnTheScreen()
+  expect(screen.getByText(/Ask AI about/)).toBeOnTheScreen()
 })

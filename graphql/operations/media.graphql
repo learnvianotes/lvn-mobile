@@ -18,10 +18,11 @@ fragment PhoneMediaFields on MediaFile {
   playbackUrl
 }
 
-query PhoneNoteMedia($id: UUID!) {
+# A note's cards with their files' short-lived URLs, a page at a time: the API's pages hold at most 100 items.
+query PhoneNoteMedia($id: UUID!, $after: String) {
   note(id: $id) {
     id
-    cards(first: 200) {
+    cards(first: 100, after: $after) {
       edges {
         node {
           id
@@ -30,6 +31,10 @@ query PhoneNoteMedia($id: UUID!) {
             ...PhoneMediaFields
           }
         }
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
       }
     }
   }

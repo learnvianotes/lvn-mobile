@@ -1,7 +1,7 @@
 import type { ApolloClient } from '@apollo/client'
-import { useQuery } from '@apollo/client/react'
+import { useApolloClient, useQuery } from '@apollo/client/react'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { CompleteNoteUploadDocument, CreateNoteUploadDocument, PhoneNoteMediaDocument, type PhoneMediaFieldsFragment } from '@/graphql/generated/graphql'
+import { CompleteNoteUploadDocument, CreateNoteUploadDocument, PhoneNoteMediaDocument, type PhoneMediaFieldsFragment, type PhoneNoteMediaQuery } from '@/graphql/generated/graphql'
 
 /**
  * A note's pictures, video, audio and files on the phone (lvn-backend §8.1, ADR-0041). Media cards hold only a file id;
@@ -18,9 +18,34 @@ const MediaContext = createContext<Media>({ byFile: new Map(), local: new Map(),
 const uploadedHere = new Map<string, string>()
 const listeners = new Set<() => void>()
 
+type MediaEdges = NonNullable<PhoneNoteMediaQuery['note']>['cards']['edges']
+
 export function MediaProvider({ noteId, cardIds, children }: { noteId: string; cardIds: string; children: ReactNode }) {
-  const { data, error, refetch } = useQuery(PhoneNoteMediaDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network', errorPolicy: 'all' })
+  const client = useApolloClient()
+  // Errors are not cached: a failed answer would otherwise put `note: null` where every screen of this note reads it.
+  const { data, error, refetch } = useQuery(PhoneNoteMediaDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network' })
   const [, bump] = useState(0)
+  // The pages after the first, for a note of more than 100 cards; asked for again whenever the first page is.
+  const first = data?.note?.cards
+  const [rest, setRest] = useState<MediaEdges>([])
+  useEffect(() => {
+    let stopped = false
+    let after = first?.pageInfo.hasNextPage ? first.pageInfo.endCursor : null
+    void (async () => {
+      const edges: MediaEdges = []
+      while (after && !stopped) {
+        const res = await client.query({ query: PhoneNoteMediaDocument, variables: { id: noteId, after }, fetchPolicy: 'network-only' }).catch(() => null)
+        const page = res?.data?.note?.cards
+        if (!page) break
+        edges.push(...page.edges)
+        after = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null
+      }
+      if (!stopped) setRest(edges)
+    })()
+    return () => {
+      stopped = true
+    }
+  }, [client, noteId, first])
   // A card added or sent since: ask again (its media URL is new).
   useEffect(() => {
     void refetch().catch(() => undefined)
@@ -32,12 +57,12 @@ export function MediaProvider({ noteId, cardIds, children }: { noteId: string; c
   }, [])
   const value = useMemo<Media>(() => {
     const byFile = new Map<string, MediaFile>()
-    for (const { node } of data?.note?.cards.edges ?? []) {
+    for (const { node } of [...(first?.edges ?? []), ...rest]) {
       const fileId = (node.content as { fileId?: string } | null)?.fileId
       if (fileId && node.media) byFile.set(fileId, node.media)
     }
     return { byFile, local: uploadedHere, online: !error }
-  }, [data, error])
+  }, [first, rest, error])
   return <MediaContext.Provider value={value}>{children}</MediaContext.Provider>
 }
 
