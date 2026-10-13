@@ -1,5 +1,5 @@
 # The resource catalogue on the phone (lvn-backend ADR-0075): a verified learner finds an approved course by its words
-# from the Profile tab, saves it, and finds it in their Saved resources. scripts/e2e-android.mjs makes the learner and
+# from the Profile tab, saves it, and finds it in their Saved list. scripts/e2e-android.mjs makes the learner and
 # the approved resource when run with --vm; without it this flow does nothing.
 appId: ${APP_ID}
 env:
@@ -43,9 +43,9 @@ env:
       # The Saved list, from the Profile tab (the header's "Saved" would be ambiguous with the card's toggle).
       - tapOn: "Back"
       - scrollUntilVisible:
-          element: "Saved resources"
+          element: "Saved"
           centerElement: true
-      - tapOn: "Saved resources"
+      - tapOn: "Saved"
       - extendedWaitUntil:
           visible: ${RESOURCE_TITLE}
           timeout: 15000

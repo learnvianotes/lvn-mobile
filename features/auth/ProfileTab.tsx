@@ -19,7 +19,7 @@ type Row = { label: string; icon: LucideIcon; href: Href; show?: (v: ViewerField
 /** Board A's list (lvn-backend ADR-0076), then the rest of what is the person's; each row opens a screen. */
 const ROWS: Row[] = [
   { label: 'My notes', icon: NotebookPen, href: '/notes' },
-  { label: 'Saved resources', icon: Bookmark, href: '/resources/saved' },
+  { label: 'Saved', icon: Bookmark, href: '/saved' },
   { label: 'My groups', icon: Users, href: { pathname: '/community', params: { section: 'places' } } },
   { label: 'My classrooms', icon: GraduationCap, href: { pathname: '/community', params: { section: 'places' } } },
   { label: 'Learning history', icon: History, href: '/history' },

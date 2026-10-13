@@ -1,3 +1,6 @@
-import { SavedScreen } from '@/features/resources/Catalogue'
+import { Redirect } from 'expo-router'
 
-export default SavedScreen
+/** Saved resources are a section of Saved now (lvn-backend ADR-0076): old links land there. */
+export default function SavedResources() {
+  return <Redirect href="/saved" />
+}

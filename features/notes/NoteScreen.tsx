@@ -27,6 +27,7 @@ import { MakeCopyButton, NoteStatus, useNoteActions } from './publishing/NoteAct
 import { StudyAids } from '@/features/ai/StudyAids'
 import { useLearningTime } from '@/features/learning/useLearningTime'
 import { StudyCardsButton } from '@/features/learning/StudyCardsButton'
+import { SaveNoteToggle } from '@/features/saved/SaveNoteToggle'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -311,6 +312,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
     <View className="bg-background flex-1">
       <Header>
         {note.deletedAt ? null : <MakeCopyButton noteId={note.id} />}
+        {note.deletedAt ? null : <SaveNoteToggle noteId={note.id} />}
         {note.deletedAt ? null : <AiButton noteId={note.id} />}
         {!note.deletedAt && cards.some((c) => c.type === 'flashcard') ? <StudyCardsButton noteId={note.id} /> : null}
         <ReadAloudButton reader={reader} />
