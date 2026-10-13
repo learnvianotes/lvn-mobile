@@ -48,9 +48,15 @@ export function RecordScreen({ id, transcribe }: { id: string; transcribe?: bool
   const start = async () => {
     setMessage(null)
     if (!(await requestRecordingPermissionsAsync()).granted) return setMessage({ ok: false, text: 'Allow LearnViaNotes to use the microphone in the phone’s settings to record voice notes.' })
-    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true })
-    await recorder.prepareToRecordAsync()
-    recorder.record()
+    try {
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true })
+      await recorder.prepareToRecordAsync()
+      recorder.record()
+    } catch {
+      // Another app holds the microphone, or the phone has none that works.
+      await setAudioModeAsync({ allowsRecording: false }).catch(() => undefined)
+      return setMessage({ ok: false, text: 'The microphone could not start. Close other apps that use it and try again.' })
+    }
     setSeconds(0)
     setState('recording')
     timer.current = setInterval(() => {

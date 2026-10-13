@@ -51,6 +51,15 @@ it('says how to allow the microphone when it is refused', async () => {
   expect(await screen.findByText(/Allow LearnViaNotes to use the microphone/)).toBeOnTheScreen()
 })
 
+it('says so when the microphone cannot start', async () => {
+  jest.mocked(useAudioRecorder(undefined as never).prepareToRecordAsync).mockRejectedValueOnce(new Error('busy'))
+  mockApi({})
+  await inApollo(<RecordScreen id={NOTE} />)
+  await fireEvent.press(screen.getByRole('button', { name: 'Start recording' }))
+  expect(await screen.findByText(/The microphone could not start/)).toBeOnTheScreen()
+  expect(screen.queryByRole('button', { name: 'Stop recording' })).toBeNull()
+})
+
 it('transcribes a note’s recording and tidies one’s own rough notes from the AI screen', async () => {
   const api = mockApi({
     AiState: () => aiState,
