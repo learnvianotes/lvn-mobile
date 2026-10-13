@@ -16,7 +16,7 @@ jest.mock('@/features/notes/store/db', () => ({
 const mockAuthFetch = jest.fn()
 jest.mock('@/lib/apollo', () => ({ authFetch: (...args: unknown[]) => mockAuthFetch(...args) }))
 
-import { flush, track } from '@/lib/learning'
+import { flush, track, watchTimeZone } from '@/lib/learning'
 
 const answered = (body: unknown) => ({ json: async () => body })
 
@@ -64,4 +64,18 @@ it('keeps a batch refused for now', async () => {
   await track('NOTE_OPENED', { entityId: 'n1' })
   await flush()
   expect(mockOutbox).toHaveLength(1)
+})
+
+it('tells the server the phone’s time zone once someone is signed in, once per zone (ADR-0070)', async () => {
+  mockAuthFetch.mockImplementation(async () => answered({ data: { setLearningTimeZone: { ok: true } } }))
+  const stop = watchTimeZone()
+  await new Promise((r) => setTimeout(r, 0))
+  expect(mockAuthFetch).toHaveBeenCalledTimes(1)
+  const sent = JSON.parse(mockAuthFetch.mock.calls[0][1].body) as { query: string; variables: { input: { timeZone: string } } }
+  expect(sent.query).toContain('setLearningTimeZone')
+  expect(sent.variables.input.timeZone).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  stop()
+  watchTimeZone()
+  await new Promise((r) => setTimeout(r, 0))
+  expect(mockAuthFetch).toHaveBeenCalledTimes(1)
 })

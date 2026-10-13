@@ -34,6 +34,33 @@ function listen() {
   subscribeSession(() => getSession().status === 'signed-in' && void flush())
 }
 
+const ZONE = `mutation SetLearningTimeZone($input: SetLearningTimeZoneInput!) { setLearningTimeZone(input: $input) { ok } }`
+let zoneTold: string | null = null
+
+/**
+ * Tells the server the phone's time zone as soon as someone is signed in, not only with the first batch of events: a new
+ * account's days and exam countdowns are then in their zone from the first screen (ADR-0067, ADR-0070).
+ */
+export function watchTimeZone(): () => void {
+  const tell = async () => {
+    const s = getSession()
+    if (s.status !== 'signed-in') {
+      zoneTold = null
+      return
+    }
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    if (!timeZone || zoneTold === timeZone) return
+    zoneTold = timeZone
+    try {
+      await authFetch(env.EXPO_PUBLIC_API_URL, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ query: ZONE, variables: { input: { timeZone } } }) })
+    } catch {
+      zoneTold = null
+    }
+  }
+  void tell()
+  return subscribeSession(() => void tell())
+}
+
 /** Records one learning event (types and fields: §14.1, ADR-0067). Nothing is recorded signed out. */
 export async function track(type: LearningEventType, fields: Fields = {}): Promise<void> {
   if (getSession().status !== 'signed-in') return
