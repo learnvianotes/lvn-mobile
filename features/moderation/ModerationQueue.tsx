@@ -1,6 +1,7 @@
 import { CombinedGraphQLErrors } from '@apollo/client/errors'
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
+import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
@@ -8,6 +9,7 @@ import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { ago } from '@/features/notifications/describe'
 import { ModerateContentDocument, ModerationQueueDocument, MuteGroupMemberDocument, type ModerationActionType, type ModerationQueueQuery } from '@/graphql/generated/graphql'
+import { TYPE_LABEL } from '@/features/resources/copy'
 import { ENTITY, REASON_LABEL, STATE } from './copy'
 
 type Case = ModerationQueueQuery['moderationQueue']['edges'][number]['node']
@@ -24,6 +26,8 @@ function choicesFor(c: Case): Choice[] {
   const dismiss: Choice = { action: 'DISMISS', label: keep ? 'Keep the decision' : 'Dismiss reports' }
   const warn: Choice = { action: 'WARN', label: 'Warn' }
   const remove: Choice = { action: 'REMOVE', label: 'Remove' }
+  // A new resource is approved or rejected (ADR-0074); people's reports on one in the catalogue are dismissed, or it is removed.
+  if (c.entityType === 'RESOURCE') return c.reports.some((x) => x.reporter) ? [dismiss, remove] : [{ action: 'APPROVE', label: 'Approve' }, { action: 'REMOVE', label: 'Reject' }]
   // Accounts are warned or suspended; a suspension is lifted or kept (ADR-0053).
   if (c.entityType === 'USER') return c.suspendedUntil ? [{ action: 'APPROVE', label: 'Lift the suspension' }, { action: 'DISMISS', label: c.appeal ? 'Keep the decision' : 'Dismiss reports' }, warn] : [dismiss, warn, { action: 'SUSPEND', label: 'Suspend' }]
   // A removed group is put back or stays removed.
@@ -85,7 +89,7 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
   const [muted24, setMuted24] = useState(false)
   const author = c.content?.author ?? c.note?.owner ?? null
   const state = c.content?.moderation ?? c.note?.moderation ?? null
-  const title = c.note ? c.note.title || 'Untitled note' : c.group ? c.group.name : c.removedGroup ? c.removedGroup.name : c.user ? `${c.user.displayName} (@${c.user.handle})` : null
+  const title = c.note ? c.note.title || 'Untitled note' : c.resource ? c.resource.title : c.group ? c.group.name : c.removedGroup ? c.removedGroup.name : c.user ? `${c.user.displayName} (@${c.user.handle})` : null
   const decide = async (action: ModerationActionType) => {
     if (NEEDS_REASON.has(action) && !reason.trim()) return setError('Write a reason first: the author is told.')
     const problem = await attempt(() => moderate({ variables: { input: { entityType: c.entityType, entityId: c.entityId, action, reason: reason.trim() || null, ...(action === 'SUSPEND' ? { suspendDays: days } : {}) } } }))
@@ -123,6 +127,7 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
         </Text>
       ) : null}
       {c.removedGroup ? <Text className="bg-secondary rounded-xl px-3 py-2 text-sm">Removed: {c.removedGroup.reason}</Text> : null}
+      {c.resource ? <ResourceCase resource={c.resource} /> : null}
       {c.note?.excerpt ? (
         <Text className="bg-secondary rounded-xl px-3 py-2 text-sm" numberOfLines={6}>
           {c.note.excerpt}
@@ -178,6 +183,27 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
       {error ? (
         <Text accessibilityRole="alert" className="text-destructive text-sm">
           {error}
+        </Text>
+      ) : null}
+    </View>
+  )
+}
+
+/** What moderators judge a resource by (ADR-0074): what it is, where its link goes, and what the person said about it. */
+function ResourceCase({ resource: r }: { resource: NonNullable<Case['resource']> }) {
+  return (
+    <View className="bg-secondary gap-1 rounded-xl px-3 py-2">
+      <Text className="text-sm">
+        <Text className="font-semibold">{TYPE_LABEL[r.type]}</Text>
+        {r.author ? ` · ${r.author}` : ''}
+        {r.isbn ? ` · ISBN ${r.isbn}` : ''} · by {r.submittedBy.displayName}
+      </Text>
+      <Pressable accessibilityRole="link" onPress={() => void WebBrowser.openBrowserAsync(r.url)}>
+        <Text className="text-primary text-sm font-semibold">{r.url}</Text>
+      </Pressable>
+      {r.description ? (
+        <Text className="text-sm" numberOfLines={6}>
+          {r.description}
         </Text>
       ) : null}
     </View>

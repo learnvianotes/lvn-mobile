@@ -71,7 +71,7 @@ it('the owner of a removed group reads why where it was and appeals; anyone else
 
 it('platform admins suspend for some days, lift a suspension after its appeal, and put a removed group back', async () => {
   const at = new Date().toISOString()
-  const base = { __typename: 'ModerationCase', scope: 'PLATFORM', scopeId: null, openedAt: at, note: null, group: null, content: null, removedGroup: null, suspendedUntil: null, appeal: null, reports: [] }
+  const base = { __typename: 'ModerationCase', resource: null, scope: 'PLATFORM', scopeId: null, openedAt: at, note: null, group: null, content: null, removedGroup: null, suspendedUntil: null, appeal: null, reports: [] }
   const cases = [
     { ...base, entityType: 'USER', entityId: 'u2', user: { __typename: 'User', id: 'u2', displayName: 'Ravi Kumar', handle: 'ravi' } },
     { ...base, entityType: 'USER', entityId: 'u3', user: { __typename: 'User', id: 'u3', displayName: 'Dev Patel', handle: 'dev' }, suspendedUntil: new Date(Date.now() + 5 * 86_400_000).toISOString(), appeal: { __typename: 'ModerationAppeal', message: 'It was a class announcement.', createdAt: at } },
