@@ -122,6 +122,10 @@ function PeopleLinks({ viewer }: { viewer: ViewerFieldsFragment }) {
         <Text className="font-semibold">Followers, following and blocked people</Text>
         <Text className="text-muted-foreground">›</Text>
       </Pressable>
+      <Pressable accessibilityRole="link" onPress={() => router.push('/exams')} className="flex-row items-center justify-between">
+        <Text className="font-semibold">Exams</Text>
+        <Text className="text-muted-foreground">›</Text>
+      </Pressable>
       <Pressable accessibilityRole="link" onPress={() => router.push('/rhythm')} className="flex-row items-center justify-between">
         <Text className="font-semibold">Rhythm</Text>
         <Text className="text-muted-foreground">›</Text>

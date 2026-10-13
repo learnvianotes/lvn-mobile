@@ -81,6 +81,8 @@ export default function RootLayout() {
                 <Stack.Screen name="notification-settings" />
                 <Stack.Screen name="history" />
                 <Stack.Screen name="rhythm" />
+                <Stack.Screen name="exams/index" />
+                <Stack.Screen name="exams/[id]" />
                 <Stack.Screen name="review" />
                 <Stack.Screen name="people" />
                 <Stack.Screen name="skills" />

@@ -48,6 +48,9 @@ export function describeNotification(n: Described): string {
     case 'QUIZ_PUBLISHED':
       // A quiz published to the viewer's class (lvn-backend ADR-0064); the notification opens it.
       return `${actor} published a quiz in ${place ?? 'a class'}`
+    case 'REVISION_REMINDER':
+      // An exam's revision task left today (lvn-backend ADR-0070): the exam is the viewer's own.
+      return typeof data.examName === 'string' && data.examName ? `Today’s revision for ${data.examName} is waiting` : 'Today’s revision is waiting'
     case 'MENTION': {
       // Someone named the viewer with @handle (lvn-backend ADR-0054); where, never what they wrote.
       const thing = data.entityType === 'GROUP_POST' ? 'a post' : 'a comment'

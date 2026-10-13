@@ -1,26 +1,31 @@
+import { useQuery } from '@apollo/client/react'
+import { router } from 'expo-router'
 import type { ReactNode } from 'react'
-import { ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from '@/components/ui/safe-area-view'
 import { Text } from '@/components/ui/text'
 import { ContinueCard } from './ContinueCard'
 import { ExamReadiness } from './ExamReadiness'
 import { HeroCard } from './HeroCard'
+import { RecommendationsDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { HomeHeader } from './HomeHeader'
-import { learner } from './mock'
 import { QuickActions } from './QuickActions'
 import { Recommended } from './Recommended'
 import { RhythmCard } from './RhythmCard'
-import { SubjectChips } from './SubjectChips'
 
 /** Sections rise in quickly and in order (40 ms apart); Reanimated skips this when the system asks for reduced motion. */
-function Section({ index, title, action, children }: { index: number; title?: string; action?: string; children: ReactNode }) {
+function Section({ index, title, action, onAction, children }: { index: number; title?: string; action?: string; onAction?: () => void; children: ReactNode }) {
   return (
     <Animated.View entering={FadeInDown.duration(260).delay(index * 40)} className="gap-3">
       {title ? (
         <View className="flex-row items-end justify-between">
           <Text className="text-lg font-bold" accessibilityRole="header">{title}</Text>
-          {action ? <Text className="text-primary text-sm font-medium">{action}</Text> : null}
+          {action ? (
+            <Pressable accessibilityRole="link" disabled={!onAction} onPress={onAction}>
+              <Text className="text-primary text-sm font-medium">{action}</Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
       {children}
@@ -28,8 +33,16 @@ function Section({ index, title, action, children }: { index: number; title?: st
   )
 }
 
-/** PROTOTYPE (prototype/home-screen): the Home tab from the LearnViaNotes UI board, with Rhythm (ADR-0030). */
+/**
+ * The Home tab (lvn-backend ADR-0069–0071, P6h): a greeting, today's ring and this week's Rhythm, the next exam's
+ * Readiness, the note to continue, and recommendations, each saying why.
+ */
 export function HomeScreen() {
+  const viewer = useQuery(ViewerDocument).data?.viewer
+  const recs = useQuery(RecommendationsDocument, { variables: { limit: 8 }, fetchPolicy: 'cache-and-network' }).data?.recommendations
+  const firstName = viewer?.displayName.trim().split(/\s+/)[0] ?? ''
+  const next = recs?.find((r) => r.kind === 'CONTINUE_NOTE')
+  const others = recs?.filter((r) => r !== next) ?? []
   return (
     <SafeAreaView edges={['top']} className="bg-background flex-1">
       <ScrollView contentContainerClassName="gap-6 px-5 pb-32 pt-2" showsVerticalScrollIndicator={false}>
@@ -37,21 +50,22 @@ export function HomeScreen() {
           <HomeHeader />
         </Section>
         <Section index={1}>
-          <HeroCard firstName={learner.firstName} />
+          <HeroCard firstName={firstName} />
         </Section>
         <Section index={2}>
           <QuickActions />
         </Section>
-        <Section index={3} title="Your rhythm" action="This week">
+        <Section index={3} title="Your rhythm" action="This week" onAction={() => router.push('/rhythm')}>
           <RhythmCard />
           <ExamReadiness />
         </Section>
-        <Section index={4} title="Continue learning">
-          <ContinueCard />
-        </Section>
-        <Section index={5} title="Recommended for you" action="See all">
-          <SubjectChips />
-          <Recommended />
+        {next ? (
+          <Section index={4} title="Continue learning">
+            <ContinueCard item={next} />
+          </Section>
+        ) : null}
+        <Section index={5} title="Recommended for you" action="See all" onAction={() => router.push('/rhythm')}>
+          {recs ? <Recommended items={others} /> : null}
         </Section>
       </ScrollView>
     </SafeAreaView>

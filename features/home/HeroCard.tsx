@@ -38,7 +38,7 @@ export function HeroCard({ firstName }: { firstName: string }) {
       </Svg>
       <View className="flex-1 justify-center gap-1.5 px-5">
         <Text className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#c7d2fe' }}>
-          Keep learning, {firstName}
+          {firstName ? `Keep learning, ${firstName}` : 'Keep learning'}
         </Text>
         <Text className="text-2xl font-bold" style={{ color: '#ffffff' }} accessibilityRole="header">
           Make it happen

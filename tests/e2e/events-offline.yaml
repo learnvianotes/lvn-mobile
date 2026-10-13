@@ -1,0 +1,44 @@
+# Learning events survive airplane mode (Phase 6 exit, lvn-backend ADR-0067): a note read with no connection is
+# recorded on the phone and reaches the server when the connection returns.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Notes"
+- tapOn: "New note"
+- tapOn: "Title"
+- inputText: "Read offline"
+- hideKeyboard
+- tapOn: "Back"
+- extendedWaitUntil:
+    notVisible: "Not sent yet"
+    timeout: 45000
+# No connection: open the note and read it for a while; the events wait on the phone.
+- setAirplaneMode: enabled
+- tapOn: "Read offline"
+- waitForAnimationToEnd:
+    timeout: 15000
+- swipe:
+    direction: UP
+- swipe:
+    direction: DOWN
+- tapOn: "Back"
+- setAirplaneMode: disabled
+# Back online: the notes sync again, and the waiting events go with the same signal; the server lists the note among
+# those opened today.
+- extendedWaitUntil:
+    visible: "Synced just now"
+    timeout: 60000
+- repeat:
+    while:
+      true: ${output.opened == undefined || output.opened.indexOf('Read offline') < 0}
+    times: 10
+    commands:
+      - runScript:
+          file: scripts/learning-events.js
+          env:
+            TOKEN: ${output.token}
+      - swipe:
+          direction: DOWN
+- assertTrue: ${output.opened.indexOf('Read offline') >= 0}

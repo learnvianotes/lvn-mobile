@@ -1,10 +1,11 @@
 import { Check, FileText, Image as ImageIcon, X } from 'lucide-react-native'
-import { useState } from 'react'
+import { createContext, useContext, useState, type ReactNode } from 'react'
 import { Pressable, ScrollView, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import type { CardType } from '@/lib/contracts/domain/enums'
 import { cardAnchor, type CardAnchor, type Doc, type Inline } from '@/lib/contracts/validation'
+import { track } from '@/lib/learning'
 import { cn } from '@/lib/utils'
 import { Markdown } from './Markdown'
 import { MediaView } from './MediaView'
@@ -21,7 +22,17 @@ const CALLOUT: Record<string, string> = { note: 'bg-secondary', info: 'bg-sky-50
  * `onOpenFile` makes a file card (a PDF) open in the reader; `onAnchor` makes the page chip of a card made from a PDF
  * open the PDF there (ADR-0040). Without them the card only says which page it came from.
  */
-export function CardView({ type, content, highlighted, onOpenFile, onAnchor }: { type: CardType; content: unknown; highlighted?: boolean; onOpenFile?: (fileId: string) => void; onAnchor?: (anchor: CardAnchor) => void }) {
+const QuizTopics = createContext<string[] | null>(null)
+
+/**
+ * The topics of the note being read: a quiz checked in it is a learning event on them (lvn-backend ADR-0070: weak
+ * topics, Readiness). Without it a quiz records nothing.
+ */
+export function QuizTopicsProvider({ topicKeys, children }: { topicKeys: string[]; children: ReactNode }) {
+  return <QuizTopics value={topicKeys}>{children}</QuizTopics>
+}
+
+export function CardView({ id, type, content, highlighted, onOpenFile, onAnchor }: { id?: string; type: CardType; content: unknown; highlighted?: boolean; onOpenFile?: (fileId: string) => void; onAnchor?: (anchor: CardAnchor) => void }) {
   const c = content as Any
   const body = (() => {
     switch (type) {
@@ -87,7 +98,7 @@ export function CardView({ type, content, highlighted, onOpenFile, onAnchor }: {
       case 'question':
         return <Question content={c} />
       case 'quiz':
-        return <Quiz content={c} />
+        return <Quiz id={id} content={c} />
       case 'flashcard':
         return <Flashcard content={c} />
       case 'file':
@@ -147,7 +158,8 @@ function Question({ content }: { content: { prompt: Doc; answer: Doc; hint?: Doc
   )
 }
 
-function Quiz({ content }: { content: { question: Doc; choices: { id: string; content: Inline }[]; correct: string[]; multiple: boolean } }) {
+function Quiz({ id, content }: { id?: string; content: { question: Doc; choices: { id: string; content: Inline }[]; correct: string[]; multiple: boolean } }) {
+  const topicKeys = useContext(QuizTopics)
   const [picked, setPicked] = useState<string[]>([])
   const [checked, setChecked] = useState(false)
   const right = checked && picked.length === content.correct.length && picked.every((p) => content.correct.includes(p))
@@ -174,7 +186,15 @@ function Quiz({ content }: { content: { question: Doc; choices: { id: string; co
         )
       })}
       <View className="flex-row items-center gap-3">
-        <Chip label="Check" onPress={() => setChecked(true)} disabled={!picked.length} />
+        <Chip
+          label="Check"
+          onPress={() => {
+            setChecked(true)
+            const correct = picked.length === content.correct.length && picked.every((p) => content.correct.includes(p))
+            if (topicKeys && id) void track('QUIZ_COMPLETED', { entityType: 'NOTE_CARD', entityId: id, topicKeys: topicKeys.slice(0, 10), metadata: { answered: 1, correct: correct ? 1 : 0 } })
+          }}
+          disabled={!picked.length}
+        />
         {checked ? <Text className={cn('font-semibold', right ? 'text-emerald-600' : 'text-red-600')}>{right ? 'Correct!' : 'Not quite.'}</Text> : null}
       </View>
     </View>

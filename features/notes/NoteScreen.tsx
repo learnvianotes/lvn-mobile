@@ -6,7 +6,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, Sc
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
-import { RemoteNoteDocument } from '@/graphql/generated/graphql'
+import { NoteTopicKeysDocument, RemoteNoteDocument } from '@/graphql/generated/graphql'
 import type { CardType } from '@/lib/contracts/domain/enums'
 import { cardPlainText } from '@/lib/contracts/validation'
 import { cn } from '@/lib/utils'
@@ -14,7 +14,7 @@ import { CardEditor, PHONE_EDITABLE } from './editor/CardEditor'
 import { useLocal, useSyncStatus } from './hooks'
 import type { LocalCard, LocalNote } from './model/types'
 import { useReadAloud } from './readAloud'
-import { CardView } from './render/CardView'
+import { CardView, QuizTopicsProvider } from './render/CardView'
 import * as actions from './store/actions'
 import * as db from './store/db'
 import { syncSoon } from './sync/engine'
@@ -55,13 +55,24 @@ export function NoteScreen({ id }: { id: string }) {
   const cards = useLocal(() => db.getCards(id), [id])
   // Learning history (lvn-backend ADR-0067): the note opened, and the time it is read, offline too.
   useLearningTime(note === undefined ? null : { entityType: 'NOTE', entityId: id }, 'NOTE_OPENED')
+  // The note's topics, for quiz results (lvn-backend ADR-0070); kept from the last time online.
+  const topics = useQuery(NoteTopicKeysDocument, { variables: { id }, skip: !!note?.localOnly })
+  const topicKeys = topics.data?.note?.topics.map((t) => `topic:${t.id}`) ?? []
   if (note === undefined || cards === undefined) return <Loading />
-  if (note === null) return <RemoteNote id={id} />
+  if (note === null) {
+    return (
+      <QuizTopicsProvider topicKeys={topicKeys}>
+        <RemoteNote id={id} />
+      </QuizTopicsProvider>
+    )
+  }
   // Media URLs are asked for again whenever a card is added or sent (its revision changes).
   return (
-    <MediaProvider noteId={note.id} cardIds={cards.map((c) => `${c.id}:${c.revision ?? 'new'}`).join()}>
-      {note.access === 'READER' || note.deletedAt ? <Reader note={note} cards={cards} /> : <Editor note={note} cards={cards} />}
-    </MediaProvider>
+    <QuizTopicsProvider topicKeys={topicKeys}>
+      <MediaProvider noteId={note.id} cardIds={cards.map((c) => `${c.id}:${c.revision ?? 'new'}`).join()}>
+        {note.access === 'READER' || note.deletedAt ? <Reader note={note} cards={cards} /> : <Editor note={note} cards={cards} />}
+      </MediaProvider>
+    </QuizTopicsProvider>
   )
 }
 
@@ -227,7 +238,7 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
                 <CardEditor card={card} onChange={(content) => void actions.saveCard(card, content).then(changed)} />
               ) : (
                 <Pressable accessibilityRole="button" accessibilityHint={PHONE_EDITABLE.has(card.type) ? 'Edits this card' : 'Edit this card on the web'} onPress={() => setSelected(card.id)} onLongPress={() => reader.play(card.id)}>
-                  <CardView type={card.type} content={card.content} highlighted={reader.current === card.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: card.id }))} />
+                  <CardView id={card.id} type={card.type} content={card.content} highlighted={reader.current === card.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: card.id }))} />
                   {!cardPlainText(card.type, card.content) && PHONE_EDITABLE.has(card.type) ? <Text className="text-muted-foreground text-base">Tap to write…</Text> : null}
                 </Pressable>
               )}
@@ -318,7 +329,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
         {note.deletedAt ? null : <NoteCredits noteId={note.id} />}
         {cards.map((c) => (
           <Pressable key={c.id} onLongPress={() => reader.play(c.id)} accessibilityHint="Long press to read aloud from here">
-            <CardView type={c.type} content={c.content} highlighted={reader.current === c.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: c.id }))} />
+            <CardView id={c.id} type={c.type} content={c.content} highlighted={reader.current === c.id} onOpenFile={(fileId) => router.push(readerPath(note.id, fileId))} onAnchor={(a) => router.push(readerPath(note.id, a.fileId, { page: a.page, card: c.id }))} />
           </Pressable>
         ))}
         {note.deletedAt ? null : <StudyAids noteId={note.id} />}
