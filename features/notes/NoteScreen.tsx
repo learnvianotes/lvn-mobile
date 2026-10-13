@@ -26,6 +26,7 @@ import { pickMedia, type MediaSource } from './media/pickMedia'
 import { MakeCopyButton, NoteStatus, useNoteActions } from './publishing/NoteActions'
 import { StudyAids } from '@/features/ai/StudyAids'
 import { useLearningTime } from '@/features/learning/useLearningTime'
+import { StudyCardsButton } from '@/features/learning/StudyCardsButton'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -300,6 +301,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
       <Header>
         {note.deletedAt ? null : <MakeCopyButton noteId={note.id} />}
         {note.deletedAt ? null : <AiButton noteId={note.id} />}
+        {!note.deletedAt && cards.some((c) => c.type === 'flashcard') ? <StudyCardsButton noteId={note.id} /> : null}
         <ReadAloudButton reader={reader} />
       </Header>
       <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40, gap: 14 }}>
