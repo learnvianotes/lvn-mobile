@@ -1,96 +1,87 @@
+import { useQuery } from '@apollo/client/react'
+import { router } from 'expo-router'
 import { Check, Pause } from 'lucide-react-native'
-import { useState } from 'react'
-import { View } from 'react-native'
-import Animated, { FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated'
+import { Pressable, View } from 'react-native'
+import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
 import { useCSSVariable } from 'uniwind'
-import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
-import { haptic } from '@/lib/haptics'
+import { ringPercent } from '@/features/learning/RhythmScreen'
+import { RhythmDocument } from '@/graphql/generated/graphql'
 import { cn } from '@/lib/utils'
-import { rhythm, today, week } from './mock'
 import { TodayRing } from './TodayRing'
 
+const LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+const NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
 /**
- * Rhythm (ADR-0030): the Today ring, the week (planned days, counted days, rest days — never red), and a counter
- * that never resets. "Review a card" stands in for real reviews in this prototype.
+ * Rhythm on Home (ADR-0030, lvn-backend ADR-0069): today's ring and what fills it, the week (planned, counted, rest —
+ * never red), and the counter that never resets. Tapping opens Rhythm.
  */
 export function RhythmCard() {
-  const [done, setDone] = useState<number>(today.reviewsDone)
-  const counted = done >= today.dayBar
   const success = String(useCSSVariable('--color-success') ?? '#15803d')
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
-  const plannedDays = week.filter((d) => d.target).length
-  const countedDays = week.filter((d) => d.counted).length + (counted ? 1 : 0)
-
-  const review = () => {
-    if (done >= today.ringFull) return
-    const next = done + 1
-    setDone(next)
-    if (next === today.dayBar) haptic.success()
-    else haptic.tick()
-  }
-
+  const secondaryFg = String(useCSSVariable('--color-secondary-foreground') ?? '#3730a3')
+  const { data } = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
+  const r = data?.rhythm
+  if (!r) return <View className="bg-card border-border h-64 rounded-3xl border" />
+  const t = r.today
+  const percent = ringPercent(t)
+  const paused = r.pauses.some((p) => p.active)
+  const items = t.items.flatMap((i) =>
+    i.kind === 'REVIEWS' ? (i.total ? [`Reviews: ${i.done} of ${i.total}`] : []) : i.kind === 'PLAN_TASK' ? [`Revision for ${i.title}: ${i.done} of ${i.total}`] : i.kind === 'WEAK_TOPIC' ? [`Weak topic: ${i.title ?? i.topicKey}`] : [],
+  )
   return (
-    <View className="bg-card border-border gap-4 rounded-3xl border p-4">
+    <Pressable accessibilityRole="link" accessibilityHint="Opens Rhythm" onPress={() => router.push('/rhythm')} className="bg-card border-border gap-4 rounded-3xl border p-4">
       <View className="flex-row items-center justify-between">
         <Text className="text-lg font-bold">Today</Text>
-        <View className="bg-secondary flex-row items-center gap-1.5 rounded-full px-3 py-1">
-          <Pause size={12} color={String(useCSSVariable('--color-secondary-foreground') ?? '#3730a3')} />
-          <Text className="text-secondary-foreground text-xs font-medium">Pause</Text>
-        </View>
+        {paused ? (
+          <View className="bg-secondary flex-row items-center gap-1.5 rounded-full px-3 py-1">
+            <Pause size={12} color={secondaryFg} />
+            <Text className="text-secondary-foreground text-xs font-medium">Paused</Text>
+          </View>
+        ) : null}
       </View>
-
       <View className="flex-row items-center gap-4">
-        <TodayRing done={done} dayBar={today.dayBar} full={today.ringFull} />
+        <TodayRing done={percent} dayBar={100} full={100} label={`Today’s ring: ${percent}% of the way to a counted day`} centre={{ value: `${percent}%`, caption: 'today' }} />
         <View className="flex-1 gap-2">
-          {today.items.map((item) => (
+          {t.cameBack ? <Text className="text-primary text-sm font-semibold">Back on rhythm.</Text> : null}
+          {t.comeback ? <Text className="text-primary text-sm font-semibold">Comeback day: 10 minutes put you back on rhythm.</Text> : null}
+          {items.map((item) => (
             <View key={item} className="flex-row items-center gap-2">
               <View className="bg-primary size-1.5 rounded-full" />
               <Text className="text-sm">{item}</Text>
             </View>
           ))}
-          {counted ? (
-            <Animated.View entering={ZoomIn.springify().damping(14)} exiting={FadeOut} className="bg-success-soft mt-1 flex-row items-center gap-1.5 self-start rounded-full px-3 py-1">
+          {t.counted ? (
+            <Animated.View entering={ZoomIn.springify().damping(14)} className="bg-success-soft mt-1 flex-row items-center gap-1.5 self-start rounded-full px-3 py-1">
               <Check size={14} color={success} />
               <Text className="text-success text-xs font-semibold">Day counted</Text>
             </Animated.View>
           ) : (
-            <Animated.View entering={FadeIn} exiting={FadeOut}>
-              <Text className="text-muted-foreground mt-1 text-xs">{today.dayBar - done} more reviews and today counts</Text>
+            <Animated.View entering={FadeIn}>
+              <Text className="text-muted-foreground mt-1 text-xs">10 learning minutes or 10 reviews and today counts</Text>
             </Animated.View>
           )}
         </View>
       </View>
-
-      <Button onPress={review} className="h-11 rounded-xl" accessibilityLabel="Review a card">
-        <Text style={{ color: primaryFg }} className="font-semibold">
-          {done >= today.ringFull ? 'Ring full — great work' : 'Review a card'}
-        </Text>
-      </Button>
-
       <View className="border-border gap-3 border-t pt-4">
         <View className="flex-row justify-between">
-          {week.map((d, i) => {
-            const isCounted = d.counted || ('today' in d && d.today && counted)
+          {r.week.map((d, i) => {
+            const status = d.status === 'AHEAD' && !d.planned ? 'rest day' : d.status === 'MISSED' ? 'planned, not counted' : d.status === 'REST' ? 'rest day' : d.status.toLowerCase()
             return (
-              <View key={i} className="items-center gap-1.5" accessibilityLabel={`${d.label}: ${isCounted ? 'counted' : d.target ? 'planned' : 'rest day'}`}>
-                <Text className={cn('text-xs', 'today' in d && d.today ? 'text-primary font-bold' : 'text-muted-foreground')}>{d.label}</Text>
-                <View
-                  className={cn(
-                    'size-8 items-center justify-center rounded-full',
-                    isCounted ? 'bg-primary' : d.target ? 'border-primary border-2' : 'bg-muted',
-                  )}
-                >
-                  {isCounted ? <Check size={14} color={primaryFg} /> : null}
+              <View key={d.day} className="items-center gap-1.5" accessible accessibilityLabel={`${NAMES[i]}: ${status}`}>
+                <Text className={cn('text-xs', d.day === t.day ? 'text-primary font-bold' : 'text-muted-foreground')}>{LETTERS[i]}</Text>
+                <View className={cn('size-8 items-center justify-center rounded-full', d.counted ? 'bg-primary' : d.planned && d.status !== 'PAUSED' ? 'border-primary border-2' : 'bg-muted', d.status === 'MISSED' && 'border-dashed')}>
+                  {d.counted ? <Check size={14} color={primaryFg} /> : null}
                 </View>
               </View>
             )
           })}
         </View>
         <Text className="text-muted-foreground text-xs">
-          {countedDays} of {plannedDays} planned days this week · Rhythm weeks this term: {rhythm.weeksThisTerm}
+          {r.countedDays} of {r.target} planned days this week · Rhythm weeks this term: {r.weeksThisTerm}
         </Text>
       </View>
-    </View>
+    </Pressable>
   )
 }

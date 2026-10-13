@@ -1,38 +1,31 @@
-# Home tab: Rhythm ring counts the day at the low bar (ADR-0030), sections, recommendations say why.
+# Home tab (P6h): a greeting, today's ring and the week from Rhythm, the next exam (or a way to add one), and
+# recommendations that say why; the cards open Exams and Rhythm.
 appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
 ---
 - runFlow: subflows/signed-in.yaml
+- assertVisible: "Keep learning, .*"
 - scrollUntilVisible:
-    element: "Review a card"
+    element: "Your rhythm"
     direction: DOWN
-- assertVisible: "4 more reviews and today counts"
-- repeat:
-    times: 4
-    commands:
-      - tapOn: "Review a card"
-- assertVisible: "Day counted"
-- assertVisible: "Today: 10 of 20 reviews. Day counted."
+- extendedWaitUntil:
+    visible: "10 learning minutes or 10 reviews and today counts"
+    timeout: 15000
+- assertVisible: "Today’s ring: 0% of the way to a counted day"
 - scrollUntilVisible:
-    element: "Continue learning"
+    element: "Add an exam"
     direction: DOWN
-- assertVisible: "Continue Process Management, 45 percent complete"
-- assertVisible: "45%"
+- tapOn: "Add an exam"
+- extendedWaitUntil:
+    visible: "Exams"
+    timeout: 15000
+- pressKey: Back
 - scrollUntilVisible:
-    element: "Graphs"
+    element: "Recommended for you"
     direction: DOWN
-- assertVisible:
-    text: "For you"
-    selected: true
-# The chips scroll sideways; bring DBMS into view and pick it.
-- swipe:
-    from:
-      text: "ML & AI"
-      index: 0
-    direction: LEFT
-- tapOn: "DBMS"
-- assertVisible:
-    text: "DBMS"
-    selected: true
-- assertVisible: "Graphs, DSA. Weak topic in your last quiz"
+- assertVisible: ".*suggestions appear here."
+- tapOn: "This week"
+- extendedWaitUntil:
+    visible: "Your planned days|This week"
+    timeout: 15000
