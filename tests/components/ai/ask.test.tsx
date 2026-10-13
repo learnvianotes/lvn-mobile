@@ -64,7 +64,7 @@ it('asks about one note from its AI screen: the draft is the source', async () =
   let answers: unknown[] = []
   const api = mockApi({
     AiState: () => aiState(),
-    NoteAiArtifacts: () => ({ data: { note: { __typename: 'Note', id: NOTE, title: 'Searching', viewerCan: { __typename: 'NotePermissions', edit: true, fork: true }, aiArtifacts: [] } } }),
+    NoteAiArtifacts: () => ({ data: { note: { __typename: 'Note', id: NOTE, title: 'Searching', viewerCan: { __typename: 'NotePermissions', edit: true, fork: true }, cards: { __typename: 'CardConnection', edges: [] }, aiArtifacts: [] } } }),
     MyAiAnswers: (v) => ({ data: { myAiAnswers: v.noteId === NOTE ? answers : [] } }),
     AskAi: (v) => {
       answers = [answer({ question: (v.input as { question: string }).question, scope: 'THIS_NOTE', noteId: NOTE, text: 'Halve the range each step [1].', sources: [source(1, { noteId: NOTE, title: 'Searching', versionId: null, snippet: 'Halve the range.' })] })]

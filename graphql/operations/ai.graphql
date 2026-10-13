@@ -38,6 +38,15 @@ query NoteAiArtifacts($noteId: UUID!) {
       edit
       fork
     }
+    # Its recordings, for Transcribe (ADR-0062)
+    cards(first: 100) {
+      edges {
+        node {
+          id
+          type
+        }
+      }
+    }
     aiArtifacts {
       ...AiArtifactFields
     }

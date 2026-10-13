@@ -11,6 +11,8 @@ import {
   Lightbulb,
   ListChecks,
   ListTree,
+  Mic,
+  Wand2,
   NotebookPen,
   ScrollText,
   SearchCheck,
@@ -69,6 +71,8 @@ export const TASK_LABEL: Record<AiTask, string> = {
   REVISION_SHEET: 'Revision sheet',
   CREATE_NOTES: 'Make notes',
   OUTLINE_TO_NOTE: 'Outline → note',
+  TRANSCRIBE: 'Transcribe',
+  QUICK_NOTE: 'Tidy into notes',
 }
 const HINT: Record<AiTask, string> = {
   SUMMARIZE: 'The note in a few lines',
@@ -83,6 +87,8 @@ const HINT: Record<AiTask, string> = {
   REVISION_SHEET: 'The note on one page',
   CREATE_NOTES: 'Fresh notes, as your own',
   OUTLINE_TO_NOTE: 'An outline made full',
+  TRANSCRIBE: 'A recording, as text to keep',
+  QUICK_NOTE: 'Your rough notes and photos, made clean',
 }
 const TASKS: { task: AiTask; icon: LucideIcon }[] = [
   { task: 'SUMMARIZE', icon: ScrollText },
@@ -96,6 +102,7 @@ const TASKS: { task: AiTask; icon: LucideIcon }[] = [
   { task: 'REVISION_SHEET', icon: BookOpenCheck },
   { task: 'CREATE_NOTES', icon: NotebookPen },
   { task: 'OUTLINE_TO_NOTE', icon: ListTree },
+  { task: 'QUICK_NOTE', icon: Wand2 },
 ]
 /** Make something new from the note: they need the right to copy it and are always kept as a new note (ADR-0025). */
 const DERIVATIVE = new Set<AiTask>(['CREATE_NOTES', 'OUTLINE_TO_NOTE'])
@@ -126,15 +133,17 @@ export function AiScreen({ id }: { id: string }) {
   const off = status ? !status.available : false
   // A note on the phone says whether it has code; one read online leaves the server to say.
   const hasCode = localCards?.length ? localCards.some((c) => c.type === 'code') : undefined
-  const tasks = TASKS.filter(({ task }) => (DERIVATIVE.has(task) ? !!note?.viewerCan.fork : task === 'EXPLAIN_CODE' ? hasCode !== false : true))
+  const tasks = TASKS.filter(({ task }) => (DERIVATIVE.has(task) ? !!note?.viewerCan.fork : task === 'EXPLAIN_CODE' ? hasCode !== false : task === 'QUICK_NOTE' ? !!note?.viewerCan.edit : true))
+  // Its recordings, each transcribed on its own (ADR-0062).
+  const recordings = (note?.cards.edges ?? []).map((e) => e.node).filter((c) => c.type === 'audio' || c.type === 'video')
   const disabled = off || spent || running.loading || !note
 
-  const run = async (task: AiTask, lang: AiLanguage = 'ENGLISH') => {
+  const run = async (task: AiTask, lang: AiLanguage = 'ENGLISH', cardIds?: string[]) => {
     setMessage(null)
     const problem = await attempt(
       () =>
         runTask({
-          variables: { input: { noteId: id, task, language: lang } },
+          variables: { input: { noteId: id, task, language: lang, ...(cardIds ? { cardIds } : {}) } },
           update(cache, { data }) {
             const made = data?.runAiTask.artifact
             if (!made) return
@@ -196,6 +205,24 @@ export function AiScreen({ id }: { id: string }) {
             </Pressable>
           ))}
         </View>
+        {recordings.map((r, i) => (
+          <Pressable
+            key={r.id}
+            accessibilityRole="button"
+            accessibilityLabel={recordings.length === 1 ? 'Transcribe the recording' : `Transcribe recording ${i + 1}`}
+            accessibilityHint={HINT.TRANSCRIBE}
+            accessibilityState={{ disabled }}
+            disabled={disabled}
+            onPress={() => void run('TRANSCRIBE', 'ENGLISH', [r.id])}
+            className={cn('bg-card border-border flex-row items-center gap-2 rounded-2xl border p-3', disabled && 'opacity-50')}
+          >
+            <Mic size={16} color={primary} />
+            <View className="flex-1">
+              <Text className="text-sm font-semibold">{recordings.length === 1 ? 'Transcribe the recording' : `Transcribe recording ${i + 1}`}</Text>
+              <Text className="text-muted-foreground text-xs">{HINT.TRANSCRIBE}</Text>
+            </View>
+          </Pressable>
+        ))}
         <View className="bg-card border-border gap-2 rounded-2xl border p-3">
           <Text className="text-sm font-semibold">Translate into</Text>
           <View className="flex-row flex-wrap items-center gap-2">
