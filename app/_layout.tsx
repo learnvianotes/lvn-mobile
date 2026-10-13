@@ -79,6 +79,7 @@ export default function RootLayout() {
                 <Stack.Screen name="notes" />
                 <Stack.Screen name="notifications" />
                 <Stack.Screen name="notification-settings" />
+                <Stack.Screen name="history" />
                 <Stack.Screen name="people" />
                 <Stack.Screen name="skills" />
                 <Stack.Screen name="admin/moderation" />
