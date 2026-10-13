@@ -91,7 +91,7 @@ const vars = [`APP_ID=${APP_IDS[variant]}`, `API_URL=${apiUrl}`, `MAILPIT_URL=${
 const vm = opt('vm') ?? process.env.LVN_VM
 if (vm) {
   const community = await seedCommunity(apiUrl, vm)
-  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`, `TEACHER_EMAIL=${community.teacherEmail}`, `TEACHER_PASSWORD=${community.teacherPassword}`, `SUSPENDED_EMAIL=${community.suspendedEmail}`, `SUSPENDED_PASSWORD=${community.suspendedPassword}`, `STAMP=${community.stamp}`, `CLASS_NAME=${community.className}`, `QUIZ_TITLE=${community.quizTitle}`].flatMap((v) => ['-e', v]))
+  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`, `TEACHER_EMAIL=${community.teacherEmail}`, `TEACHER_PASSWORD=${community.teacherPassword}`, `SUSPENDED_EMAIL=${community.suspendedEmail}`, `SUSPENDED_PASSWORD=${community.suspendedPassword}`, `STAMP=${community.stamp}`, `CLASS_NAME=${community.className}`, `QUIZ_TITLE=${community.quizTitle}`, `RESOURCE_TITLE=${community.resourceTitle}`].flatMap((v) => ['-e', v]))
   console.log(`Community: ${community.email} and the group "${community.group}"`)
 }
 const run = spawnSync(maestroBin, ['--device', emulator, 'test', flows, ...vars, '--format', 'junit', '--output', 'dist/e2e/report.xml', '--test-output-dir', 'dist/e2e'], { cwd: root, stdio: 'inherit' })
@@ -154,5 +154,11 @@ async function seedCommunity(api, vmScript) {
   ]
   const quiz = await gql('mutation ($input: PublishClassQuizInput!) { publishClassQuiz(input: $input) { quiz { id } userErrors { message } } }', { input: { classroomId: klass.id, title: quizTitle, questions } }, teacher.token)
   if (!quiz.publishClassQuiz.quiz) throw new Error(`publishClassQuiz failed: ${quiz.publishClassQuiz.userErrors[0]?.message}`)
-  return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, suspendedEmail: suspended.email, suspendedPassword: suspended.password, stamp, className, quizTitle }
+  // catalogue.yaml (ADR-0075): an approved resource the learner finds and saves.
+  const resourceTitle = `Maestro course ${stamp}`
+  const topic = (await gql('{ resourceTopicOptions(query: "array") { id } }', {}, owner.token)).resourceTopicOptions[0]
+  const sent = await gql('mutation ($input: SubmitResourceInput!) { submitResource(input: $input) { resource { id } userErrors { message } } }', { input: { type: 'COURSE', title: resourceTitle, url: `https://nptel.ac.in/courses/maestro-${stamp}`, topicIds: [topic.id] } }, owner.token)
+  if (!sent.submitResource.resource) throw new Error(`submitResource failed: ${sent.submitResource.userErrors[0]?.message}`)
+  await gql('mutation ($input: ModerateContentInput!) { moderateContent(input: $input) { ok } }', { input: { entityType: 'RESOURCE', entityId: sent.submitResource.resource.id, action: 'APPROVE' } }, admin.token)
+  return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, suspendedEmail: suspended.email, suspendedPassword: suspended.password, stamp, className, quizTitle, resourceTitle }
 }

@@ -10,6 +10,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useCSSVariable, useUniwind } from 'uniwind'
 import { NotesSync } from '@/features/notes/NotesSync'
 import { createApolloClient } from '@/lib/apollo'
+import { watchTimeZone } from '@/lib/learning'
 import { restoreSession, useSession } from '@/lib/auth/session'
 import { startErrorReporting } from '@/lib/observability'
 import { TermsGate } from '@/features/auth/TermsGate'
@@ -59,6 +60,8 @@ export default function RootLayout() {
   useEffect(() => {
     void restoreSession()
   }, [])
+  // Days and countdowns in the phone's zone from the first screen (lvn-backend ADR-0067, ADR-0070).
+  useEffect(() => watchTimeZone(), [])
   useEffect(() => {
     if (status !== 'restoring') void SplashScreen.hideAsync()
   }, [status])
@@ -82,6 +85,8 @@ export default function RootLayout() {
                 <Stack.Screen name="history" />
                 <Stack.Screen name="rhythm" />
                 <Stack.Screen name="teach" />
+                <Stack.Screen name="resources/index" />
+                <Stack.Screen name="resources/saved" />
                 <Stack.Screen name="resources/new" />
                 <Stack.Screen name="resources/mine" />
                 <Stack.Screen name="resources/[id]/index" />

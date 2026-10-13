@@ -18,7 +18,7 @@ const me = { __typename: 'User', id: 'u1', displayName: 'Asha Rao', handle: 'ash
 const resource = (over: Record<string, unknown> = {}) => ({
   __typename: 'Resource', id: ID, type: 'BOOK', title: 'Clean Code', description: 'Even bad code can function.', url: 'https://books.example.com/clean-code', host: 'books.example.com', isbn: '9780132350884', author: 'Robert C. Martin', coverUrl: null,
   topics: [{ __typename: 'Topic', id: 't1', title: 'Arrays' }], submittedBy: me, status: 'PENDING', reason: null, decidedAt: null, createdAt: new Date().toISOString(),
-  viewerCan: { __typename: 'ResourceActions', edit: true, delete: true, report: false }, ...over,
+  viewerCan: { __typename: 'ResourceActions', edit: true, delete: true, report: false }, saveCount: 0, viewerSaved: false, ...over,
 })
 const app = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 

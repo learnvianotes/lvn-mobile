@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { BookMarked, Clock, FileText, GraduationCap, Search, Users, X } from 'lucide-react-native'
+import { BookMarked, Clock, FileText, GraduationCap, Search, Users, X, Library } from 'lucide-react-native'
 import { useEffect, useState } from 'react'
 import { FlatList, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -136,6 +136,27 @@ export function ExploreScreen() {
                 </Text>
                 <Text className="text-muted-foreground text-xs">
                   {p.what} · {p.members} {p.members === 1 ? 'member' : 'members'}
+                </Text>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      {found?.resources.length ? (
+        <View className="gap-2">
+          <Text className="text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
+            Resources
+          </Text>
+          {found.resources.map((r) => (
+            <Pressable key={r.id} accessibilityRole="link" accessibilityLabel={`${r.title}, ${r.host}`} onPress={() => open(`/resources/${r.id}`)} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border px-4 py-3">
+              <Library size={16} color={primary} />
+              <View className="flex-1">
+                <Text className="font-semibold" numberOfLines={1}>
+                  {r.title}
+                </Text>
+                <Text className="text-muted-foreground text-xs" numberOfLines={1}>
+                  {r.author ? `${r.author} · ` : ''}
+                  {r.host}
                 </Text>
               </View>
             </Pressable>

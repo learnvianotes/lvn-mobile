@@ -21,7 +21,7 @@ const MEERA = '01920000-0000-7000-8000-0000000000e1'
 const owner = { __typename: 'User', id: MEERA, displayName: 'Meera Iyer' }
 const hit = (id: string, title: string, kind = 'NOTE', snippet = 'Always settle the closest vertex; heaps make it fast.') => ({ __typename: 'NoteSearchHit', snippet, note: { __typename: 'Note', id, title, kind, visibility: 'PUBLIC', owner } })
 const topic = { __typename: 'Topic', id: 't1', title: 'Shortest paths', subject: { __typename: 'Subject', id: 's1', title: 'Algorithms' } }
-const results = (over: Record<string, unknown> = {}) => ({ data: { search: { __typename: 'SearchResults', notes: [hit('n1', "Dijkstra's algorithm")], notesCursor: null, people: [], topics: [], groups: [], classrooms: [], ...over } } })
+const results = (over: Record<string, unknown> = {}) => ({ data: { search: { __typename: 'SearchResults', resources: [], notes: [hit('n1', "Dijkstra's algorithm")], notesCursor: null, people: [], topics: [], groups: [], classrooms: [], ...over } } })
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 const SEARCH = 'Search notes, people, groups and topics'
 

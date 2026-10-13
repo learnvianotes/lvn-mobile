@@ -8,6 +8,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { PostComments } from '@/features/discussion/PostComments'
 import { ContentModeration } from '@/features/moderation/ModerationNotice'
+import { PlaceResources } from '@/features/resources/PlaceResources'
 import { ModerationQueue } from '@/features/moderation/ModerationQueue'
 import { ReportLink } from '@/features/moderation/ReportSheet'
 import { attempt, textToDoc } from '@/features/groups/shared'
@@ -41,8 +42,8 @@ import { ClassQuizzes } from './quizzes/ClassQuizzes'
 import { ClassPerformance, ClassRhythm } from './ClassInsights'
 import { CLASS_ROLE } from './shared'
 
-type Tab = 'posts' | 'quizzes' | 'notes' | 'rhythm' | 'performance' | 'people' | 'requests' | 'reports' | 'settings'
-const TABS: Record<Tab, string> = { posts: 'Announcements', quizzes: 'Quizzes', notes: 'Notes', rhythm: 'Rhythm', performance: 'Performance', people: 'People', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
+type Tab = 'posts' | 'quizzes' | 'notes' | 'resources' | 'rhythm' | 'performance' | 'people' | 'requests' | 'reports' | 'settings'
+const TABS: Record<Tab, string> = { posts: 'Announcements', quizzes: 'Quizzes', notes: 'Notes', resources: 'Resources', rhythm: 'Rhythm', performance: 'Performance', people: 'People', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
 type Run = () => Promise<{ data?: unknown }>
 type Member = NonNullable<NonNullable<ClassroomPeopleQuery['classroom']>['members']>[number]
 
@@ -77,7 +78,7 @@ export function ClassScreen({ id }: { id: string }) {
   )
   if (!classroom) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This class is not available.</Text>}</View>
   const staff = classroom.viewerCan.review
-  const tabs: Tab[] = classroom.viewerRole ? ['posts', 'quizzes', 'notes', 'rhythm', ...(staff ? (['performance', 'people', 'requests', 'reports'] as const) : []), ...(classroom.viewerCan.manage ? (['settings'] as const) : [])] : []
+  const tabs: Tab[] = classroom.viewerRole ? ['posts', 'quizzes', 'notes', 'resources', 'rhythm', ...(staff ? (['performance', 'people', 'requests', 'reports'] as const) : []), ...(classroom.viewerCan.manage ? (['settings'] as const) : [])] : []
   return (
     <View className="bg-background flex-1">
       {back}
@@ -148,6 +149,7 @@ export function ClassScreen({ id }: { id: string }) {
             {tab === 'posts' ? <Posts classroom={classroom} /> : null}
             {tab === 'quizzes' ? <ClassQuizzes classroom={classroom} /> : null}
             {tab === 'notes' ? <Notes classroom={classroom} /> : null}
+            {tab === 'resources' ? <PlaceResources to={{ classroomId: classroom.id }} /> : null}
             {tab === 'rhythm' ? <ClassRhythm classroomId={classroom.id} /> : null}
             {tab === 'performance' ? <ClassPerformance classroomId={classroom.id} /> : null}
             {tab === 'people' ? <People classroom={classroom} onChanged={() => void refetch()} /> : null}

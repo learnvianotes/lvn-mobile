@@ -51,7 +51,8 @@ export function Discussion({ target, compact }: { target: { type: CommentTargetT
           {d.commentCount ? <Text className="text-muted-foreground text-sm">{d.commentCount === 1 ? '1 comment' : `${d.commentCount} comments`}</Text> : null}
         </View>
       )}
-      <ReactionBar target={target} reactions={d.reactions} disabled={!d.viewerCanComment} onChanged={refresh} />
+      {/* Resources are saved rather than liked (lvn-backend ADR-0075): their discussion has comments only. */}
+      {target.type === 'RESOURCE' ? null : <ReactionBar target={{ type: target.type, id: target.id }} reactions={d.reactions} disabled={!d.viewerCanComment} onChanged={refresh} />}
       {comments.length ? (
         comments.map((c) => (
           <View key={c.id} className="gap-2">
