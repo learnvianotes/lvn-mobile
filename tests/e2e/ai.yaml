@@ -1,6 +1,7 @@
-# AI tasks on the phone against the real model (lvn-backend ADR-0058, ADR-0059): a note's AI tasks summarise it, make
-# flashcards, and the chosen cards go into the note, which reaches the server. Needs a server whose AI answers (the
-# local environment's API asks the dev machine's Ollama); without it this flow does nothing.
+# AI on the phone against the real model (lvn-backend ADR-0058, ADR-0059, ADR-0060): a question about a note is
+# answered with the note as its source; its AI tasks summarise it, make flashcards, and the chosen cards go into the
+# note, which reaches the server. Needs a server whose AI answers (the local environment's API asks the dev machine's
+# Ollama); without it this flow does nothing.
 appId: ${APP_ID}
 env:
   APP_ID: com.learnvianotes.dev
@@ -27,6 +28,14 @@ env:
                 timeout: 10000
       - tapOn: "Heaps"
       - tapOn: "AI tasks"
+      # Ask AI about this note (ADR-0060): the draft is the source, cited by number.
+      - tapOn: "Ask about this note"
+      - inputText: "What does a min-heap keep at the root?"
+      - hideKeyboard
+      - tapOn: "Ask"
+      - extendedWaitUntil:
+          visible: "Source 1: Heaps"
+          timeout: 120000
       - tapOn: "Summarise"
       # The model takes seconds on the dev machine's GPU; the first answer also loads it.
       - scrollUntilVisible:
