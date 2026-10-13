@@ -16,7 +16,8 @@ env:
 - tapOn: "Flashcard"
 - tapOn: "Front"
 - inputText: "FIFO"
-# "Back" is also the screen's back button: the field below Front.
+# The keyboard covers the Back field; "Back" is also the screen's back button: the field below Front.
+- hideKeyboard
 - tapOn:
     text: "Back"
     below: "Front"
