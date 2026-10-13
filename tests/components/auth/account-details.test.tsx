@@ -1,5 +1,6 @@
-import { ApolloProvider } from '@apollo/client/react'
+import { ApolloProvider, useQuery } from '@apollo/client/react'
 import { fireEvent, screen, waitFor } from '@testing-library/react-native'
+import { ProfileTabDocument } from '@/graphql/generated/graphql'
 import * as DocumentPicker from 'expo-document-picker'
 import { router, usePathname } from 'expo-router'
 import { InstitutionalEmailCard, LegacyDataCard, StudyDetailsCard } from '@/features/auth/AccountDetails'
@@ -54,8 +55,17 @@ it('saves study details', async () => {
   const api = mockApi({
     PhoneAccountDetails: () => details(),
     UpdateProfile: () => ({ data: { updateProfile: { __typename: 'UpdateProfilePayload', profile: { __typename: 'StudentProfile', department: 'ECE', yearOfStudy: 'YEAR_3', showOnProfile: true }, userErrors: [] } } }),
+    // Saving refreshes the Profile tab's header (ADR-0076); that must not reload this form under the person.
+    ProfileTab: () => ({ data: { viewer: { __typename: 'User', id: ME, followerCount: 0, followingCount: 0, profile: { __typename: 'StudentProfile', department: 'ECE', yearOfStudy: 'YEAR_3', showOnProfile: true } } } }),
   })
-  await inApollo(<StudyDetailsCard />)
+  // The Profile tab stays mounted under Settings, so its question is active.
+  const ProfileTabOpen = () => (useQuery(ProfileTabDocument), null)
+  await inApollo(
+    <>
+      <ProfileTabOpen />
+      <StudyDetailsCard />
+    </>,
+  )
   expect(await screen.findByDisplayValue('CSE')).toBeOnTheScreen()
   await fireEvent.changeText(screen.getByLabelText('Department'), 'ECE')
   await fireEvent.press(screen.getByRole('radio', { name: '3rd year' }))
@@ -63,6 +73,8 @@ it('saves study details', async () => {
   await fireEvent.press(screen.getByRole('button', { name: 'Save' }))
   expect(await screen.findByText('Saved')).toBeOnTheScreen()
   expect(api.calls.find((c) => c.op === 'UpdateProfile')?.variables).toEqual({ input: { department: 'ECE', yearOfStudy: 'YEAR_3', showOnProfile: true } })
+  await waitFor(() => expect(api.calls.some((c) => c.op === 'ProfileTab')).toBe(true))
+  expect(screen.getByText('Saved')).toBeOnTheScreen()
 })
 
 it('adds a college email, which sends a code to enter', async () => {

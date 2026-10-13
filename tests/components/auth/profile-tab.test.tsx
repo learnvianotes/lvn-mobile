@@ -25,7 +25,7 @@ beforeEach(() => {
   mockApi({
     Viewer: () => ({ data: { viewer: viewer() } }),
     MyStanding: () => standing,
-    ProfileTab: () => ({ data: { viewer: { __typename: 'User', id: viewer().id, followerCount: 12, followingCount: 3, profile: { __typename: 'StudentProfile', department: 'CSE', yearOfStudy: 'YEAR_3' } } } }),
+    ProfileTab: () => ({ data: { viewer: { __typename: 'User', id: viewer().id, followerCount: 12, followingCount: 3, profile: { __typename: 'StudentProfile', department: 'CSE', yearOfStudy: 'YEAR_3', showOnProfile: true } } } }),
     MyDataExports: () => ({ data: { myDataExports: [] } }),
   })
 })
