@@ -136,6 +136,7 @@ function Attempt({ attempt: a, onOver }: { attempt: ContestAttemptFieldsFragment
 
 function Results({ attempt: a, subject, settings }: { attempt: ContestAttemptFieldsFragment; subject: string | null; settings: { showBands: boolean; canShowBands: boolean } }) {
   const [setBands, bands] = useMutation(SetContestBandsDocument, { refetchQueries: [ContestDocument] })
+  const [compare, setCompare] = useState(settings.showBands)
   return (
     <View className="gap-4">
       <View className="bg-card border-border gap-2 rounded-3xl border p-5">
@@ -148,7 +149,16 @@ function Results({ attempt: a, subject, settings }: { attempt: ContestAttemptFie
               <Text className="font-semibold">Show me how I compare (adults only)</Text>
               <Text className="text-muted-foreground text-xs">Once a contest closes, see if you’re in the top 10%, 25% or half of adults who took it. No one else sees it.</Text>
             </View>
-            <Switch accessibilityLabel="Show me how I compare" value={settings.showBands} disabled={bands.loading} onValueChange={(show) => void setBands({ variables: { show } })} />
+            <Switch
+              accessibilityLabel="Show me how I compare"
+              value={compare}
+              disabled={bands.loading}
+              onValueChange={async (show) => {
+                setCompare(show)
+                const res = await setBands({ variables: { show } }).catch(() => null)
+                if (!res?.data?.setContestBands.settings) setCompare(!show)
+              }}
+            />
           </View>
         ) : null}
       </View>
