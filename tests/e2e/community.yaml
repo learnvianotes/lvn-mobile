@@ -44,7 +44,7 @@ env:
       - tapOn: "New post"
       - tapOn: "Write a post"
       - inputText: "Hello from the phone"
-      - hideKeyboard
+      # Post is at the top of the composer, above the keyboard (hiding the keyboard could go Back and close it).
       - tapOn: "Post"
       - extendedWaitUntil:
           visible: "Hello from the phone"
