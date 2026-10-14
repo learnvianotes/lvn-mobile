@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, FileText, Globe, Lock, Pin, PinOff, Plus, Trash2 } from 'lucide-react-native'
 import { useState } from 'react'
-import { Pressable, ScrollView, TextInput, View } from 'react-native'
+import { Image, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
@@ -33,7 +33,7 @@ import {
 } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 import { Doubts, Ideas, WorkspaceHeader } from '@/features/workspaces/WorkspaceParts'
-import { GroupMembers, GroupSettings, InviteMentor, ShowcaseSetting } from './GroupManage'
+import { GroupMembers, GroupPicture, GroupSettings, InviteMentor, ShowcaseSetting } from './GroupManage'
 import { NewPostSheet } from './NewPostSheet'
 import { attempt, ROLE } from './shared'
 
@@ -84,7 +84,10 @@ export function GroupScreen({ id }: { id: string }) {
     <View className="bg-background flex-1">
       {back}
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + (posting ? 104 : 32) }} keyboardShouldPersistTaps="handled">
-        <View className="bg-card border-border gap-2 rounded-3xl border p-5">
+        <View className="bg-card border-border gap-2 overflow-hidden rounded-3xl border p-5">
+          {group.pictureUrl ? (
+            <Image source={{ uri: group.pictureUrl }} accessibilityLabel={`The picture of ${group.name}`} accessibilityIgnoresInvertColors resizeMode="cover" style={{ marginTop: -20, marginHorizontal: -20, marginBottom: 4, height: 150 }} />
+          ) : null}
           <View className="flex-row items-center gap-1.5">
             <Icon size={14} color={accent} />
             <Text className="text-muted-foreground text-xs">
@@ -152,6 +155,7 @@ export function GroupScreen({ id }: { id: string }) {
             {tab === 'reports' ? <ModerationQueue scope={{ scope: 'GROUP', id: group.id }} groupId={group.id} /> : null}
             {tab === 'settings' ? (
               <View className="gap-8">
+                <GroupPicture group={group} onSaved={() => void refetch()} />
                 <GroupSettings group={group} onSaved={() => void refetch()} />
                 {project ? <ShowcaseSetting group={group} /> : null}
               </View>
