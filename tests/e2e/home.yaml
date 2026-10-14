@@ -37,10 +37,13 @@ env:
     visible: "Exams"
     timeout: 15000
 - pressKey: Back
+# A weekly contest's card (when one is open) sits above the recommendations.
 - scrollUntilVisible:
-    element: "Recommended for you"
+    element: ".*suggestions appear here."
     direction: DOWN
-- assertVisible: ".*suggestions appear here."
+- scrollUntilVisible:
+    element: "This week"
+    direction: UP
 - tapOn: "This week"
 - extendedWaitUntil:
     visible: "Your planned days|This week"
