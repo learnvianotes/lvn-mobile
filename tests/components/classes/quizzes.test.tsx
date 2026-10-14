@@ -63,7 +63,7 @@ it('a member sees the class’s quizzes with their score and opens one', async (
   expect(router.push).toHaveBeenCalledWith(`/classes/${CLASS}/quizzes/${QUIZ}`)
 })
 
-it('takes a quiz without its answers; a dropped submission is sent again as the same attempt; then reads the answers and practises', async () => {
+it('takes a quiz without its answers, one question at a time; a dropped submission is sent again as the same attempt; then reads the answers and practises', async () => {
   let attempts: Attempt[] = []
   let drop = true
   const api = mockApi({
@@ -80,9 +80,24 @@ it('takes a quiz without its answers; a dropped submission is sent again as the 
   await inApollo(<QuizScreen quizId={QUIZ} />)
   expect(await screen.findByText('Respiration')).toBeOnTheScreen()
   expect(screen.queryByText('Respiration happens there.')).toBeNull()
+  // One question at a time: 1/2, Next, no Previous and no Submit yet.
+  expect(screen.getByLabelText('Question 1 of 2')).toBeOnTheScreen()
+  expect(screen.getByText('1/2')).toBeOnTheScreen()
+  expect(screen.queryByRole('button', { name: 'Previous' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Submit answers' })).toBeNull()
+  expect(screen.queryByRole('checkbox', { name: 'Water' })).toBeNull()
   await fireEvent.press(screen.getByRole('radio', { name: 'Mitochondria' }))
+  expect(screen.getByText('1 of 2 answered')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Next' }))
+  expect(screen.queryByRole('radio', { name: 'Mitochondria' })).toBeNull()
   await fireEvent.press(screen.getByRole('checkbox', { name: 'Water' }))
   expect(screen.getByText('Pick every correct answer.')).toBeOnTheScreen()
+  // Back and forth, by Previous and by number: the answers stay.
+  await fireEvent.press(screen.getByRole('button', { name: 'Previous' }))
+  expect(screen.getByRole('radio', { name: 'Mitochondria' })).toBeChecked()
+  await fireEvent.press(screen.getByRole('button', { name: 'Question 2, answered' }))
+  expect(screen.getByRole('checkbox', { name: 'Water' })).toBeChecked()
+  expect(screen.queryByRole('button', { name: 'Next' })).toBeNull()
   await fireEvent.press(screen.getByRole('button', { name: 'Submit answers' }))
   expect(await screen.findByText('Your answers were not sent. Check the connection and submit again.')).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('button', { name: 'Submit answers' }))
@@ -98,6 +113,7 @@ it('takes a quiz without its answers; a dropped submission is sent again as the 
   await fireEvent.press(screen.getByRole('button', { name: 'Try again' }))
   expect(screen.getByText('Practice: your first attempt stays your score.')).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('radio', { name: 'Mitochondria' }))
+  await fireEvent.press(screen.getByRole('button', { name: 'Next' }))
   await fireEvent.press(screen.getByRole('checkbox', { name: 'Water' }))
   await fireEvent.press(screen.getByRole('checkbox', { name: 'Carbon dioxide' }))
   await fireEvent.press(screen.getByRole('button', { name: 'Submit answers' }))

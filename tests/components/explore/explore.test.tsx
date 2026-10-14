@@ -109,3 +109,47 @@ it('opens ready from elsewhere: words to search, or a topic to list (Home, recom
   await waitFor(() => expect(api.calls.at(-1)?.variables).toMatchObject({ filters: { topicId: 't1' } }))
   useLocalSearchParams.mockReturnValue({})
 })
+
+it('tabs: All, Notes, Topics, Groups, Users and Resources each ask for their kind; All’s sections lead to theirs (ADR-0076)', async () => {
+  const api = mockApi({
+    Search: (v) =>
+      String(v.query).startsWith('nothing')
+        ? results({ notes: [], topics: [] })
+        : results({
+            people: [{ __typename: 'User', id: MEERA, handle: 'meera', displayName: 'Meera Iyer', globalRole: 'STUDENT' }],
+            groups: [{ __typename: 'Group', id: 'g1', name: 'Graph theory circle', type: 'COMMUNITY', privacy: 'PUBLIC', memberCount: 12 }],
+            classrooms: [{ __typename: 'Classroom', id: 'c1', name: 'Graph algorithms, section B', memberCount: 40 }],
+            resources: [{ __typename: 'Resource', id: 'r1', type: 'BOOK', title: 'Graph Algorithms', host: 'nptel.ac.in', author: 'Sedgewick', saveCount: 0 }],
+            topics: [topic],
+          }),
+  })
+  await inApollo(<ExploreScreen />)
+  expect(screen.getAllByRole('tab').map((t) => t.props.accessibilityState?.selected)).toEqual([true, false, false, false, false, false])
+  await fireEvent.changeText(screen.getByLabelText(SEARCH), 'graph')
+  expect(await screen.findByLabelText('Meera Iyer, @meera')).toBeOnTheScreen()
+  expect(screen.getByLabelText('Graph Algorithms, nptel.ac.in')).toBeOnTheScreen()
+  // All: a section's See all opens its tab, which asks for that kind only.
+  await fireEvent.press(screen.getByRole('button', { name: 'See all Groups and classes' }))
+  await waitFor(() => expect(api.calls.filter((c) => c.op === 'Search').at(-1)?.variables).toEqual({ query: 'graph', scopes: ['GROUPS', 'CLASSROOMS'] }))
+  expect(screen.getByRole('tab', { name: 'Groups' })).toBeSelected()
+  expect(screen.getByLabelText('Graph algorithms, section B, Class, 40 members')).toBeOnTheScreen()
+  expect(screen.queryByLabelText('Meera Iyer, @meera')).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Projects' })).toBeNull()
+  expect(screen.queryByLabelText("Dijkstra's algorithm")).toBeNull()
+  for (const [tab, scopes] of [['Users', ['PEOPLE']], ['Resources', ['RESOURCES']], ['Notes', ['NOTES']]] as const) {
+    await fireEvent.press(screen.getByRole('tab', { name: tab }))
+    await waitFor(() => expect(api.calls.filter((c) => c.op === 'Search').at(-1)?.variables.scopes).toEqual(scopes))
+  }
+  // Notes keeps the kind and source chips.
+  expect(screen.getByRole('button', { name: 'Projects' })).toBeOnTheScreen()
+  // Topics: a topic lists its notes, in Notes.
+  await fireEvent.press(screen.getByRole('tab', { name: 'Topics' }))
+  await fireEvent.press(await screen.findByRole('button', { name: 'Notes about Shortest paths' }))
+  expect(screen.getByRole('tab', { name: 'Notes' })).toBeSelected()
+  await waitFor(() => expect(api.calls.filter((c) => c.op === 'Search').at(-1)?.variables).toEqual({ query: '', scopes: ['NOTES'], filters: { kinds: null, sources: null, topicId: 't1' } }))
+  // A tab with nothing found says so.
+  await fireEvent.press(screen.getByRole('tab', { name: 'Users' }))
+  expect(screen.getByText('Type to search people by name or handle.')).toBeOnTheScreen()
+  await fireEvent.changeText(screen.getByLabelText(SEARCH), 'nothing here')
+  expect(await screen.findByText('Nothing found for “nothing here”.')).toBeOnTheScreen()
+})

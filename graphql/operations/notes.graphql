@@ -63,10 +63,10 @@ mutation SyncPush($ops: [SyncOpInput!]!) {
   }
 }
 
-# Search (lvn-backend §11, ADR-0056): notes, people, topics, groups and classes; filters narrow notes, `after` continues
-# them.
-query Search($query: String!, $filters: SearchFilters, $after: String) {
-  search(query: $query, first: 15, filters: $filters, after: $after) {
+# Search (lvn-backend §11, ADR-0056): notes, people, topics, groups and classes; scopes ask for some kinds only (Explore's
+# tabs, ADR-0076); filters narrow notes, `after` continues them.
+query Search($query: String!, $scopes: [SearchScope!], $filters: SearchFilters, $after: String) {
+  search(query: $query, scopes: $scopes, first: 15, filters: $filters, after: $after) {
     notes {
       snippet
       note {

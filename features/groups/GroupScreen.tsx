@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { ArrowLeft, FileText, Globe, Lock, Pin, PinOff, Trash2 } from 'lucide-react-native'
+import { ArrowLeft, FileText, Globe, Lock, Pin, PinOff, Plus, Trash2 } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -17,7 +17,6 @@ import { useLocal } from '@/features/notes/hooks'
 import { RichDoc } from '@/features/notes/render/RichText'
 import * as db from '@/features/notes/store/db'
 import {
-  CreateGroupPostDocument,
   DeleteGroupPostDocument,
   GroupDocument,
   GroupMembersDocument,
@@ -35,7 +34,8 @@ import {
 import type { Doc } from '@/lib/contracts/validation'
 import { Doubts, Ideas, WorkspaceHeader } from '@/features/workspaces/WorkspaceParts'
 import { GroupMembers, GroupSettings, InviteMentor, ShowcaseSetting } from './GroupManage'
-import { attempt, ROLE, textToDoc } from './shared'
+import { NewPostSheet } from './NewPostSheet'
+import { attempt, ROLE } from './shared'
 
 type Tab = 'posts' | 'ideas' | 'doubts' | 'notes' | 'resources' | 'members' | 'requests' | 'reports' | 'settings'
 const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Doubts', notes: 'Notes', resources: 'Resources', members: 'Members', requests: 'Requests', reports: 'Reports', settings: 'Settings' }
@@ -54,6 +54,7 @@ export function GroupScreen({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [asking, setAsking] = useState(false)
+  const [writing, setWriting] = useState(false)
   const [join] = useMutation(JoinGroupDocument)
   const [request] = useMutation(RequestToJoinGroupDocument)
   const [withdraw] = useMutation(WithdrawGroupJoinRequestDocument)
@@ -77,10 +78,12 @@ export function GroupScreen({ id }: { id: string }) {
   const project = group.type === 'PROJECT'
   const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'resources', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : []), ...(group.viewerCan.moderate ? (['reports'] as const) : []), ...(group.viewerCan.manage ? (['settings'] as const) : [])] : []
   const Icon = group.privacy === 'PRIVATE' ? Lock : Globe
+  // A new post starts from the floating ＋ on the Posts tab (lvn-backend ADR-0076).
+  const posting = member && tab === 'posts' && group.viewerCan.post
   return (
     <View className="bg-background flex-1">
       {back}
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + (posting ? 104 : 32) }} keyboardShouldPersistTaps="handled">
         <View className="bg-card border-border gap-2 rounded-3xl border p-5">
           <View className="flex-row items-center gap-1.5">
             <Icon size={14} color={accent} />
@@ -158,6 +161,16 @@ export function GroupScreen({ id }: { id: string }) {
           <Text className="text-muted-foreground text-center">Posts, notes and members are for members. Join to see them.</Text>
         )}
       </ScrollView>
+      {posting ? (
+        <>
+          <View className="absolute right-5" style={{ bottom: insets.bottom + 24 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel="New post" onPress={() => setWriting(true)} className="bg-primary size-14 items-center justify-center rounded-full shadow-lg">
+              <Plus size={26} color="#ffffff" />
+            </Pressable>
+          </View>
+          <NewPostSheet groupId={group.id} open={writing} onClose={() => setWriting(false)} />
+        </>
+      ) : null}
     </View>
   )
 }
@@ -173,10 +186,8 @@ function Action({ label, onPress, primary }: { label: string; onPress: () => voi
 function Posts({ group }: { group: GroupDetailFragment }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const { data, refetch } = useQuery(GroupPostsDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
-  const [create] = useMutation(CreateGroupPostDocument)
   const [remove] = useMutation(DeleteGroupPostDocument)
   const [pin] = useMutation(PinGroupPostDocument)
-  const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const act = async (fn: () => Promise<{ data?: unknown }>) => {
     setError(await attempt(fn))
@@ -185,25 +196,6 @@ function Posts({ group }: { group: GroupDetailFragment }) {
   const posts = [...(data?.group?.posts?.pinned ?? []), ...(data?.group?.posts?.edges.map((e) => e.node) ?? [])]
   return (
     <View className="gap-3">
-      {group.viewerCan.post ? (
-        <View className="bg-card border-border gap-2 rounded-2xl border p-3">
-          <TextInput accessibilityLabel="Write a post" value={text} onChangeText={setText} placeholder="Share something with the group…" placeholderTextColor={muted} multiline className="text-foreground min-h-16" />
-          <Pressable
-            accessibilityRole="button"
-            disabled={!text.trim()}
-            onPress={() =>
-              void act(async () => {
-                const res = await create({ variables: { groupId: group.id, body: textToDoc(text) } })
-                if (res.data?.createGroupPost.post) setText('')
-                return res
-              })
-            }
-            className={`self-end rounded-full px-4 py-2 ${text.trim() ? 'bg-primary' : 'bg-muted'}`}
-          >
-            <Text className="text-primary-foreground font-semibold">Post</Text>
-          </Pressable>
-        </View>
-      ) : null}
       {error ? (
         <Text accessibilityRole="alert" className="text-destructive text-sm">
           {error}
