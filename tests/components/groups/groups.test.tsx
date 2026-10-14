@@ -115,7 +115,7 @@ it('chooses posts to delete together, after asking, and takes one’s own notes 
   let notes = [note('n1', 'Binary heaps', 'me'), note('n2', 'Graphs', 'o1')]
   const alert = jest.spyOn(require('react-native').Alert, 'alert').mockImplementation((...args: unknown[]) => (args[2] as { text: string; onPress?: () => void }[]).find((b) => b.text === 'Delete' || b.text === 'Remove')?.onPress?.())
   const api = mockApi({
-    Viewer: () => ({ data: { viewer: { __typename: 'User', id: 'me', handle: 'ravi', displayName: 'Ravi Kumar', email: 'ravi@example.com', emailVerified: true, registrationComplete: true, verified: true, verificationMethod: 'INSTITUTIONAL_EMAIL', globalRole: 'STUDENT', teacherStatus: 'NONE', restrictedMinor: false, institutionalEmail: null, institutionalEmailStatus: 'NONE', institution: null, avatarUrl: null } } }),
+    Viewer: () => ({ data: { viewer: { __typename: 'User', id: 'me', handle: 'ravi', displayName: 'Ravi Kumar', email: 'ravi@example.com', emailVerified: true, registrationComplete: true, verified: true, verificationMethod: 'INSTITUTIONAL_EMAIL', globalRole: 'STUDENT', teacherStatus: 'NONE', restrictedMinor: false, institutionalEmail: null, institutionalEmailStatus: 'NONE', institution: null, deletionScheduledFor: null, avatarUrl: null } } }),
     Group: () => ({ data: { group: group({ viewerRole: 'ADMIN', viewerCan: can({ post: true, leave: true }) }) } }),
     GroupPosts: () => posts(list),
     DeleteGroupPost: (v) => ((list = list.filter((p) => p.id !== v.postId)), { data: { deleteGroupPost: { __typename: 'GroupPayload', group: { __typename: 'Group', id: GROUP }, userErrors: [] } } }),

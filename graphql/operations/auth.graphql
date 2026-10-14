@@ -19,6 +19,7 @@ fragment ViewerFields on User {
     name
     verified
   }
+  deletionScheduledFor
 }
 
 fragment SessionFields on Session {
@@ -134,6 +135,26 @@ mutation SignInWithGoogle($idToken: String!) {
     }
     userErrors {
       ...Problems
+    }
+  }
+}
+
+# Account deletion (lvn-backend ADR-0088): 14 days of grace, cancellable.
+mutation RequestAccountDeletion($input: RequestAccountDeletionInput!) {
+  requestAccountDeletion(input: $input) {
+    deletionScheduledFor
+    userErrors {
+      field
+      message
+    }
+  }
+}
+
+mutation CancelAccountDeletion {
+  cancelAccountDeletion {
+    deletionScheduledFor
+    userErrors {
+      message
     }
   }
 }

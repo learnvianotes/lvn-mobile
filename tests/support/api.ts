@@ -63,6 +63,7 @@ export const viewer = (over: Record<string, unknown> = {}) => ({
   institutionalEmail: null,
   institutionalEmailStatus: 'NONE',
   institution: null,
+  deletionScheduledFor: null,
   ...over,
 })
 

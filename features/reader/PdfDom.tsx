@@ -9,6 +9,7 @@ import * as ui from 'pdfjs-dist/legacy/web/pdf_viewer.mjs'
 import { useEffect, useRef } from 'react'
 import type { DOMProps } from 'expo/dom'
 import { hits, quoteOf, selectionRects, type PageRect } from './geometry'
+import { pdfSource } from './ranges'
 
 /**
  * The PDF on the phone (lvn-backend ADR-0040): pdf.js's viewer in an Expo DOM component — the same engine as the web
@@ -48,6 +49,7 @@ const COLORS: Record<string, string> = {
 
 export default function PdfDom({
   url,
+  refreshUrl,
   assets,
   marks,
   command,
@@ -61,6 +63,8 @@ export default function PdfDom({
   onError,
 }: {
   url: string
+  /** A new URL for the same file when the old one has expired (lvn-backend ADR-0090) */
+  refreshUrl: () => Promise<string | null>
   /** Where pdf.js's character maps, fonts and decoders are (the web app's /pdfjs/<version>/); optional */
   assets: string | null
   marks: DomMark[]
@@ -82,8 +86,10 @@ export default function PdfDom({
   const marksRef = useRef(marks)
   marksRef.current = marks
   const flash = useRef<{ page: number; rects: PageRect[]; until: number } | null>(null)
-  const callbacks = useRef({ onReady, onPage, onSelection, onMark, onFind, onError })
-  callbacks.current = { onReady, onPage, onSelection, onMark, onFind, onError }
+  const callbacks = useRef({ onReady, onPage, onSelection, onMark, onFind, onError, refreshUrl, url })
+  callbacks.current = { onReady, onPage, onSelection, onMark, onFind, onError, refreshUrl, url }
+  // The file, not its URL: a fresh URL for the same file (its signature renewed) must not reload the document.
+  const fileKey = url.split('?')[0]
 
   const draw = (page: number) => {
     const view = viewerRef.current?.getPageView(page - 1) as PageView | undefined
@@ -129,23 +135,34 @@ export default function PdfDom({
     bus.on('updatefindmatchescount', (e: { matchesCount: { current: number; total: number } }) => void callbacks.current.onFind(e.matchesCount))
     bus.on('updatefindcontrolstate', (e: { state: number; matchesCount?: { current: number; total: number } }) => void callbacks.current.onFind(e.state === 1 ? { current: 0, total: 0 } : (e.matchesCount ?? null)))
 
-    const loading = pdfjs.getDocument({ url, enableXfa: false, ...(assets ? { cMapUrl: `${assets}cmaps/`, cMapPacked: true, standardFontDataUrl: `${assets}standard_fonts/`, wasmUrl: `${assets}wasm/`, iccUrl: `${assets}iccs/` } : {}) })
-    loading.onPassword = (answer: (password: string) => void, reason: number) => {
-      const password = window.prompt(reason === 2 ? 'That password is not right. Password for this PDF:' : 'This PDF needs a password:')
-      if (password === null) {
-        void callbacks.current.onError('password')
-        void loading.destroy()
-      } else answer(password)
-    }
-    loading.promise.then(
-      (doc) => {
+    // In ranges, with a fresh URL whenever the 15-minute one expires (lvn-backend ADR-0090).
+    let loading: ReturnType<typeof pdfjs.getDocument> | null = null
+    pdfSource(pdfjs, callbacks.current.url, () => callbacks.current.refreshUrl()).then(
+      (source) => {
         if (cancelled) return
-        viewer.setDocument(doc)
-        links.setDocument(doc)
-        void callbacks.current.onReady(doc.numPages)
+        const task = pdfjs.getDocument({ ...source, enableXfa: false, ...(assets ? { cMapUrl: `${assets}cmaps/`, cMapPacked: true, standardFontDataUrl: `${assets}standard_fonts/`, wasmUrl: `${assets}wasm/`, iccUrl: `${assets}iccs/` } : {}) })
+        loading = task
+        task.onPassword = (answer: (password: string) => void, reason: number) => {
+          const password = window.prompt(reason === 2 ? 'That password is not right. Password for this PDF:' : 'This PDF needs a password:')
+          if (password === null) {
+            void callbacks.current.onError('password')
+            void task.destroy()
+          } else answer(password)
+        }
+        task.promise.then(
+          (doc) => {
+            if (cancelled) return
+            viewer.setDocument(doc)
+            links.setDocument(doc)
+            void callbacks.current.onReady(doc.numPages)
+          },
+          (e: { name?: string }) => {
+            if (!cancelled && e?.name !== 'PasswordException') void callbacks.current.onError('load')
+          },
+        )
       },
-      (e: { name?: string }) => {
-        if (!cancelled && e?.name !== 'PasswordException') void callbacks.current.onError('load')
+      () => {
+        if (!cancelled) void callbacks.current.onError('load')
       },
     )
 
@@ -190,14 +207,14 @@ export default function PdfDom({
       clearTimeout(timer)
       document.removeEventListener('selectionchange', soon)
       box.removeEventListener('click', onClick)
-      void loading.destroy()
+      void loading?.destroy()
       viewer.cleanup()
       pages.replaceChildren()
       viewerRef.current = null
     }
     // A new document only when the file changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url])
+  }, [fileKey])
 
   useEffect(() => {
     const n = viewerRef.current?.pagesCount ?? 0
