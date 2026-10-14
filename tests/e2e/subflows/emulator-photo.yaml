@@ -1,0 +1,21 @@
+# One photo with the emulator's camera app (its virtual scene), kept for the app that asked.
+appId: ${APP_ID}
+---
+- extendedWaitUntil:
+    visible:
+      id: "com.android.camera2:id/shutter_button"
+    timeout: 30000
+# The camera's first start shows a hint over the viewfinder.
+- runFlow:
+    when:
+      visible: "NEXT"
+    commands:
+      - tapOn: "NEXT"
+- tapOn:
+    id: "com.android.camera2:id/shutter_button"
+- extendedWaitUntil:
+    visible:
+      id: "com.android.camera2:id/done_button"
+    timeout: 15000
+- tapOn:
+    id: "com.android.camera2:id/done_button"
