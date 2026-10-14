@@ -4,7 +4,7 @@ import { router } from 'expo-router'
 import { CaptureScreen } from '@/features/notes/capture/CaptureScreen'
 import { pickForTray } from '@/features/notes/capture/prepare'
 import { uploadToNote } from '@/features/notes/media/NoteMedia'
-import { appendCard, createNote } from '@/features/notes/store/actions'
+import { appendCard, createNote, deleteCard } from '@/features/notes/store/actions'
 import { createApolloClient } from '@/lib/apollo'
 import { mockApi } from '../../support/api'
 import { renderInApp as render } from '../../support/render'
@@ -15,8 +15,8 @@ import { renderInApp as render } from '../../support/render'
  */
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), replace: jest.fn(), back: jest.fn(), canGoBack: () => true } }))
 jest.mock('@/features/notes/capture/prepare', () => ({ pickForTray: jest.fn() }))
-jest.mock('@/features/notes/store/actions', () => ({ createNote: jest.fn(async () => 'n-new'), setTitle: jest.fn(async () => undefined), appendCard: jest.fn(async () => ({ id: 'c1' })) }))
-jest.mock('@/features/notes/store/db', () => ({ getNote: jest.fn(async () => ({ id: 'n-new', localOnly: false })) }))
+jest.mock('@/features/notes/store/actions', () => ({ createNote: jest.fn(async () => 'n-new'), setTitle: jest.fn(async () => undefined), appendCard: jest.fn(async () => ({ id: 'c1' })), deleteCard: jest.fn(async () => undefined) }))
+jest.mock('@/features/notes/store/db', () => ({ getNote: jest.fn(async () => ({ id: 'n-new', localOnly: false })), getCards: jest.fn(async () => [{ id: 'c-empty', type: 'text', revision: null }]) }))
 jest.mock('@/features/notes/sync/engine', () => ({ syncNow: jest.fn(async () => undefined) }))
 jest.mock('@/features/notes/media/NoteMedia', () => ({ ...jest.requireActual('@/features/notes/media/NoteMedia'), uploadToNote: jest.fn() }))
 
@@ -58,6 +58,8 @@ describe('notes from photos', () => {
       ['n-new', 'file', { fileId: 'f-handout.pdf' }],
     ])
     expect(runs).toEqual([{ input: { noteId: 'n-new', task: 'QUICK_NOTE' } }])
+    // The new note's empty first card goes: the note is its photos and PDFs.
+    expect(deleteCard).toHaveBeenCalledWith(expect.objectContaining({ id: 'c-empty' }))
   })
 
   it('opens on the camera from Home, and after a failed upload carries on where it stopped', async () => {
