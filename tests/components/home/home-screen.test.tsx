@@ -12,6 +12,7 @@ describe('HomeScreen', () => {
   it('lays out the Home tab sections in order', async () => {
     mockApi({
       UnreadNotificationCount: () => ({ data: { unreadNotificationCount: 0 } }),
+      DailyLine: () => ({ data: { dailyLine: { __typename: 'DailyLine', day: '2026-10-14', title: 'Make it happen', line: 'Discipline today creates the freedom tomorrow.', fromAi: false, pending: false } } }),
       Viewer: () => new Error('not here'),
       Rhythm: () => new Error('not here'),
       Exams: () => ({ data: { exams: [] } }),
