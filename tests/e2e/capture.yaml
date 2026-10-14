@@ -1,0 +1,29 @@
+# Notes from photos (lvn-backend ADR-0084): the create sheet's Photo opens the tray on the camera; the emulator's camera
+# takes a photo of its scene, the tray keeps it (made smaller) and takes another; Make notes uploads both into one new
+# note and opens the AI screen with the quick note queued. Without AI on the server, the note opens instead.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Create"
+- tapOn: "Photo"
+- runFlow:
+    when:
+      visible: "While using the app"
+    commands:
+      - tapOn: "While using the app"
+- runFlow: subflows/emulator-photo.yaml
+- extendedWaitUntil:
+    visible: "1 of 10"
+    timeout: 30000
+- assertVisible: "Photo 1"
+- tapOn: "Take a photo"
+- runFlow: subflows/emulator-photo.yaml
+- extendedWaitUntil:
+    visible: "2 of 10"
+    timeout: 30000
+- tapOn: "Make notes from 2"
+- extendedWaitUntil:
+    visible: "Tidy into notes|Quick note, .*"
+    timeout: 60000

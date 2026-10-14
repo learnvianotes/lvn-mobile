@@ -8,12 +8,12 @@ import { PressScale } from '@/features/shell/PressScale'
 
 /**
  * Tinted icon tiles from the UI board; each does what it says (lvn-backend ADR-0076): Notes opens the notes, Q&A asks
- * AI, Camera turns a photo into notes, Voice records a voice note, Upload puts a file in a new note.
+ * AI, Camera fills a tray of photos and PDFs that AI makes notes of, Voice records a voice note, Upload puts a file in a new note.
  */
 const ACTIONS: { label: string; hint: string; icon: LucideIcon; bg: string; fg: string; go: string | CreateAction }[] = [
   { label: 'Notes', hint: 'Opens your notes', icon: NotebookPen, bg: 'bg-secondary', fg: '--color-primary', go: '/notes' },
   { label: 'Q&A', hint: 'Ask AI about your notes', icon: MessagesSquare, bg: 'bg-sky-soft', fg: '--color-sky', go: '/ask' },
-  { label: 'Camera', hint: 'Take a photo and turn it into notes', icon: Camera, bg: 'bg-rose-soft', fg: '--color-rose', go: 'Photo' },
+  { label: 'Camera', hint: 'Take photos or add PDFs, and AI makes notes of them', icon: Camera, bg: 'bg-rose-soft', fg: '--color-rose', go: 'Photo' },
   { label: 'Voice', hint: 'Record a voice note', icon: Mic, bg: 'bg-warm-soft', fg: '--color-warm', go: 'Voice note' },
   { label: 'Upload', hint: 'Put a PDF, picture or recording in a new note', icon: Upload, bg: 'bg-success-soft', fg: '--color-success', go: 'Upload' },
 ]

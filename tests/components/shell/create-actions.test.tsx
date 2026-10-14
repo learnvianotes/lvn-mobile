@@ -15,7 +15,7 @@ import { renderInApp as render } from '../../support/render'
 
 /**
  * No dead controls (lvn-backend ADR-0076): every tile on Home and every option of the create sheet does what it says —
- * the search bar opens Explore, the avatar the Profile tab, Q&A Ask AI, Camera a photo note, Voice a recording, Upload
+ * the search bar opens Explore, the avatar the Profile tab, Q&A Ask AI, Camera the tray of photos for notes, Voice a recording, Upload
  * a file in a new note (a PDF in the reader), and Quiz and Flashcards a note that starts with that card.
  */
 jest.mock('@/lib/haptics', () => ({ haptic: { tick: jest.fn(), press: jest.fn(), success: jest.fn() } }))
@@ -58,7 +58,7 @@ describe('Home', () => {
     await fireEvent.press(screen.getByRole('button', { name: 'Q&A' }))
     expect(router.push).toHaveBeenLastCalledWith('/ask')
     await fireEvent.press(screen.getByRole('button', { name: 'Camera' }))
-    await waitFor(() => expect(pickMedia).toHaveBeenCalledWith('camera'))
+    await waitFor(() => expect(router.push).toHaveBeenLastCalledWith('/notes/capture?start=camera'))
     await fireEvent.press(screen.getByRole('button', { name: 'Voice' }))
     await waitFor(() => expect(router.push).toHaveBeenLastCalledWith('/notes/record/n-new?transcribe=1'))
     expect(setTitle).toHaveBeenCalledWith('n-new', expect.stringMatching(/^Voice note, /))
