@@ -5,11 +5,12 @@ import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { SafeAreaView } from '@/components/ui/safe-area-view'
 import { Text } from '@/components/ui/text'
+import { AchievementBadges } from '@/features/achievements/AchievementBadges'
 import { AccountStanding } from '@/features/moderation/Standing'
 import { useLocal } from '@/features/notes/hooks'
 import * as db from '@/features/notes/store/db'
 import { ReviewRequests, VerifyCard } from '@/features/verification/Verification'
-import { ProfileTabDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
+import { MyAchievementsDocument, ProfileTabDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { YEARS } from './AccountDetails'
 import { copy } from './copy'
 import { Notice } from './Notice'
@@ -57,6 +58,7 @@ export function ProfileTab() {
         {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
         {viewer && !viewer.verified ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
         {viewer?.globalRole === 'TEACHER' && viewer.verified ? <ReviewRequests /> : null}
+        {viewer ? <Achievements /> : null}
         {viewer ? <Links viewer={viewer} /> : null}
       </ScrollView>
     </SafeAreaView>
@@ -98,6 +100,31 @@ function Stat({ label, value, onPress }: { label: string; value: number | undefi
       <Text className="text-xl font-extrabold">{value ?? '–'}</Text>
       <Text className="text-muted-foreground text-xs">{label}</Text>
     </Pressable>
+  )
+}
+
+/** Board A's achievement row (lvn-backend ADR-0080): the four most recent, and all of them with points on the next screen. */
+function Achievements() {
+  const { data } = useQuery(MyAchievementsDocument, { fetchPolicy: 'cache-and-network' })
+  const items = data?.viewer?.achievements ?? []
+  return (
+    <View className="gap-3">
+      <View className="flex-row items-center justify-between">
+        <Text className="flex-1 text-base font-bold" accessibilityRole="header">
+          Achievements
+        </Text>
+        <Pressable accessibilityRole="link" accessibilityLabel="See all achievements" hitSlop={8} onPress={() => router.push('/achievements')}>
+          <Text className="text-primary text-sm font-semibold">See all</Text>
+        </Pressable>
+      </View>
+      {items.length ? (
+        <AchievementBadges items={items.slice(0, 4)} />
+      ) : data ? (
+        <Pressable accessibilityRole="link" onPress={() => router.push('/achievements')} className="border-border rounded-2xl border border-dashed p-4">
+          <Text className="text-muted-foreground text-center text-sm">Master a topic or meet your Rhythm weeks to earn your first achievement.</Text>
+        </Pressable>
+      ) : null}
+    </View>
   )
 }
 

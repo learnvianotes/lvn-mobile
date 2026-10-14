@@ -7,6 +7,8 @@ import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, View } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { AchievementBadges } from '@/features/achievements/AchievementBadges'
+import { LEVEL } from '@/features/achievements/AchievementsScreen'
 import { ReportSheet } from '@/features/moderation/ReportSheet'
 import { SOURCE } from '@/features/people/SkillsImport'
 import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
@@ -212,6 +214,19 @@ export function ProfileScreen({ handle }: { handle: string }) {
             </Text>
           ) : null}
         </View>
+
+        {person.achievements?.length ? (
+          // Achievements an adult chose to show (lvn-backend ADR-0080); the person always sees their own.
+          <View className="gap-3">
+            <View className="flex-row items-center gap-2">
+              <Text className="flex-1 text-base font-bold" accessibilityRole="header">
+                Achievements
+              </Text>
+              {person.contribution && person.contribution.level !== 'NEWCOMER' ? <Text className="text-primary text-sm font-semibold">{LEVEL[person.contribution.level]}</Text> : null}
+            </View>
+            <AchievementBadges items={person.achievements} wrap />
+          </View>
+        ) : null}
 
         <View className="flex-row flex-wrap gap-2" accessibilityRole="tablist">
           {kinds.map((k) => (

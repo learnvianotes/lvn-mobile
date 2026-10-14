@@ -82,6 +82,24 @@ export function describeNotification(n: Described): string {
       return data.decision === 'APPROVED' ? 'Your resource is in the catalogue' : 'Moderators did not approve your resource'
     case 'DATA_EXPORT':
       return 'Your data export is ready to download'
+    case 'ACHIEVEMENT': {
+      // An achievement reached (lvn-backend ADR-0080): what was learned, in the person's words.
+      const n = Number(data.tier ?? 1)
+      switch (data.kind) {
+        case 'TOPICS_MASTERED':
+          return n === 1 ? 'You mastered your first topic' : `You’ve mastered ${n} topics`
+        case 'QUIZ_MASTER':
+          return n === 1 ? 'You’re a quiz master on a topic' : `You’re a quiz master on ${n} topics`
+        case 'EXAM_READY':
+          return n === 1 ? 'An exam reached its Readiness target' : `${n} exams reached their Readiness target`
+        case 'RHYTHM_WEEKS':
+          return `You met ${n} Rhythm weeks`
+        case 'SUBJECT_CONTRIBUTOR':
+          return `You’re a ${String(data.subject ?? '')} contributor: ${n} points from others`
+        default:
+          return 'You reached a new achievement'
+      }
+    }
     case 'RHYTHM_BUDDY':
       // Someone asked to share Rhythm, or agreed to (lvn-backend ADR-0072).
       return data.kind === 'ACCEPTED' ? `${actor} is now your Rhythm buddy` : `${actor} asked you to be Rhythm buddies`
