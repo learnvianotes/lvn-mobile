@@ -33,6 +33,11 @@ env:
     timeout: 15000
 - assertVisible: "No flashcards or quizzes yet"
 - pressKey: Back
+# The tabs (ADR-0076): the Study Plan leads to each exam's whole plan; Progress shows Readiness.
+- tapOn: "Study Plan"
+- assertVisible: "The whole plan for Midterm"
+- tapOn: "Progress"
+- assertVisible: "Readiness 0%"
 - pressKey: Back
 - scrollUntilVisible:
     element: "Rhythm"
