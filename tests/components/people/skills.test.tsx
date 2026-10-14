@@ -17,20 +17,23 @@ const mine = (role = 'TEACHER') => ({
   data: {
     viewer: {
       __typename: 'User', id: ME, handle: 'asharao', globalRole: role,
-      teacherProfile: { __typename: 'TeacherProfile', headline: 'Teaches algorithms', bio: null, skills: [
-        { __typename: 'TeacherSkill', id: 's1', kind: 'QUALIFICATION', name: 'M.Tech', detail: 'IIT Madras' },
-        { __typename: 'TeacherSkill', id: 's2', kind: 'SKILL', name: 'Graph theory', detail: null },
+      teacherProfile: { __typename: 'TeacherProfile', headline: 'Teaches algorithms', bio: null, drafts: [], skills: [
+        { __typename: 'TeacherSkill', id: 's1', kind: 'QUALIFICATION', name: 'M.Tech', detail: 'IIT Madras', source: 'MANUAL', sourceUrl: null, fetchedAt: null },
+        { __typename: 'TeacherSkill', id: 's2', kind: 'SKILL', name: 'Graph theory', detail: null, source: 'MANUAL', sourceUrl: null, fetchedAt: null },
       ] },
     },
   },
 })
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
+const skillsImport = (over: Record<string, unknown> = {}) => ({ data: { mySkillsImport: { __typename: 'SkillsImport', allowed: true, sources: ['GITHUB', 'WEBSITE'], identities: [], ...over } } })
+const imported = (id: string, kind: string, name: string) => ({ __typename: 'TeacherSkill', id, kind, name, detail: null, source: 'GITHUB', sourceUrl: `https://github.com/asharao/${name}`, fetchedAt: '2026-10-01T10:00:00.000Z' })
 
 beforeEach(() => jest.clearAllMocks())
 
 it('a teacher edits, reorders, removes and adds items, saved in one go', async () => {
   const api = mockApi({
     MyTeacherProfile: () => mine(),
+    MySkillsImport: () => skillsImport(),
     UpdateTeacherProfile: () => ({ data: { updateTeacherProfile: { __typename: 'TeacherProfilePayload', profile: mine().data.viewer.teacherProfile, userErrors: [] } } }),
   })
   await inApollo(<SkillsScreen />)
@@ -90,4 +93,37 @@ it('the Profile tab leads teachers to Skills and platform admins to the queue', 
   await inApollo(<ProfileTab />)
   await fireEvent.press(await screen.findByRole('link', { name: /Moderation queue/ }))
   expect(router.push).toHaveBeenCalledWith('/admin/moderation')
+})
+
+it('a teacher proves a GitHub account, then publishes or discards what was imported (ADR-0077)', async () => {
+  let identities: unknown[] = []
+  let drafts = [imported('d1', 'PROJECT', 'tiny-os'), imported('d2', 'SKILL', 'C')]
+  let published: unknown[] = []
+  const identity = (verified: boolean) => ({ __typename: 'ExternalIdentity', id: 'i1', kind: 'GITHUB', value: 'asharao', code: 'lvn-ab12cd34ef', instructions: "Add lvn-ab12cd34ef to your GitHub profile's bio, then check again.", verified, checkedAt: null, fetchedAt: null, lastError: null })
+  const profile = () => ({ __typename: 'TeacherProfile', headline: null, bio: null, skills: published, drafts: (identities[0] as { verified?: boolean } | undefined)?.verified ? drafts : [] })
+  const api = mockApi({
+    MyTeacherProfile: () => ({ data: { viewer: { __typename: 'User', id: ME, handle: 'asharao', globalRole: 'TEACHER', teacherProfile: profile() } } }),
+    MySkillsImport: () => skillsImport({ identities }),
+    AddExternalIdentity: () => ((identities = [identity(false)]), { data: { addExternalIdentity: { __typename: 'ExternalIdentityPayload', identity: identities[0], userErrors: [] } } }),
+    CheckExternalIdentity: () => ((identities = [identity(true)]), { data: { checkExternalIdentity: { __typename: 'ExternalIdentityPayload', identity: identities[0], userErrors: [] } } }),
+    PublishTeacherSkills: (v) => {
+      const ids = v.skillIds as string[]
+      published = drafts.filter((d) => ids.includes(d.id))
+      drafts = drafts.filter((d) => !ids.includes(d.id))
+      return { data: { publishTeacherSkills: { __typename: 'TeacherProfilePayload', profile: profile(), userErrors: [] } } }
+    },
+    DiscardTeacherSkills: (v) => ((drafts = drafts.filter((d) => !(v.skillIds as string[]).includes(d.id))), { data: { discardTeacherSkills: { __typename: 'TeacherProfilePayload', profile: profile(), userErrors: [] } } }),
+  })
+  await inApollo(<SkillsScreen />)
+  await fireEvent.changeText(await screen.findByLabelText('GitHub user name'), 'asharao')
+  await fireEvent.press(screen.getByRole('button', { name: 'Add' }))
+  expect(await screen.findByText('Not proven yet')).toBeOnTheScreen()
+  expect(screen.getByText('lvn-ab12cd34ef')).toBeOnTheScreen()
+  expect(api.calls.find((c) => c.op === 'AddExternalIdentity')?.variables).toEqual({ input: { kind: 'GITHUB', value: 'asharao' } })
+  await fireEvent.press(screen.getByRole('button', { name: 'Check' }))
+  await fireEvent.press(await screen.findByRole('button', { name: 'Publish tiny-os' }))
+  expect(api.calls.find((c) => c.op === 'PublishTeacherSkills')?.variables).toEqual({ skillIds: ['d1'] })
+  expect(await screen.findByText('Imported, on your profile')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Discard C' }))
+  expect(api.calls.find((c) => c.op === 'DiscardTeacherSkills')?.variables).toEqual({ skillIds: ['d2'] })
 })

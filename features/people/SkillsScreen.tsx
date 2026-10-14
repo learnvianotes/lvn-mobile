@@ -8,12 +8,16 @@ import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { Field, Outcome, Pill, ScreenHeader } from '@/features/shell/Form'
 import { MyTeacherProfileDocument, UpdateTeacherProfileDocument, type TeacherSkillKind } from '@/graphql/generated/graphql'
+import { SkillsImport } from './SkillsImport'
 
 type Item = { key: number; kind: TeacherSkillKind; name: string; detail: string }
-const KINDS: Record<TeacherSkillKind, string> = { QUALIFICATION: 'Qualification', EXPERIENCE: 'Experience', SKILL: 'Skill' }
+const KINDS: Record<TeacherSkillKind, string> = { QUALIFICATION: 'Qualification', EXPERIENCE: 'Experience', SKILL: 'Skill', PROJECT: 'Project', PUBLICATION: 'Publication' }
 let next = 0
 
-/** A teacher's Skills tab, by hand on the phone (lvn-backend ADR-0012, ADR-0044): headline, about and items, saved in one go. */
+/**
+ * A teacher's Skills tab on the phone (lvn-backend ADR-0012, ADR-0044): headline, about and items written by hand, saved in
+ * one go; below, importing from identifiers they prove are theirs (ADR-0077), whose items are kept apart from these.
+ */
 export function SkillsScreen() {
   const insets = useSafeAreaInsets()
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
@@ -31,7 +35,7 @@ export function SkillsScreen() {
     const p = viewer.teacherProfile
     setHeadline(p?.headline ?? '')
     setBio(p?.bio ?? '')
-    setItems((p?.skills ?? []).map((s) => ({ key: next++, kind: s.kind, name: s.name, detail: s.detail ?? '' })))
+    setItems((p?.skills ?? []).filter((s) => s.source === 'MANUAL').map((s) => ({ key: next++, kind: s.kind, name: s.name, detail: s.detail ?? '' })))
     setLoaded(true)
   }, [viewer, loaded])
 
@@ -55,7 +59,7 @@ export function SkillsScreen() {
         <Text className="text-muted-foreground px-6 py-16 text-center">The Skills tab is for teachers.</Text>
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-          <Text className="text-muted-foreground text-sm">What students see on your profile: a headline, a few lines about you, and your qualifications, experience and skills.</Text>
+          <Text className="text-muted-foreground text-sm">What students see on your profile: a headline, a few lines about you, and your qualifications, experience, skills, projects and publications.</Text>
           <Field label="Headline" value={headline} onChangeText={setHeadline} maxLength={120} placeholder="For example: Teaches algorithms to second-year students" />
           <Field label="About you" value={bio} onChangeText={setBio} maxLength={2000} multiline />
           <Text className="text-sm font-semibold">Qualifications, experience and skills</Text>
@@ -91,6 +95,7 @@ export function SkillsScreen() {
           <View className="flex-row">
             <Pill label="Save" primary disabled={saving.loading || !viewer} onPress={() => void submit()} />
           </View>
+          <SkillsImport drafts={viewer?.teacherProfile?.drafts ?? []} imported={(viewer?.teacherProfile?.skills ?? []).filter((s) => s.source !== 'MANUAL')} />
         </ScrollView>
       )}
     </View>

@@ -3,11 +3,12 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, BadgeCheck, Ellipsis, FileText, GraduationCap, Handshake, UserCheck, UserPlus } from 'lucide-react-native'
 import { useState } from 'react'
-import { ActivityIndicator, Alert, Pressable, ScrollView, View } from 'react-native'
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ReportSheet } from '@/features/moderation/ReportSheet'
+import { SOURCE } from '@/features/people/SkillsImport'
 import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
 import {
   BlockUserDocument,
@@ -26,7 +27,7 @@ import {
 
 const YEAR: Record<string, string> = { YEAR_1: '1st year', YEAR_2: '2nd year', YEAR_3: '3rd year', YEAR_4: '4th year', YEAR_5: '5th year', POSTGRADUATE: 'Postgraduate', GRADUATED: 'Graduated', SCHOOL: 'At school', NOT_STUDYING: 'Not studying' }
 const KINDS = { NOTE: 'Notes', BLOG: 'Blog', PROJECT: 'Projects', POST: 'Posts', SKILLS: 'Skills' } as const
-const SKILL_KINDS = { QUALIFICATION: 'Qualifications', EXPERIENCE: 'Experience', SKILL: 'Skills' } as const
+const SKILL_KINDS = { QUALIFICATION: 'Qualifications', EXPERIENCE: 'Experience', SKILL: 'Skills', PROJECT: 'Projects', PUBLICATION: 'Publications' } as const
 type Kind = keyof typeof KINDS
 
 /**
@@ -252,8 +253,12 @@ export function ProfileScreen({ handle }: { handle: string }) {
   )
 }
 
-/** A teacher's Skills tab (ADR-0012): headline, about, and items grouped by kind. */
-function SkillsTab({ profile }: { profile: { headline: string | null; bio: string | null; skills: { id: string; kind: keyof typeof SKILL_KINDS; name: string; detail: string | null }[] } | null }) {
+/** A teacher's Skills tab (ADR-0012, ADR-0077): headline, about, and items grouped by kind; imported ones say where from. */
+function SkillsTab({
+  profile,
+}: {
+  profile: { headline: string | null; bio: string | null; skills: { id: string; kind: keyof typeof SKILL_KINDS; name: string; detail: string | null; source: string; sourceUrl?: string | null; fetchedAt?: string | null }[] } | null
+}) {
   if (!profile || (!profile.headline && !profile.bio && !profile.skills.length)) return <Text className="text-muted-foreground py-8 text-center">Nothing here yet.</Text>
   return (
     <View className="gap-4">
@@ -271,6 +276,14 @@ function SkillsTab({ profile }: { profile: { headline: string | null; bio: strin
               <View key={s.id} className="bg-card border-border rounded-2xl border px-4 py-3">
                 <Text className="font-semibold">{s.name}</Text>
                 {s.detail ? <Text className="text-muted-foreground text-sm">{s.detail}</Text> : null}
+                {s.source !== 'MANUAL' ? (
+                  <Pressable accessibilityRole="link" disabled={!s.sourceUrl} onPress={() => s.sourceUrl && void Linking.openURL(s.sourceUrl)}>
+                    <Text className="text-muted-foreground mt-1 text-xs">
+                      From {SOURCE[s.source]}
+                      {s.fetchedAt ? ` · checked ${new Date(s.fetchedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}
+                    </Text>
+                  </Pressable>
+                ) : null}
               </View>
             ))}
           </View>
