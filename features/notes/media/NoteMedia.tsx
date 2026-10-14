@@ -105,7 +105,9 @@ export class UploadError extends Error {}
  */
 export async function uploadFile(client: ApolloClient, picked: { uri: string; name: string; mimeType: string; size?: number | null }, purpose: { purpose: 'ATTACHMENT' | 'IMPORT' | 'VERIFICATION_DOCUMENT' | 'COVER' | 'GROUP_PICTURE'; parentId?: string }): Promise<string> {
   const body = await (await fetch(picked.uri)).blob()
-  const res = await client.mutate({ mutation: CreateNoteUploadDocument, variables: { input: { fileName: picked.name || 'file', mimeType: picked.mimeType, sizeBytes: picked.size ?? body.size, purpose: purpose.purpose, ...(purpose.parentId ? { parentId: purpose.parentId } : {}) } } })
+  // The size signed into the upload URL must be the bytes sent: a picker's reported size can differ (a camera photo is
+  // compressed after the picker measures it), and storage then refuses the upload.
+  const res = await client.mutate({ mutation: CreateNoteUploadDocument, variables: { input: { fileName: picked.name || 'file', mimeType: picked.mimeType, sizeBytes: body.size, purpose: purpose.purpose, ...(purpose.parentId ? { parentId: purpose.parentId } : {}) } } })
   const intent = res.data?.createUploadIntent.intent
   if (!intent) throw new UploadError(res.data?.createUploadIntent.userErrors[0]?.message ?? 'The file could not be uploaded.')
   const headers: Record<string, string> = {}
