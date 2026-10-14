@@ -12,6 +12,7 @@ import { ContentModeration } from '@/features/moderation/ModerationNotice'
 import { ReportLink } from '@/features/moderation/ReportSheet'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
+import { LoadState } from '@/features/shell/LoadState'
 import { AnswerDoubtDocument, DeleteDoubtDocument, DoubtDocument, ReopenDoubtDocument, ResolveDoubtDocument } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 import { AnswerList, AskForm } from '@/features/ai/AskAi'
@@ -26,7 +27,8 @@ export function DoubtScreen({ id }: { id: string }) {
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data, loading, refetch } = useQuery(DoubtDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(DoubtDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [answer] = useMutation(AnswerDoubtDocument)
   const [resolve] = useMutation(ResolveDoubtDocument)
   const [reopen] = useMutation(ReopenDoubtDocument)
@@ -46,7 +48,7 @@ export function DoubtScreen({ id }: { id: string }) {
         </Pressable>
       </View>
       {!d ? (
-        loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This doubt is not available.</Text>
+        data ? <Text className="text-muted-foreground px-6 py-16 text-center">This doubt is not available.</Text> : <LoadState query={query} message="This doubt could not load." className="mx-4" />
       ) : (
         <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
           <View className="bg-card border-border gap-2 rounded-3xl border p-5">

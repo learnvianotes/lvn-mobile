@@ -16,6 +16,7 @@ import { useLocal } from '@/features/notes/hooks'
 import { RichDoc } from '@/features/notes/render/RichText'
 import * as db from '@/features/notes/store/db'
 import { ago } from '@/features/notifications/describe'
+import { LoadState } from '@/features/shell/LoadState'
 import {
   AnswerClassroomInviteDocument,
   ClassroomDocument,
@@ -55,7 +56,8 @@ export function ClassScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
-  const { data, loading, refetch } = useQuery(ClassroomDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ClassroomDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [tab, setTab] = useState<Tab>('posts')
   const [error, setError] = useState<string | null>(null)
   const [answer] = useMutation(AnswerClassroomInviteDocument)
@@ -76,7 +78,15 @@ export function ClassScreen({ id }: { id: string }) {
       </Pressable>
     </View>
   )
-  if (!classroom) return <View className="bg-background flex-1">{back}{loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This class is not available.</Text>}</View>
+  // Loading, or what failed; only an answer without the class means it is not there.
+  if (!classroom) {
+    return (
+      <View className="bg-background flex-1">
+        {back}
+        {data ? <Text className="text-muted-foreground px-6 py-16 text-center">This class is not available.</Text> : <LoadState query={query} message="This class could not load." className="mx-4" />}
+      </View>
+    )
+  }
   const staff = classroom.viewerCan.review
   const tabs: Tab[] = classroom.viewerRole ? ['posts', 'quizzes', 'notes', 'resources', 'rhythm', ...(staff ? (['performance', 'people', 'requests', 'reports'] as const) : []), ...(classroom.viewerCan.manage ? (['settings'] as const) : [])] : []
   return (
@@ -173,7 +183,8 @@ function Action({ label, onPress, primary }: { label: string; onPress: () => voi
 
 function Posts({ classroom }: { classroom: ClassroomDetailFragment }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data, refetch } = useQuery(ClassroomPostsDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ClassroomPostsDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [create] = useMutation(CreateClassroomPostDocument)
   const [remove] = useMutation(DeleteClassroomPostDocument)
   const [text, setText] = useState('')
@@ -229,14 +240,17 @@ function Posts({ classroom }: { classroom: ClassroomDetailFragment }) {
         ))
       ) : data ? (
         <Text className="text-muted-foreground py-6 text-center">No announcements yet.</Text>
-      ) : null}
+      ) : (
+        <LoadState query={query} message="The announcements could not load." />
+      )}
     </View>
   )
 }
 
 function Notes({ classroom }: { classroom: ClassroomDetailFragment }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
-  const { data, refetch } = useQuery(ClassroomNotesDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ClassroomNotesDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [share] = useMutation(ShareNoteToClassroomDocument)
   const [picking, setPicking] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -289,14 +303,17 @@ function Notes({ classroom }: { classroom: ClassroomDetailFragment }) {
         ))
       ) : data ? (
         <Text className="text-muted-foreground py-6 text-center">No notes shared yet.</Text>
-      ) : null}
+      ) : (
+        <LoadState query={query} message="The shared notes could not load." />
+      )}
     </View>
   )
 }
 
 function People({ classroom, onChanged }: { classroom: ClassroomDetailFragment; onChanged: () => void }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data, refetch } = useQuery(ClassroomPeopleDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ClassroomPeopleDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [invite] = useMutation(InviteToClassroomDocument)
   const [setRole] = useMutation(SetClassroomRoleDocument)
   const [remove] = useMutation(RemoveClassroomMemberDocument)
@@ -328,6 +345,7 @@ function People({ classroom, onChanged }: { classroom: ClassroomDetailFragment; 
           {message.text}
         </Text>
       ) : null}
+      <LoadState query={query} message="The people in this class could not load." />
       {(data?.classroom?.members ?? []).map((m) => (
         <View key={m.user.id} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">
           <Pressable accessibilityRole="link" accessibilityLabel={m.user.displayName} onPress={() => router.push(`/u/${m.user.handle}`)} className="flex-1 flex-row items-center gap-3">
@@ -368,7 +386,8 @@ function People({ classroom, onChanged }: { classroom: ClassroomDetailFragment; 
 }
 
 function Requests({ classroom, onChanged }: { classroom: ClassroomDetailFragment; onChanged: () => void }) {
-  const { data, refetch } = useQuery(ClassroomPeopleDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ClassroomPeopleDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [review] = useMutation(ReviewClassroomJoinRequestDocument)
   const [error, setError] = useState<string | null>(null)
   const requests = data?.classroom?.joinRequests ?? []
@@ -377,6 +396,7 @@ function Requests({ classroom, onChanged }: { classroom: ClassroomDetailFragment
     await refetch()
     onChanged()
   }
+  if (!data) return <LoadState query={query} message="The requests could not load." />
   if (!requests.length) return <Text className="text-muted-foreground py-6 text-center">No requests waiting.</Text>
   return (
     <View className="gap-2">

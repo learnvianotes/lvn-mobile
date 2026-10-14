@@ -10,6 +10,7 @@ import { MarkNotificationsReadDocument, NotificationsDocument, type Notification
 import { ago, describeNotification } from './describe'
 import { useLive } from './live'
 import { TurnOnPush } from '@/features/push/TurnOnPush'
+import { LoadState } from '@/features/shell/LoadState'
 import { phonePath } from './route'
 
 const PAGE = 20
@@ -21,7 +22,8 @@ export function NotificationsScreen() {
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const client = useApolloClient()
-  const { data, loading, refetch, fetchMore } = useQuery(NotificationsDocument, { variables: { first: PAGE }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(NotificationsDocument, { variables: { first: PAGE }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch, fetchMore } = query
   const [mark] = useMutation(MarkNotificationsReadDocument)
   const [refreshing, setRefreshing] = useState(false)
   useLive(() => void client.refetchQueries({ include: ['UnreadNotificationCount', 'Notifications'] }))
@@ -87,7 +89,10 @@ export function NotificationsScreen() {
           }
         }}
         ListEmptyComponent={
-          loading ? null : (
+          // "Nothing here" only once the list came back empty; before that, loading or what failed.
+          !data ? (
+            <LoadState query={query} message="Your notifications could not load." />
+          ) : (
             <View className="items-center gap-3 py-16">
               <Bell size={32} color={fg} />
               <Text className="text-muted-foreground px-6 text-center">Nothing here yet. When someone shares a note with you, or something you asked for is ready, you will see it here.</Text>

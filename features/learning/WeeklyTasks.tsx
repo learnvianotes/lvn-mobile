@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import { AddWeeklyTaskDocument, ExamTopicOptionsDocument, RemoveWeeklyTaskDocument, TaskSuggestionsDocument, UpdateWeeklyTaskDocument, WeeklyTasksDocument, type WeeklyTaskFieldsFragment, type WeeklyTaskKind } from '@/graphql/generated/graphql'
 
 const KINDS: { kind: WeeklyTaskKind; label: string; start: number }[] = [
@@ -25,10 +26,10 @@ export function taskLabel(t: { kind: WeeklyTaskKind; target: number; topicTitle?
  * each with how far it has come and the plan they wrote; an unfinished one just ends with the week.
  */
 export function WeeklyTasks() {
-  const { data } = useQuery(WeeklyTasksDocument, { fetchPolicy: 'cache-and-network' })
+  const tasks = useQuery(WeeklyTasksDocument, { fetchPolicy: 'cache-and-network' })
   const [adding, setAdding] = useState(false)
-  const week = data?.weeklyTasks
-  if (!week) return null
+  const week = tasks.data?.weeklyTasks
+  if (!week) return <LoadState query={tasks} inline message="This week’s tasks could not load." />
   const done = week.tasks.filter((x) => x.done).length
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">

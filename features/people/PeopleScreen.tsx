@@ -6,6 +6,7 @@ import { FlatList, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import {
   MyPeopleDocument,
   RemoveConnectionDocument,
@@ -33,7 +34,8 @@ export function PeopleScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const [tab, setTab] = useState<Tab>('followers')
-  const { data, refetch } = useQuery(MyPeopleDocument, { variables: { first: 100 }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(MyPeopleDocument, { variables: { first: 100 }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [removeFollower] = useMutation(RemoveFollowerDocument)
   const [unfollow] = useMutation(UnfollowUserDocument)
   const [unblock] = useMutation(UnblockUserDocument)
@@ -102,7 +104,7 @@ export function PeopleScreen() {
         data={lists[tab]}
         keyExtractor={(p) => p.id}
         contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: insets.bottom + 24 }}
-        ListEmptyComponent={<Text className="text-muted-foreground py-12 text-center">{TABS[tab].empty}</Text>}
+        ListEmptyComponent={data ? <Text className="text-muted-foreground py-12 text-center">{TABS[tab].empty}</Text> : <LoadState query={query} message="Your people could not load." />}
         ListFooterComponent={hidden > 0 ? <Text className="text-muted-foreground text-xs">{hidden === 1 ? '1 more follower is' : `${hidden} more followers are`} not shown by name: young learners never appear in lists.</Text> : null}
         renderItem={({ item }) => (
           <View className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">

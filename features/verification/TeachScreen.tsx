@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { mimeOf, UploadError, uploadFile } from '@/features/notes/media/NoteMedia'
+import { LoadState } from '@/features/shell/LoadState'
 import { ApplyToTeachDocument, MyTeacherApplicationDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
@@ -26,7 +27,8 @@ export function TeachScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const client = useApolloClient()
-  const viewer = useQuery(ViewerDocument).data?.viewer
+  const me = useQuery(ViewerDocument)
+  const viewer = me.data?.viewer
   const app = useQuery(MyTeacherApplicationDocument, { fetchPolicy: 'cache-and-network' })
   const latest = app.data?.myTeacherApplication
   const status = viewer?.teacherStatus
@@ -42,8 +44,13 @@ export function TeachScreen() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
         <Text className="text-muted-foreground text-sm">Tell us where you teach. You can set up classes and write announcements and quizzes at once; students can join once a LearnViaNotes admin verifies you.</Text>
-        {status === 'VERIFIED' ? (
+        {!me.data ? (
+          <LoadState query={me} message="Your account could not load." />
+        ) : status === 'VERIFIED' ? (
           <Card title="You’re a verified teacher" lead="Your classes can take students, and your teacher profile is public." />
+        ) : !app.data ? (
+          // Without the application, a waiting one would look like none: no form until it is known.
+          <LoadState query={app} message="Your application could not load." />
         ) : status === 'PENDING' && latest ? (
           <Card title="Your application is being reviewed" lead="You can set up classes now; students can join once you are verified." />
         ) : viewer?.restrictedMinor ? (

@@ -2,10 +2,11 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { router, useLocalSearchParams } from 'expo-router'
 import { ArrowLeft, Check, X } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Switch, View } from 'react-native'
+import { Pressable, ScrollView, Switch, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import { AnswerContestQuestionDocument, ContestDocument, SetContestBandsDocument, StartContestDocument, SubmitContestDocument, type ContestAttemptFieldsFragment } from '@/graphql/generated/graphql'
 
 const BAND = { TOP_10: 'You’re in the top 10% of adults who took it.', TOP_25: 'You’re in the top 25% of adults who took it.', TOP_50: 'You’re in the top half of adults who took it.' } as const
@@ -19,7 +20,8 @@ export function ContestScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const { data, loading, refetch } = useQuery(ContestDocument, { variables: { id: String(id) }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ContestDocument, { variables: { id: String(id) }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [start, starting] = useMutation(StartContestDocument)
   const [problem, setProblem] = useState<string | null>(null)
   const c = data?.contest
@@ -35,7 +37,8 @@ export function ContestScreen() {
         </Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 32 }}>
-        {!c ? loading ? <ActivityIndicator /> : <Text className="text-muted-foreground">That contest is not here.</Text> : null}
+        {/* What failed comes first: only an answer without the contest means it is not here. */}
+        {!data ? <LoadState query={query} message="This contest could not load." /> : !c ? <Text className="text-muted-foreground">That contest is not here.</Text> : null}
         {c ? <Text className="text-muted-foreground text-sm">{[c.subjectTitle, `${c.questionCount} questions`, `${c.minutes} minutes`].filter(Boolean).join(' · ')}</Text> : null}
         {c && !a ? (
           c.state === 'OPEN' ? (

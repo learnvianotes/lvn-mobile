@@ -6,6 +6,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
+import { LoadState } from '@/features/shell/LoadState'
 import { ActivityFeedDocument, FollowingFeedDocument, ForYouFeedDocument, TrendingFeedDocument, type ActivityFeedQuery } from '@/graphql/generated/graphql'
 import { PostCard } from './PostCard'
 import type { Doc } from '@/lib/contracts/validation'
@@ -26,9 +27,10 @@ function More({ onPress }: { onPress: () => void }) {
 
 /** What happened in your groups and classes, newest first (lvn-backend ADR-0049), in words written here from ids. */
 export function ActivityFeed() {
-  const { data, fetchMore } = useQuery(ActivityFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ActivityFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, fetchMore } = query
   const feed = data?.activityFeed
-  if (!feed) return null
+  if (!feed) return <LoadState query={query} message="Activity could not load." />
   const items = feed.edges.map((e) => e.node).filter((i) => i.kind !== 'SHARED_NOTE' || i.note)
   if (!items.length) return <Text className="text-muted-foreground py-6 text-center">Nothing new in your groups and classes yet. Join a group or a class to see what happens there.</Text>
   return (
@@ -88,9 +90,10 @@ function ActivityCard({ item }: { item: Item }) {
 
 /** Public notes and publications of the people you follow (lvn-backend ADR-0049). */
 export function FollowingFeed() {
-  const { data, fetchMore } = useQuery(FollowingFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const query = useQuery(FollowingFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, fetchMore } = query
   const feed = data?.followingFeed
-  if (!feed) return null
+  if (!feed) return <LoadState query={query} message="The Following feed could not load." />
   if (!feed.edges.length) return <Text className="text-muted-foreground py-6 text-center">Follow teachers and classmates to see their public notes here.</Text>
   return (
     <View className="gap-3">
@@ -134,9 +137,10 @@ function Empty({ text, links }: { text: string; links: { label: string; onPress:
 
 /** For You (lvn-backend ADR-0076): public notes on the person's topics, newest first; with none, the ways to have some. */
 export function ForYouFeed() {
-  const { data, fetchMore, refetch } = useQuery(ForYouFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ForYouFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, fetchMore, refetch } = query
   const feed = data?.forYouFeed
-  if (!feed) return null
+  if (!feed) return <LoadState query={query} message="For You could not load." />
   if (!feed.edges.length) {
     return (
       <Empty
@@ -167,9 +171,10 @@ export function ForYouFeed() {
 
 /** Trending (lvn-backend ADR-0076): the public notes most reacted to and discussed this week. */
 export function TrendingFeed({ onForYou }: { onForYou: () => void }) {
-  const { data, fetchMore, refetch } = useQuery(TrendingFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const query = useQuery(TrendingFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, fetchMore, refetch } = query
   const feed = data?.trendingFeed
-  if (!feed) return null
+  if (!feed) return <LoadState query={query} message="Trending could not load." />
   if (!feed.edges.length) return <Empty text="Nothing is trending this week yet." links={[{ label: 'See For You', onPress: onForYou }]} />
   return (
     <View className="gap-3">

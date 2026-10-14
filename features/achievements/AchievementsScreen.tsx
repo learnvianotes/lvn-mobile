@@ -2,10 +2,11 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, Award } from 'lucide-react-native'
 import { useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Switch, View } from 'react-native'
+import { Pressable, ScrollView, Switch, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import { MyAchievementsDocument, MyPointsDocument, SetAchievementsShownDocument } from '@/graphql/generated/graphql'
 import { AchievementBadges } from './AchievementBadges'
 
@@ -45,7 +46,7 @@ export function AchievementsScreen() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }}>
         <Text className="text-muted-foreground text-sm">What you have learned, and what others did with what you made public. Only you see this unless you show it.</Text>
-        {!mine.data && mine.loading ? <ActivityIndicator /> : null}
+        <LoadState query={mine} message="Your achievements could not load." />
         {c ? (
           <View className="bg-card border-border gap-3 rounded-3xl border p-4">
             <View className="flex-row items-center gap-3">
@@ -98,6 +99,7 @@ export function AchievementsScreen() {
         <Text className="text-base font-bold" accessibilityRole="header">
           Points history
         </Text>
+        <LoadState query={points} inline message="Your points history could not load." />
         {points.data && !entries.length ? <Text className="text-muted-foreground text-sm">No points yet. Make a note public: reactions and forks on it earn points.</Text> : null}
         {entries.length ? (
           <View className="bg-card border-border rounded-2xl border">

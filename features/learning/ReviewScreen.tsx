@@ -2,11 +2,12 @@ import { useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { RichDoc } from '@/features/notes/render/RichText'
+import { Loading, LoadFailed } from '@/features/shell/LoadState'
 import { ReviewQueueDocument, type ReviewQueueQuery } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 import { haptic } from '@/lib/haptics'
@@ -25,14 +26,17 @@ const RATINGS: { rating: Rating; label: string }[] = [
 /**
  * A review session on the phone (lvn-backend ADR-0068): today's cards one by one, the front, then the back and four
  * grades with a haptic tick. Grading moves on at once; grades wait in the phone's store and go in order, so a session
- * works offline from the cards last fetched. A card graded Again comes back at the end.
+ * works offline from the cards last fetched, and says so. With none kept, it says the cards could not load rather than
+ * that there is nothing to review. A card graded Again comes back at the end.
  */
 export function ReviewScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const { data, error } = useQuery(ReviewQueueDocument, { fetchPolicy: 'network-only' })
+  const { data, error, refetch } = useQuery(ReviewQueueDocument, { fetchPolicy: 'network-only' })
   const [queue, setQueue] = useState<Queue | null>(null)
   const [cards, setCards] = useState<Card[] | null>(null)
+  // Where the cards came from when the API could not be reached: the phone's store, or nowhere.
+  const [fallback, setFallback] = useState<'stored' | 'none' | null>(null)
   const [index, setIndex] = useState(0)
   const [shown, setShown] = useState(false)
   const [done, setDone] = useState(0)
@@ -43,12 +47,19 @@ export function ReviewScreen() {
     if (data && !cards) {
       setQueue(data.reviewQueue)
       setCards(data.reviewQueue.cards)
+      setFallback(null)
       void cacheQueue(data.reviewQueue)
     }
   }, [data, cards])
-  // Offline: the cards last fetched.
+  // Offline: the cards last fetched; with none kept, the cards could not load (not "nothing to review").
   useEffect(() => {
-    if (error && !cards) void cachedQueue<Queue>().then((q) => (setQueue(q), setCards(q?.cards ?? [])))
+    if (!error || cards) return
+    void cachedQueue<Queue>().then((q) => {
+      if (!q) return setFallback('none')
+      setQueue(q)
+      setCards(q.cards)
+      setFallback('stored')
+    })
   }, [error, cards])
   useEffect(() => {
     void sendGrades().then(() => waitingCount().then(setWaiting))
@@ -82,7 +93,12 @@ export function ReviewScreen() {
         </Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 32 }}>
-        {!cards ? <ActivityIndicator /> : null}
+        {fallback === 'stored' ? (
+          <Text accessibilityLiveRegion="polite" className="text-muted-foreground text-center text-sm">
+            Offline — cards from your last sync
+          </Text>
+        ) : null}
+        {!cards ? fallback === 'none' ? <LoadFailed message="Your cards could not load, and none were kept on this phone yet." onRetry={refetch} /> : <Loading /> : null}
         {cards && !cards.length ? (
           <View className="items-center gap-2 py-10">
             <Text className="text-xl font-bold">Nothing to review</Text>

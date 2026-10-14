@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text'
 import { newId } from '@/features/notes/model/ids'
 import { InlineText, RichDoc } from '@/features/notes/render/RichText'
 import { Pill, ScreenHeader } from '@/features/shell/Form'
+import { LoadState } from '@/features/shell/LoadState'
 import { ClassQuizDocument, SubmitQuizAttemptDocument, type ClassQuizFieldsFragment } from '@/graphql/generated/graphql'
 import type { Doc, Inline } from '@/lib/contracts/validation'
 import { cn } from '@/lib/utils'
@@ -22,14 +23,15 @@ type Answers = Record<string, string[]>
  */
 export function QuizScreen({ quizId }: { quizId: string }) {
   const insets = useSafeAreaInsets()
-  const { data, loading } = useQuery(ClassQuizDocument, { variables: { id: quizId }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ClassQuizDocument, { variables: { id: quizId }, fetchPolicy: 'cache-and-network' })
+  const { data } = query
   const [retaking, setRetaking] = useState(false)
   const quiz = data?.classQuiz
   if (!quiz)
     return (
       <View className="bg-background flex-1">
         <ScreenHeader title="Quiz" />
-        {loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This quiz is not here: it was removed, or you are not in its class.</Text>}
+        {data ? <Text className="text-muted-foreground px-6 py-16 text-center">This quiz is not here: it was removed, or you are not in its class.</Text> : <LoadState query={query} message="This quiz could not load." className="mx-4" />}
       </View>
     )
   const latest = quiz.myAttempts[0] ?? null

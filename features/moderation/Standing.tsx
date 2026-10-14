@@ -6,6 +6,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { Outcome, Pill } from '@/features/shell/Form'
+import { LoadState } from '@/features/shell/LoadState'
 import { AppealModerationDocument, MyStandingDocument, RemovedGroupDocument, type ReportEntityType } from '@/graphql/generated/graphql'
 
 const when = (iso: string) => new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -81,9 +82,11 @@ export function AccountStanding({ userId }: { userId: string }) {
 
 /** Where a group platform moderators removed used to be, for its owner (ADR-0053): why, and the one appeal. */
 export function RemovedGroupNotice({ id }: { id: string }) {
-  const { data, loading, refetch } = useQuery(RemovedGroupDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(RemovedGroupDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const g = data?.removedGroup
-  if (!g) return loading ? null : <Text className="text-muted-foreground px-6 py-16 text-center">This group is not available.</Text>
+  if (!data) return <LoadState query={query} message="This group could not load." className="mx-4" />
+  if (!g) return <Text className="text-muted-foreground px-6 py-16 text-center">This group is not available.</Text>
   return (
     <View accessibilityRole="alert" className="m-4 flex-row gap-3 rounded-2xl border border-red-500/40 bg-red-50 p-4">
       <ShieldAlert size={20} color="#b91c1c" />

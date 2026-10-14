@@ -12,6 +12,7 @@ import { ContentModeration } from '@/features/moderation/ModerationNotice'
 import { ReportLink } from '@/features/moderation/ReportSheet'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { Field, Outcome, Pill } from '@/features/shell/Form'
+import { LoadFailed, LoadState } from '@/features/shell/LoadState'
 import { ago } from '@/features/notifications/describe'
 import {
   AnswerMentorInviteDocument,
@@ -45,7 +46,8 @@ export function StatusChip({ status }: { status: DoubtStatus }) {
 export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragment; onChanged: () => void }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data, refetch } = useQuery(WorkspaceDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const workspace = useQuery(WorkspaceDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = workspace
   const [answer] = useMutation(AnswerMentorInviteDocument)
   const [error, setError] = useState<string | null>(null)
   const repo = data?.group?.repository
@@ -95,6 +97,8 @@ export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragme
           )}
         </Pressable>
       ) : null}
+      {/* The rest of the group is on the screen: a failed repository and showcase is one quiet line. */}
+      {!data && workspace.error ? <LoadFailed inline message="The repository and showcase could not load." onRetry={refetch} /> : null}
       {repo?.app ? <RepositoryApp groupId={group.id} app={repo.app} events={repo.events ?? []} canManage={group.viewerCan.manage} onChanged={() => void refetch()} /> : null}
       {group.viewerCan.manage && data?.group ? <RepositoryEditor groupId={group.id} url={repo?.url ?? null} onChanged={() => void refetch()} /> : null}
       {showcase ? (
@@ -156,7 +160,8 @@ function RepositoryEditor({ groupId, url, onChanged }: { groupId: string; url: s
 /** The ideas board (ADR-0048): ranked by the team's reactions; react and discuss under each. */
 export function Ideas({ group }: { group: GroupDetailFragment }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data, refetch } = useQuery(WorkspaceIdeasDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(WorkspaceIdeasDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [create] = useMutation(CreateIdeaDocument)
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -210,7 +215,9 @@ export function Ideas({ group }: { group: GroupDetailFragment }) {
         ))
       ) : data ? (
         <Text className="text-muted-foreground py-6 text-center">No ideas yet.</Text>
-      ) : null}
+      ) : (
+        <LoadState query={query} message="The ideas could not load." />
+      )}
     </View>
   )
 }
@@ -219,7 +226,8 @@ export function Ideas({ group }: { group: GroupDetailFragment }) {
 export function Doubts({ group }: { group: GroupDetailFragment }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const [status, setStatus] = useState<DoubtStatus | null>(null)
-  const { data } = useQuery(WorkspaceDoubtsDocument, { variables: { id: group.id, status }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(WorkspaceDoubtsDocument, { variables: { id: group.id, status }, fetchPolicy: 'cache-and-network' })
+  const { data } = query
   const [ask] = useMutation(AskDoubtDocument)
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
@@ -291,7 +299,9 @@ export function Doubts({ group }: { group: GroupDetailFragment }) {
         ))
       ) : data ? (
         <Text className="text-muted-foreground py-6 text-center">No doubts here.</Text>
-      ) : null}
+      ) : (
+        <LoadState query={query} message="The doubts could not load." />
+      )}
     </View>
   )
 }
