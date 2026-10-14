@@ -2,11 +2,12 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, Check } from 'lucide-react-native'
 import { useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { TodayRing } from '@/features/home/TodayRing'
+import { LoadState } from '@/features/shell/LoadState'
 import { EndRhythmPauseDocument, PauseRhythmDocument, RhythmDocument, SetRhythmPlanDocument, type RhythmPauseReason, type RhythmQuery } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
@@ -54,8 +55,8 @@ export function ringPercent(today: Pick<R['today'], 'learningSeconds' | 'reviews
 export function RhythmScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const { data, loading, error } = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
-  const r = data?.rhythm
+  const rhythm = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
+  const r = rhythm.data?.rhythm
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
@@ -68,8 +69,7 @@ export function RhythmScreen() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 32 }}>
         <Text className="text-muted-foreground text-sm">A weekly habit, not a streak: learn on your planned days, and rest on the others. A day counts at 10 learning minutes or 10 reviews.</Text>
-        {!r && loading ? <ActivityIndicator /> : null}
-        {!r && error ? <Text className="text-muted-foreground">Your Rhythm could not load. Try again.</Text> : null}
+        <LoadState query={rhythm} message="Your Rhythm could not load." />
         {r ? (
           <>
             <Today r={r} />

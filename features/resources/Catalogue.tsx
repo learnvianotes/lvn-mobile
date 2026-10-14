@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ScreenHeader } from '@/features/shell/Form'
+import { LoadState } from '@/features/shell/LoadState'
 import { ResourcesDocument, SavedResourcesDocument, SaveResourceDocument, UnsaveResourceDocument, type ResourceFieldsFragment, type ResourceSort, type ResourceType } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
@@ -29,7 +30,8 @@ export function CatalogueScreen() {
     const timer = setTimeout(() => setQuery(typed.trim()), 250)
     return () => clearTimeout(timer)
   }, [typed])
-  const { data, fetchMore } = useQuery(ResourcesDocument, { variables: { filter: { type, query: query || null }, sort, first: 20 }, fetchPolicy: 'cache-and-network' })
+  const list = useQuery(ResourcesDocument, { variables: { filter: { type, query: query || null }, sort, first: 20 }, fetchPolicy: 'cache-and-network' })
+  const { data, fetchMore } = list
   const items = data?.resources.edges.map((e) => e.node) ?? []
   return (
     <View className="bg-background flex-1">
@@ -70,7 +72,7 @@ export function CatalogueScreen() {
             </View>
           </View>
         }
-        ListEmptyComponent={data ? <Text className="text-muted-foreground py-8 text-center">Nothing here yet. Add the first one!</Text> : null}
+        ListEmptyComponent={data ? <Text className="text-muted-foreground py-8 text-center">Nothing here yet. Add the first one!</Text> : <LoadState query={list} message="Resources could not load." />}
         renderItem={({ item }) => <ResourceCard resource={item} />}
       />
     </View>

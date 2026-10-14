@@ -6,6 +6,7 @@ import { Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
+import { LoadState } from '@/features/shell/LoadState'
 import { AnswerClassroomInviteDocument, MyClassroomsDocument, ViewerDocument, type ClassroomCardFragment } from '@/graphql/generated/graphql'
 import { CLASS_ROLE, cleanCode } from './shared'
 
@@ -16,7 +17,8 @@ import { CLASS_ROLE, cleanCode } from './shared'
 export function ClassesSection() {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
-  const { data, refetch } = useQuery(MyClassroomsDocument, { fetchPolicy: 'cache-and-network' })
+  const classes = useQuery(MyClassroomsDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = classes
   const viewer = useQuery(ViewerDocument)
   // Verified teachers, and teacher applicants who prepare classes while they wait (lvn-backend ADR-0073).
   const teacher = viewer.data?.viewer?.globalRole === 'TEACHER' || viewer.data?.viewer?.teacherStatus === 'PENDING'
@@ -65,6 +67,7 @@ export function ClassesSection() {
       ) : null}
       {data?.myClassrooms.map((c) => <ClassRow key={c.id} classroom={c} />)}
       {data && !data.myClassrooms.length ? <Text className="text-muted-foreground">{teacher ? 'No classes yet. Start one, and share its code with your students.' : "You're not in a class yet. Ask your teacher for the class code."}</Text> : null}
+      <LoadState query={classes} inline message="Your classes could not load." />
       <View className="bg-card border-border flex-row items-center gap-2 rounded-2xl border px-3">
         <GraduationCap size={18} color={muted} />
         <TextInput accessibilityLabel="Class code" value={code} onChangeText={setCode} onSubmitEditing={find} placeholder="Class code, e.g. K7PQ2MXA" placeholderTextColor={muted} autoCapitalize="characters" autoCorrect={false} maxLength={16} className="text-foreground flex-1 py-3 text-base" />

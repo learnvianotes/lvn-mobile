@@ -4,6 +4,7 @@ import { BookOpen, CalendarClock, ListChecks, RotateCcw, TrendingUp, X, Library 
 import { Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import { DismissRecommendationDocument, RecommendationsDocument, type RecommendationKind, type RecommendationsQuery } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
 import { coreName, recommendationHref } from './recommendationHref'
@@ -19,10 +20,10 @@ const ICONS: Record<RecommendationKind, typeof BookOpen> = { EXAM_TOPIC: Calenda
 export function Recommendations({ limit = 6 }: { limit?: number }) {
   const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data } = useQuery(RecommendationsDocument, { variables: { limit }, fetchPolicy: 'cache-and-network' })
+  const recs = useQuery(RecommendationsDocument, { variables: { limit }, fetchPolicy: 'cache-and-network' })
   const [dismiss] = useMutation(DismissRecommendationDocument, { refetchQueries: [RecommendationsDocument] })
-  const items = data?.recommendations
-  if (!items) return null
+  const items = recs.data?.recommendations
+  if (!items) return <LoadState query={recs} inline message="Recommendations could not load." />
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
       <Text className="text-lg font-bold" accessibilityRole="header">

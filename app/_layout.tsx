@@ -15,6 +15,7 @@ import { restoreSession, useSession } from '@/lib/auth/session'
 import { startErrorReporting } from '@/lib/observability'
 import { TermsGate } from '@/features/auth/TermsGate'
 import { PushSetup } from '@/features/push/push'
+import { OfflineBanner } from '@/features/shell/OfflineBanner'
 
 // First, so a crash during start-up is reported too (when this build has a Sentry DSN).
 startErrorReporting()
@@ -74,52 +75,55 @@ export default function RootLayout() {
         <ThemeProvider value={navTheme}>
           <View style={{ flex: 1, backgroundColor: navTheme.colors.background }}>
             <StatusBar style="auto" />
-            {/* Who sees what (§7.1): signed out → sign-in screens; a provider account without its details → the
-                details form; everyone else → the app. Switching a guard moves to the first screen allowed. */}
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: navTheme.colors.background } }}>
-              <Stack.Protected guard={signedIn && registered}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="notes" />
-                <Stack.Screen name="notifications" />
-                <Stack.Screen name="notification-settings" />
-                <Stack.Screen name="settings" />
-                <Stack.Screen name="history" />
-                <Stack.Screen name="subjects" />
-                <Stack.Screen name="rhythm" />
-                <Stack.Screen name="achievements" />
-                <Stack.Screen name="contests" />
-                <Stack.Screen name="focus" options={{ animation: 'fade' }} />
-                <Stack.Screen name="teach" />
-                <Stack.Screen name="resources/index" />
-                <Stack.Screen name="resources/saved" />
-                <Stack.Screen name="saved" />
-                <Stack.Screen name="resources/new" />
-                <Stack.Screen name="resources/mine" />
-                <Stack.Screen name="resources/[id]/index" />
-                <Stack.Screen name="resources/[id]/edit" />
-                <Stack.Screen name="exams/index" />
-                <Stack.Screen name="exams/[id]" />
-                <Stack.Screen name="review" />
-                <Stack.Screen name="people" />
-                <Stack.Screen name="skills" />
-                <Stack.Screen name="admin/moderation" />
-                <Stack.Screen name="admin/verification" />
-                <Stack.Screen name="u/[handle]" />
-                <Stack.Screen name="groups/new" />
-                <Stack.Screen name="groups/[id]" />
-                <Stack.Screen name="groups/[id]/doubts/[doubtId]" />
-                <Stack.Screen name="classes/new" />
-                <Stack.Screen name="classes/[id]" />
-                <Stack.Screen name="classes/join/[code]" />
-                <Stack.Screen name="verify" options={{ presentation: 'modal' }} />
-              </Stack.Protected>
-              <Stack.Protected guard={signedIn && !registered}>
-                <Stack.Screen name="details" />
-              </Stack.Protected>
-              <Stack.Protected guard={!signedIn}>
-                <Stack.Screen name="(auth)" />
-              </Stack.Protected>
-            </Stack>
+            {/* Offline, a strip under the status bar pushes every signed-in screen down (P9e). */}
+            <OfflineBanner enabled={signedIn && registered}>
+              {/* Who sees what (§7.1): signed out → sign-in screens; a provider account without its details → the
+                  details form; everyone else → the app. Switching a guard moves to the first screen allowed. */}
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: navTheme.colors.background } }}>
+                <Stack.Protected guard={signedIn && registered}>
+                  <Stack.Screen name="(tabs)" />
+                  <Stack.Screen name="notes" />
+                  <Stack.Screen name="notifications" />
+                  <Stack.Screen name="notification-settings" />
+                  <Stack.Screen name="settings" />
+                  <Stack.Screen name="history" />
+                  <Stack.Screen name="subjects" />
+                  <Stack.Screen name="rhythm" />
+                  <Stack.Screen name="achievements" />
+                  <Stack.Screen name="contests" />
+                  <Stack.Screen name="focus" options={{ animation: 'fade' }} />
+                  <Stack.Screen name="teach" />
+                  <Stack.Screen name="resources/index" />
+                  <Stack.Screen name="resources/saved" />
+                  <Stack.Screen name="saved" />
+                  <Stack.Screen name="resources/new" />
+                  <Stack.Screen name="resources/mine" />
+                  <Stack.Screen name="resources/[id]/index" />
+                  <Stack.Screen name="resources/[id]/edit" />
+                  <Stack.Screen name="exams/index" />
+                  <Stack.Screen name="exams/[id]" />
+                  <Stack.Screen name="review" />
+                  <Stack.Screen name="people" />
+                  <Stack.Screen name="skills" />
+                  <Stack.Screen name="admin/moderation" />
+                  <Stack.Screen name="admin/verification" />
+                  <Stack.Screen name="u/[handle]" />
+                  <Stack.Screen name="groups/new" />
+                  <Stack.Screen name="groups/[id]" />
+                  <Stack.Screen name="groups/[id]/doubts/[doubtId]" />
+                  <Stack.Screen name="classes/new" />
+                  <Stack.Screen name="classes/[id]" />
+                  <Stack.Screen name="classes/join/[code]" />
+                  <Stack.Screen name="verify" options={{ presentation: 'modal' }} />
+                </Stack.Protected>
+                <Stack.Protected guard={signedIn && !registered}>
+                  <Stack.Screen name="details" />
+                </Stack.Protected>
+                <Stack.Protected guard={!signedIn}>
+                  <Stack.Screen name="(auth)" />
+                </Stack.Protected>
+              </Stack>
+            </OfflineBanner>
             {/* Sheets and dialogs render here, above every screen (react-native-reusables convention). */}
             <PortalHost />
             {signedIn && registered ? <NotesSync /> : null}

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import { ClassroomPerformanceDocument, ClassroomRhythmRingDocument, SetClassGoalDocument, type ClassroomRhythmRingQuery } from '@/graphql/generated/graphql'
 import { cn } from '@/lib/utils'
 
@@ -11,9 +12,9 @@ import { cn } from '@/lib/utils'
  * students who chose to share (a child account by first name).
  */
 export function ClassRhythm({ classroomId, staff = false }: { classroomId: string; staff?: boolean }) {
-  const { data } = useQuery(ClassroomRhythmRingDocument, { variables: { id: classroomId }, fetchPolicy: 'cache-and-network' })
-  const ring = data?.classroom?.rhythmRing
-  if (!ring) return null
+  const query = useQuery(ClassroomRhythmRingDocument, { variables: { id: classroomId }, fetchPolicy: 'cache-and-network' })
+  const ring = query.data?.classroom?.rhythmRing
+  if (!ring) return <LoadState query={query} message="The class’s Rhythm could not load." />
   return (
     <View className="gap-3">
       <Text className="text-sm">
@@ -39,9 +40,9 @@ export function ClassRhythm({ classroomId, staff = false }: { classroomId: strin
 
 /** For staff: each student's first quiz scores and the topics the class finds hard. */
 export function ClassPerformance({ classroomId }: { classroomId: string }) {
-  const { data } = useQuery(ClassroomPerformanceDocument, { variables: { id: classroomId }, fetchPolicy: 'cache-and-network' })
-  const p = data?.classroom?.performance
-  if (!p) return null
+  const query = useQuery(ClassroomPerformanceDocument, { variables: { id: classroomId }, fetchPolicy: 'cache-and-network' })
+  const p = query.data?.classroom?.performance
+  if (!p) return <LoadState query={query} message="The class’s results could not load." />
   return (
     <View className="gap-3">
       <Text className="text-muted-foreground text-sm">Each student’s first score on each quiz, and the topics the class finds hard.</Text>

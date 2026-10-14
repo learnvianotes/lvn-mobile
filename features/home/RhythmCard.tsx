@@ -6,6 +6,7 @@ import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ringPercent } from '@/features/learning/RhythmScreen'
+import { Loading, LoadFailed } from '@/features/shell/LoadState'
 import { RhythmDocument } from '@/graphql/generated/graphql'
 import { cn } from '@/lib/utils'
 import { TodayRing } from './TodayRing'
@@ -21,9 +22,17 @@ export function RhythmCard() {
   const success = String(useCSSVariable('--color-success') ?? '#15803d')
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
   const secondaryFg = String(useCSSVariable('--color-secondary-foreground') ?? '#3730a3')
-  const { data } = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, error, refetch } = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
   const r = data?.rhythm
-  if (!r) return <View className="bg-card border-border h-64 rounded-3xl border" />
+  if (!r) {
+    if (error) return <LoadFailed message="Today’s Rhythm could not load." onRetry={refetch} />
+    // The card's place while it loads, so the sections below do not jump.
+    return (
+      <View className="bg-card border-border h-64 justify-center rounded-3xl border">
+        <Loading />
+      </View>
+    )
+  }
   const t = r.today
   const percent = ringPercent(t)
   const paused = r.pauses.some((p) => p.active)

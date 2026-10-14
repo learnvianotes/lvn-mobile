@@ -6,6 +6,7 @@ import { FlatList, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { Loading, LoadFailed } from '@/features/shell/LoadState'
 import { SearchDocument, type NoteKind, type NoteSource, type SearchQuery, type SearchScope } from '@/graphql/generated/graphql'
 import { forget, recentSearches, remember } from './recent'
 import { track } from '@/lib/learning'
@@ -106,8 +107,10 @@ export function ExploreScreen() {
   const filtering = narrows && (kinds.length > 0 || sources.length > 0 || !!topic)
   const ready = settled.length >= 2 || filtering
   const variables = { query: settled, ...(current.scopes ? { scopes: current.scopes } : {}), ...(filtering ? { filters: { kinds: kinds.length ? kinds : null, sources: sources.length ? sources : null, topicId: topic?.id ?? null } } : {}) }
-  const { data, previousData, loading, error, fetchMore } = useQuery(SearchDocument, { variables, skip: !ready })
-  const found = ready ? (data ?? previousData)?.search : undefined
+  const { data, previousData, loading, error, fetchMore, refetch } = useQuery(SearchDocument, { variables, skip: !ready })
+  // The last results stay while the next load; a failed search shows what failed, not an earlier search's results.
+  const found = ready ? (data ?? (error ? undefined : previousData))?.search : undefined
+  const searching = loading && !data
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value])
@@ -152,6 +155,7 @@ export function ExploreScreen() {
   const count = { all: 0, notes: 0, topics: found?.topics.length ?? 0, groups: places.length, users: found?.people.length ?? 0, resources: found?.resources.length ?? 0 }[tab]
   const header = (
     <View className="gap-3">
+      {!found ? error ? <LoadFailed message="Search needs the internet. Your own notes are in My notes." onRetry={refetch} /> : <Loading /> : null}
       {show('users') && found?.people.length ? (
         <View className="gap-2">
           {heading('People', 'users')}
@@ -236,7 +240,7 @@ export function ExploreScreen() {
           </View>
         </View>
       ) : null}
-      {!narrows && found && !count ? <Text className="text-muted-foreground py-8 text-center text-sm">{`Nothing found for “${settled}”.`}</Text> : null}
+      {!narrows && found && !count && !searching ? <Text className="text-muted-foreground py-8 text-center text-sm">{`Nothing found for “${settled}”.`}</Text> : null}
       {narrows && found ? (
         <Text className="text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
           {settled.length < 2 && filtering ? 'Notes, newest first' : 'Notes'}
@@ -349,10 +353,9 @@ export function ExploreScreen() {
           keyboardShouldPersistTaps="handled"
           ListHeaderComponent={header}
           ListEmptyComponent={
-            !narrows ? null : (
-              <Text className="text-muted-foreground py-8 text-center text-sm">
-                {error ? 'Search needs the internet. Your own notes are in My notes.' : loading ? 'Searching…' : settled ? `Nothing found for “${settled}”.` : 'No notes match these filters.'}
-              </Text>
+            // Before any results, the header says loading or what failed.
+            !narrows || !found ? null : (
+              <Text className="text-muted-foreground py-8 text-center text-sm">{searching ? 'Searching…' : settled ? `Nothing found for “${settled}”.` : 'No notes match these filters.'}</Text>
             )
           }
           ListFooterComponent={

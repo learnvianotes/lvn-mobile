@@ -9,6 +9,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { haptic } from '@/lib/haptics'
 import { CreateSheet } from './CreateSheet'
+import { DeletionBanner } from '@/features/data/DeleteAccountCard'
 
 /** expo-router ships its own React Navigation; take the tab bar's props from its Tabs component. */
 type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0]
@@ -77,6 +78,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
 
   return (
     <>
+      <DeletionBanner />
       <View className="bg-card border-border flex-row border-t" style={{ paddingBottom: Math.max(insets.bottom, 10) }}>
         {items.slice(0, 2)}
         <View className="flex-1 items-center">

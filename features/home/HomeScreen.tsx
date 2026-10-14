@@ -1,14 +1,15 @@
-import { useQuery } from '@apollo/client/react'
+import { useApolloClient, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import type { ReactNode } from 'react'
-import { Pressable, ScrollView, View } from 'react-native'
+import { useState, type ReactNode } from 'react'
+import { Pressable, RefreshControl, ScrollView, View } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from '@/components/ui/safe-area-view'
 import { Text } from '@/components/ui/text'
 import { ContinueCard } from './ContinueCard'
 import { ExamReadiness } from './ExamReadiness'
 import { HeroCard } from './HeroCard'
-import { ContestsDocument, RecommendationsDocument, ViewerDocument } from '@/graphql/generated/graphql'
+import { LoadState } from '@/features/shell/LoadState'
+import { ContestsDocument, DailyLineDocument, ExamsDocument, RecommendationsDocument, RhythmDocument, UnreadNotificationCountDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { HomeHeader } from './HomeHeader'
 import { QuickActions } from './QuickActions'
 import { Recommended } from './Recommended'
@@ -34,19 +35,40 @@ function Section({ index, title, action, onAction, children }: { index: number; 
   )
 }
 
+/** What Home shows, asked again when the person pulls it down. */
+const HOME_QUERIES = [ViewerDocument, DailyLineDocument, UnreadNotificationCountDocument, RhythmDocument, ExamsDocument, ContestsDocument, RecommendationsDocument]
+
 /**
  * The Home tab (lvn-backend ADR-0069–0071, P6h): a greeting, today's ring and this week's Rhythm, the next exam's
- * Readiness, the note to continue, and recommendations, each saying why.
+ * Readiness, the note to continue, and recommendations, each saying why. Pulling it down asks for all of it again.
  */
 export function HomeScreen() {
+  const client = useApolloClient()
+  const [refreshing, setRefreshing] = useState(false)
   const viewer = useQuery(ViewerDocument).data?.viewer
-  const recs = useQuery(RecommendationsDocument, { variables: { limit: 8 }, fetchPolicy: 'cache-and-network' }).data?.recommendations
+  const recsQuery = useQuery(RecommendationsDocument, { variables: { limit: 8 }, fetchPolicy: 'cache-and-network' })
+  const recs = recsQuery.data?.recommendations
   const firstName = viewer?.displayName.trim().split(/\s+/)[0] ?? ''
   const next = recs?.find((r) => r.kind === 'CONTINUE_NOTE')
   const others = recs?.filter((r) => r !== next) ?? []
   return (
     <SafeAreaView edges={['top']} className="bg-background flex-1">
-      <ScrollView contentContainerClassName="gap-6 px-5 pb-32 pt-2" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerClassName="gap-6 px-5 pb-32 pt-2"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true)
+              void client
+                .refetchQueries({ include: HOME_QUERIES })
+                .catch(() => undefined)
+                .finally(() => setRefreshing(false))
+            }}
+          />
+        }
+      >
         <Section index={0}>
           <HomeHeader />
         </Section>
@@ -67,7 +89,7 @@ export function HomeScreen() {
           </Section>
         ) : null}
         <Section index={5} title="Recommended for you" action="See all" onAction={() => router.push('/rhythm')}>
-          {recs ? <Recommended items={others} /> : null}
+          {recs ? <Recommended items={others} /> : <LoadState query={recsQuery} inline message="Recommendations could not load." />}
         </Section>
       </ScrollView>
     </SafeAreaView>

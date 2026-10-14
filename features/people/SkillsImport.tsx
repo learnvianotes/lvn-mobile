@@ -6,6 +6,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { Outcome, Pill } from '@/features/shell/Form'
+import { LoadState } from '@/features/shell/LoadState'
 import {
   AddExternalIdentityDocument,
   CheckExternalIdentityDocument,
@@ -30,7 +31,8 @@ const day = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'n
 export function SkillsImport({ drafts, imported }: { drafts: TeacherSkillFieldsFragment[]; imported: TeacherSkillFieldsFragment[] }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const [waiting, setWaiting] = useState(false)
-  const { data } = useQuery(MySkillsImportDocument, { fetchPolicy: 'cache-and-network', pollInterval: waiting ? 4_000 : 0 })
+  const query = useQuery(MySkillsImportDocument, { fetchPolicy: 'cache-and-network', pollInterval: waiting ? 4_000 : 0 })
+  const { data } = query
   // While an import runs in the background, the drafts are asked for again until they arrive.
   useQuery(MyTeacherProfileDocument, { fetchPolicy: 'network-only', pollInterval: waiting ? 4_000 : 0, skip: !waiting })
   const refetch = { refetchQueries: [MySkillsImportDocument, MyTeacherProfileDocument], awaitRefetchQueries: true }
@@ -43,7 +45,7 @@ export function SkillsImport({ drafts, imported }: { drafts: TeacherSkillFieldsF
   const [value, setValue] = useState('')
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
   const state = data?.mySkillsImport
-  if (!state) return null
+  if (!state) return <LoadState query={query} inline message="Importing from GitHub or your page could not load." />
   if (!state.allowed)
     return (
       <View className="border-border gap-1 rounded-2xl border border-dashed p-4">

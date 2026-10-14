@@ -293,6 +293,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
         {url ? (
           <PdfDom
             url={url}
+            refreshUrl={async () => (await file.refetch().catch(() => null))?.data?.noteFile?.url ?? null}
             assets={assets}
             marks={marks}
             command={command}

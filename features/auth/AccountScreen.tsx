@@ -11,6 +11,7 @@ import { SignOutDocument, ViewerDocument, type ViewerFieldsFragment } from '@/gr
 import { signedOut } from '@/lib/auth/session'
 import { ImportCard } from '@/features/data/ImportCard'
 import { YourDataCard } from '@/features/data/YourDataCard'
+import { DeleteAccountCard } from '@/features/data/DeleteAccountCard'
 import { InstitutionalEmailCard, LegacyDataCard, StudyDetailsCard } from './AccountDetails'
 import { copy } from './copy'
 import { Notice } from './Notice'
@@ -22,7 +23,7 @@ const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
 
 /**
  * Settings, behind the Profile tab's gear (lvn-backend ADR-0076): who is signed in and how they are verified, the
- * college email, study details, old-site data, AI, notification settings, your data and imports, and sign-out
+ * college email, study details, old-site data, AI, notification settings, your data and imports, sign-out, and deleting the account (ADR-0088)
  * (Phase 1, lvn-backend P3n).
  */
 export function AccountScreen() {
@@ -50,6 +51,7 @@ export function AccountScreen() {
         {viewer ? <YourDataCard /> : null}
         {viewer ? <ImportCard /> : null}
         <SignOutButton />
+        {viewer ? <DeleteAccountCard /> : null}
       </ScrollView>
     </View>
   )

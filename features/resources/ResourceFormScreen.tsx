@@ -10,6 +10,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { mimeOf, UploadError, uploadFile } from '@/features/notes/media/NoteMedia'
 import { Field, ScreenHeader } from '@/features/shell/Form'
+import { LoadState } from '@/features/shell/LoadState'
 import { MyResourcesDocument, ResourceDocument, ResourcePreviewDocument, ResourceTopicOptionsDocument, SubmitResourceDocument, UpdateResourceDocument, type ResourceFieldsFragment, type ResourceType } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
 import { RESOURCE_LIMITS } from '@/lib/contracts/validation'
@@ -23,7 +24,15 @@ type Picked = { uri: string; name: string; mimeType: string; size: number | null
 /** Adding a resource on the phone, or editing one's own before it is approved (lvn-backend ADR-0074). */
 export function ResourceFormScreen({ id }: { id?: string }) {
   const existing = useQuery(ResourceDocument, { variables: { id: id ?? '' }, skip: !id, fetchPolicy: 'network-only' })
-  if (id && !existing.data) return <ScreenHeader title="Edit your resource" />
+  // No form until the resource is in it: saving an empty form would overwrite it.
+  if (id && !existing.data) {
+    return (
+      <View className="bg-background flex-1">
+        <ScreenHeader title="Edit your resource" />
+        <LoadState query={existing} message="Your resource could not load. Nothing was changed." className="mx-4" />
+      </View>
+    )
+  }
   if (id && !existing.data?.resource?.viewerCan.edit) {
     return (
       <View className="bg-background flex-1">

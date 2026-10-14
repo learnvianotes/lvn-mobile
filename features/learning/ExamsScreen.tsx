@@ -2,10 +2,11 @@ import { useLazyQuery, useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, Check, X } from 'lucide-react-native'
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from 'react-native'
+import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import { CreateExamDocument, DeleteExamDocument, ExamDocument, ExamsDocument, ExamTopicOptionsDocument, SearchDocument, UpdateExamDocument, WeakTopicsDocument, type ExamFieldsFragment } from '@/graphql/generated/graphql'
 import { EXAM_LIMITS } from '@/lib/contracts/validation'
 import { haptic } from '@/lib/haptics'
@@ -68,7 +69,8 @@ const openTopic = (tp: { key: string; title: string }) =>
  */
 export function ExamsScreen() {
   const insets = useSafeAreaInsets()
-  const { data, loading, error } = useQuery(ExamsDocument, { fetchPolicy: 'cache-and-network' })
+  const list = useQuery(ExamsDocument, { fetchPolicy: 'cache-and-network' })
+  const { data } = list
   const [adding, setAdding] = useState(false)
   const [tab, setTab] = useState<Tab>('upcoming')
   const exams = data?.exams
@@ -85,8 +87,7 @@ export function ExamsScreen() {
             </Pressable>
           ))}
         </ScrollView>
-        {!exams && loading ? <ActivityIndicator /> : null}
-        {!exams && error ? <Text className="text-muted-foreground">Your exams could not load. Try again.</Text> : null}
+        <LoadState query={list} message="Your exams could not load." />
         {tab === 'upcoming' ? (
           <>
             {adding ? (
@@ -297,7 +298,8 @@ function ExamCard({ exam }: { exam: Exam }) {
 export function ExamScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
-  const { data, loading } = useQuery(ExamDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const one = useQuery(ExamDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const { data } = one
   const [remove] = useMutation(DeleteExamDocument, { refetchQueries: [ExamsDocument] })
   const [editing, setEditing] = useState(false)
   const exam = data?.exam
@@ -305,7 +307,8 @@ export function ExamScreen({ id }: { id: string }) {
     <View className="bg-background flex-1">
       <Header title={exam?.name ?? 'Exam'} />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
-        {!exam ? loading ? <ActivityIndicator /> : <Text className="text-muted-foreground">That exam is not there.</Text> : null}
+        {/* What failed comes first: only an answer without the exam means it is not there. */}
+        {!data ? <LoadState query={one} message="This exam could not load." /> : !exam ? <Text className="text-muted-foreground">That exam is not there.</Text> : null}
         {exam ? (
           <>
             <Text className="text-muted-foreground text-sm">

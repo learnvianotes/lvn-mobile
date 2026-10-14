@@ -7,6 +7,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt, docToText, textToDoc } from '@/features/groups/shared'
 import { RichDoc } from '@/features/notes/render/RichText'
+import { LoadState } from '@/features/shell/LoadState'
 import { ago } from '@/features/notifications/describe'
 import { AddCommentDocument, ApproveCommentDocument, DeleteCommentDocument, DiscussionDocument, EditCommentDocument, type CommentFieldsFragment, type CommentTargetType } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
@@ -21,13 +22,14 @@ import { ReportLink } from '@/features/moderation/ReportSheet'
 export function Discussion({ target, compact }: { target: { type: CommentTargetType; id: string }; compact?: boolean }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data, refetch } = useQuery(DiscussionDocument, { variables: { target }, fetchPolicy: 'cache-and-network' })
+  const thread = useQuery(DiscussionDocument, { variables: { target }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = thread
   const [add] = useMutation(AddCommentDocument)
   const [text, setText] = useState('')
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const d = data?.discussion
-  if (!d) return null
+  if (!d) return data ? null : <LoadState query={thread} inline message="The discussion could not load." />
   const refresh = () => void refetch()
   const send = async () => {
     const problem = await attempt(() => add({ variables: { input: { target, body: textToDoc(text), ...(replyTo ? { parentId: replyTo } : {}) } } }))

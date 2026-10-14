@@ -8,6 +8,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { TurnOnPush } from '@/features/push/TurnOnPush'
+import { LoadState } from '@/features/shell/LoadState'
 import { NotificationSettingsDocument, UpdateNotificationSettingsDocument } from '@/graphql/generated/graphql'
 import { LABEL } from './categories'
 
@@ -18,7 +19,8 @@ export function NotificationSettingsScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data, refetch } = useQuery(NotificationSettingsDocument, { fetchPolicy: 'cache-and-network' })
+  const query = useQuery(NotificationSettingsDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [update] = useMutation(UpdateNotificationSettingsDocument)
   const [error, setError] = useState<string | null>(null)
   const s = data?.notificationSettings
@@ -71,7 +73,9 @@ export function NotificationSettingsScreen() {
           </View>
           <Text className="text-muted-foreground text-xs">{s.devices === 1 ? '1 phone gets notifications.' : `${s.devices} phones get notifications.`}</Text>
         </ScrollView>
-      ) : null}
+      ) : (
+        <LoadState query={query} message="Your notification settings could not load." className="mx-4" />
+      )}
     </View>
   )
 }

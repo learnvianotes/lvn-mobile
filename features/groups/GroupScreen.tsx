@@ -16,6 +16,7 @@ import { ago } from '@/features/notifications/describe'
 import { useLocal } from '@/features/notes/hooks'
 import { RichDoc } from '@/features/notes/render/RichText'
 import * as db from '@/features/notes/store/db'
+import { LoadState } from '@/features/shell/LoadState'
 import {
   DeleteGroupPostDocument,
   GroupDocument,
@@ -55,7 +56,8 @@ export function GroupScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
-  const { data, loading, refetch } = useQuery(GroupDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(GroupDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [tab, setTab] = useState<Tab>('posts')
   const [error, setError] = useState<string | null>(null)
   const [message, setMessage] = useState('')
@@ -92,8 +94,16 @@ export function GroupScreen({ id }: { id: string }) {
       </Pressable>
     </View>
   )
-  // A group platform moderators removed: its owner reads why here (ADR-0053); for everyone else it is not there.
-  if (!group) return <View className="bg-background flex-1">{back}{loading ? null : <RemovedGroupNotice id={id} />}</View>
+  // Loading, or what failed; only an answer without the group means it is not there. A group platform moderators
+  // removed: its owner reads why here (ADR-0053); for everyone else it is not there.
+  if (!group) {
+    return (
+      <View className="bg-background flex-1">
+        {back}
+        {data ? <RemovedGroupNotice id={id} /> : <LoadState query={query} message="This group could not load." className="mx-4" />}
+      </View>
+    )
+  }
   const member = !!group.viewerRole
   const project = group.type === 'PROJECT'
   const tabs: Tab[] = member ? ['posts', ...(project ? (['ideas', 'doubts'] as const) : []), 'notes', 'resources', 'members', ...(group.viewerCan.reviewRequests ? (['requests'] as const) : []), ...(group.viewerCan.moderate ? (['reports'] as const) : []), ...(group.viewerCan.manage ? (['settings'] as const) : [])] : []
@@ -248,7 +258,8 @@ function Action({ label, onPress, primary }: { label: string; onPress: () => voi
 
 function Posts({ group, selection, onSelection }: { group: GroupDetailFragment } & Selecting) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { data, refetch } = useQuery(GroupPostsDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(GroupPostsDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [remove] = useMutation(DeleteGroupPostDocument)
   const [pin] = useMutation(PinGroupPostDocument)
   const [error, setError] = useState<string | null>(null)
@@ -304,7 +315,9 @@ function Posts({ group, selection, onSelection }: { group: GroupDetailFragment }
         ))
       ) : data ? (
         <Text className="text-muted-foreground py-6 text-center">No posts yet.</Text>
-      ) : null}
+      ) : (
+        <LoadState query={query} message="The posts could not load." />
+      )}
     </View>
   )
 }
@@ -312,7 +325,8 @@ function Posts({ group, selection, onSelection }: { group: GroupDetailFragment }
 function Notes({ group, selection, onSelection }: { group: GroupDetailFragment } & Selecting) {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const viewerId = useQuery(ViewerDocument).data?.viewer?.id
-  const { data, refetch } = useQuery(GroupNotesDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(GroupNotesDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [share] = useMutation(ShareNoteToGroupDocument)
   const [picking, setPicking] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -374,13 +388,16 @@ function Notes({ group, selection, onSelection }: { group: GroupDetailFragment }
         ))
       ) : data ? (
         <Text className="text-muted-foreground py-6 text-center">No notes shared yet.</Text>
-      ) : null}
+      ) : (
+        <LoadState query={query} message="The shared notes could not load." />
+      )}
     </View>
   )
 }
 
 function Requests({ group, onChanged }: { group: GroupDetailFragment; onChanged: () => void }) {
-  const { data, refetch } = useQuery(GroupMembersDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(GroupMembersDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
+  const { data, refetch } = query
   const [review] = useMutation(ReviewGroupJoinRequestDocument)
   const requests = data?.group?.joinRequests ?? []
   const decide = async (requestId: string, decision: 'APPROVED' | 'REJECTED') => {
@@ -388,6 +405,7 @@ function Requests({ group, onChanged }: { group: GroupDetailFragment; onChanged:
     await refetch()
     onChanged()
   }
+  if (!data) return <LoadState query={query} message="The requests could not load." />
   if (!requests.length) return <Text className="text-muted-foreground py-6 text-center">No requests waiting.</Text>
   return (
     <View className="gap-2">

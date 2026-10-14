@@ -9,6 +9,7 @@ import { Text } from '@/components/ui/text'
 import { Discussion } from '@/features/discussion/Discussion'
 import { ReportLink } from '@/features/moderation/ReportSheet'
 import { ScreenHeader } from '@/features/shell/Form'
+import { LoadState } from '@/features/shell/LoadState'
 import { DeleteResourceDocument, MyResourcesDocument, ResourceDocument } from '@/graphql/generated/graphql'
 import { cn } from '@/lib/utils'
 import { savesText, SaveToggle } from './Catalogue'
@@ -18,12 +19,20 @@ import { RecommendSheet } from './RecommendSheet'
 /** A resource on the phone (lvn-backend ADR-0074): public once approved; its submitter sees it while it waits, with why if rejected. */
 export function ResourceScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const { data } = useQuery(ResourceDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ResourceDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const { data } = query
   const [remove, removing] = useMutation(DeleteResourceDocument, { refetchQueries: [MyResourcesDocument] })
   const [error, setError] = useState<string | null>(null)
   const [recommending, setRecommending] = useState(false)
   const r = data?.resource
-  if (!data) return <ScreenHeader />
+  if (!data) {
+    return (
+      <View className="bg-background flex-1">
+        <ScreenHeader />
+        <LoadState query={query} message="This resource could not load." className="mx-4" />
+      </View>
+    )
+  }
   if (!r) {
     return (
       <View className="bg-background flex-1">

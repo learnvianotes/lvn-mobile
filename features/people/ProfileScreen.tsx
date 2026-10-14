@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, BadgeCheck, Ellipsis, FileText, GraduationCap, Handshake, UserCheck, UserPlus } from 'lucide-react-native'
 import { useState } from 'react'
-import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, View } from 'react-native'
+import { Alert, Linking, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
@@ -12,6 +12,7 @@ import { LEVEL } from '@/features/achievements/AchievementsScreen'
 import { ReportSheet } from '@/features/moderation/ReportSheet'
 import { SOURCE } from '@/features/people/SkillsImport'
 import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
+import { LoadState } from '@/features/shell/LoadState'
 import {
   BlockUserDocument,
   FollowUserDocument,
@@ -40,7 +41,8 @@ export function ProfileScreen({ handle }: { handle: string }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
-  const { data, loading } = useQuery(ProfileDocument, { variables: { handle }, fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ProfileDocument, { variables: { handle }, fetchPolicy: 'cache-and-network' })
+  const { data } = query
   const [kind, setKind] = useState<Kind>('NOTE')
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -87,7 +89,7 @@ export function ProfileScreen({ handle }: { handle: string }) {
     return (
       <View className="bg-background flex-1">
         {header}
-        {loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Text className="text-muted-foreground px-6 py-16 text-center">This profile is not available.</Text>}
+        {data ? <Text className="text-muted-foreground px-6 py-16 text-center">This profile is not available.</Text> : <LoadState query={query} message="This profile could not load." className="mx-4" />}
       </View>
     )
   }

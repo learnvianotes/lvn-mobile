@@ -1,11 +1,12 @@
 import { useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, FileText } from 'lucide-react-native'
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ResourceCard } from '@/features/resources/Catalogue'
+import { LoadState } from '@/features/shell/LoadState'
 import { SavedNotesDocument, SavedResourcesDocument } from '@/graphql/generated/graphql'
 
 /**
@@ -39,7 +40,7 @@ export function SavedScreen() {
         <Text className="text-base font-bold" accessibilityRole="header">
           Notes
         </Text>
-        {!notes.data && notes.loading ? <ActivityIndicator /> : null}
+        <LoadState query={notes} message="Your saved notes could not load." />
         {notes.data && !noteList.length && !page?.hasNextPage ? (
           <Pressable accessibilityRole="link" onPress={() => router.push('/explore')} className="border-border rounded-2xl border border-dashed p-4">
             <Text className="text-muted-foreground text-center text-sm">
@@ -71,6 +72,7 @@ export function SavedScreen() {
         <Text className="mt-2 text-base font-bold" accessibilityRole="header">
           Resources
         </Text>
+        <LoadState query={resources} message="Your saved resources could not load." />
         {resources.data && !resourceList.length ? (
           <Pressable accessibilityRole="link" onPress={() => router.push('/resources')} className="border-border rounded-2xl border border-dashed p-4">
             <Text className="text-muted-foreground text-center text-sm">

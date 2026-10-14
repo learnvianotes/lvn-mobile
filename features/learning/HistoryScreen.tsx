@@ -1,10 +1,11 @@
 import { useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft } from 'lucide-react-native'
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import { LearningHistoryDocument, type LearningHistoryQuery } from '@/graphql/generated/graphql'
 
 type Day = LearningHistoryQuery['learningHistory']['days'][number]
@@ -20,8 +21,9 @@ const dateLabel = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateStri
 export function HistoryScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const { data, loading, error, fetchMore } = useQuery(LearningHistoryDocument, { variables: { days: 14 }, fetchPolicy: 'cache-and-network' })
-  const history = data?.learningHistory
+  const days = useQuery(LearningHistoryDocument, { variables: { days: 14 }, fetchPolicy: 'cache-and-network' })
+  const { fetchMore } = days
+  const history = days.data?.learningHistory
   const more = () =>
     history?.nextBefore &&
     void fetchMore({
@@ -40,12 +42,7 @@ export function HistoryScreen() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 32 }}>
         {history ? <Text className="text-muted-foreground text-sm">Days are counted in {history.timeZone} and start at 4 in the morning.</Text> : null}
-        {!history && loading ? <ActivityIndicator /> : null}
-        {!history && error ? (
-          <Text accessibilityRole="alert" className="text-destructive text-sm">
-            Your history could not load. Check your connection.
-          </Text>
-        ) : null}
+        <LoadState query={days} message="Your history could not load. Check your connection." />
         {history && !history.days.length ? <Text className="text-muted-foreground text-center">Nothing here yet. Read a note, review some cards or take a quiz, and your days show up here.</Text> : null}
         {history?.days.map((d) => <DayCard key={d.day} day={d} />)}
         {history?.nextBefore ? (

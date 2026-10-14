@@ -8,6 +8,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ClassesSection } from '@/features/classes/ClassesSection'
 import { ActivityFeed, FollowingFeed, ForYouFeed, TrendingFeed } from '@/features/feeds/Feeds'
+import { LoadState } from '@/features/shell/LoadState'
 import { AnswerMentorInviteDocument, DiscoverGroupsDocument, MyGroupsDocument, MyMentorInvitesDocument, type GroupCardFragment } from '@/graphql/generated/graphql'
 import { attempt, ROLE } from './shared'
 
@@ -67,13 +68,13 @@ export function CommunityScreen() {
           <Text className="text-primary text-sm font-semibold">New group</Text>
         </Pressable>
       </View>
-      {mine.data?.myGroups.length ? mine.data.myGroups.map((g) => <GroupRow key={g.id} group={g} />) : mine.data ? <Text className="text-muted-foreground">You&apos;re not in any group yet. Find one below.</Text> : null}
+      {mine.data?.myGroups.length ? mine.data.myGroups.map((g) => <GroupRow key={g.id} group={g} />) : mine.data ? <Text className="text-muted-foreground">You&apos;re not in any group yet. Find one below.</Text> : <LoadState query={mine} inline message="Your groups could not load." />}
       <Text className="text-muted-foreground text-sm font-semibold">Find a group</Text>
       <View className="bg-card border-border flex-row items-center gap-2 rounded-2xl border px-3">
         <Search size={18} color={muted} />
         <TextInput accessibilityLabel="Search public groups" value={query} onChangeText={setQuery} placeholder="Search public groups…" placeholderTextColor={muted} className="text-foreground flex-1 py-3 text-base" autoCorrect={false} />
       </View>
-      {discover.length ? discover.map((g) => <GroupRow key={g.id} group={g} />) : found.data ? <Text className="text-muted-foreground text-sm">No public groups match.</Text> : null}
+      {discover.length ? discover.map((g) => <GroupRow key={g.id} group={g} />) : found.data ? <Text className="text-muted-foreground text-sm">No public groups match.</Text> : <LoadState query={found} inline message="Public groups could not load." />}
         </>
       ) : null}
     </ScrollView>

@@ -1,10 +1,11 @@
 import { useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, Trophy } from 'lucide-react-native'
-import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { LoadState } from '@/features/shell/LoadState'
 import { ContestsDocument, type ContestsQuery } from '@/graphql/generated/graphql'
 
 type Item = ContestsQuery['contests'][number]
@@ -19,7 +20,8 @@ const when = (iso: string) => new Date(iso).toLocaleString('en-IN', { weekday: '
 export function ContestsScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const { data, loading } = useQuery(ContestsDocument, { fetchPolicy: 'cache-and-network' })
+  const query = useQuery(ContestsDocument, { fetchPolicy: 'cache-and-network' })
+  const { data } = query
   const list = data?.contests ?? []
   return (
     <View className="bg-background flex-1">
@@ -33,7 +35,7 @@ export function ContestsScreen() {
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 32 }}>
         <Text className="text-muted-foreground text-sm">A weekly set of questions with a timer, and every answer explained after. Your score is yours: nobody is listed.</Text>
-        {!data && loading ? <ActivityIndicator /> : null}
+        <LoadState query={query} message="Contests could not load." />
         {data && !list.length ? <Text className="text-muted-foreground text-center text-sm">No contest is open this week. Check back on Saturday.</Text> : null}
         {list.map((c) => (c.state === 'OPEN' ? <ContestCard key={c.id} contest={c} /> : <ContestRow key={c.id} contest={c} />))}
       </ScrollView>
