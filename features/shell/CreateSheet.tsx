@@ -3,13 +3,14 @@ import { Camera, FileUp, FolderGit2, Layers, ListChecks, Megaphone, Mic, Noteboo
 import { Portal } from '@rn-primitives/portal'
 import { useEffect } from 'react'
 import { BackHandler, Pressable, View } from 'react-native'
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ViewerDocument } from '@/graphql/generated/graphql'
 import { useCreate, type CreateAction } from './create'
 import { PressScale } from './PressScale'
+import { SHEET_IN, SHEET_OUT } from './sheet-motion'
 
 /**
  * The centre sheet of spec §13.1: Note, Quick Note, Voice Note, Photo, Upload, Quiz, Flashcard; then a project for
@@ -61,8 +62,8 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
             <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(14,14,18,0.45)' }} accessibilityLabel="Close" />
           </Animated.View>
           <Animated.View
-            entering={SlideInDown.springify().damping(20).stiffness(220)}
-            exiting={SlideOutDown.duration(180)}
+            entering={SHEET_IN}
+            exiting={SHEET_OUT}
             className="bg-card gap-4 rounded-t-3xl px-5 pt-3"
             style={{ paddingBottom: insets.bottom + 24 }}
           >

@@ -16,4 +16,4 @@ env:
 - assertVisible: "Ravi Kumar"
 - assertVisible: "Settings"
 - tapOn: "Home"
-- assertVisible: "Make it happen"
+- assertVisible: { id: "home-hero" }

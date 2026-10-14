@@ -13,12 +13,24 @@ import { mockApi } from '../../support/api'
 // The bell asks for the unread count (lvn-backend ADR-0042); no live socket in tests.
 jest.mock('@/features/notifications/live', () => ({ useLive: jest.fn() }))
 
+const line = (title: string, text: string, pending = false) => ({ data: { dailyLine: { __typename: 'DailyLine', day: '2026-10-14', title, line: text, fromAi: !pending, pending } } })
+
 describe('HeroCard', () => {
-  it('greets the learner by first name', async () => {
-    await render(<HeroCard firstName="Asha" />)
+  it('greets the learner by first name with the day’s line (lvn-backend ADR-0087)', async () => {
+    mockApi({ DailyLine: () => line('Biology, step by step', 'Twenty days to your mid-term: one topic today keeps you on track.') })
+    await render(<ApolloProvider client={createApolloClient()}><HeroCard firstName="Asha" /></ApolloProvider>)
     expect(screen.getByText('Keep learning, Asha')).toBeOnTheScreen()
-    expect(screen.getByRole('header', { name: 'Make it happen' })).toBeOnTheScreen()
+    expect(await screen.findByRole('header', { name: 'Biology, step by step' })).toBeOnTheScreen()
+    expect(screen.getByText('Twenty days to your mid-term: one topic today keeps you on track.')).toBeOnTheScreen()
   })
+
+  it('shows the chosen line while AI writes the person’s own, then asks again', async () => {
+    let asked = 0
+    mockApi({ DailyLine: () => (++asked === 1 ? line('Small steps count', 'Ten focused minutes today beat a perfect plan for someday.', true) : line('Your week, your way', 'Two of three days done: one more and the week is yours.')) })
+    await render(<ApolloProvider client={createApolloClient()}><HeroCard firstName="Asha" /></ApolloProvider>)
+    expect(await screen.findByRole('header', { name: 'Small steps count' })).toBeOnTheScreen()
+    expect(await screen.findByRole('header', { name: 'Your week, your way' }, { timeout: 7000 })).toBeOnTheScreen()
+  }, 10_000)
 })
 
 describe('HomeHeader', () => {

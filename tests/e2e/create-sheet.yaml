@@ -11,7 +11,7 @@ env:
 - assertVisible: "Flashcards"
 - pressKey: Back
 - assertNotVisible: "Quick note"
-- assertVisible: "Make it happen"
+- assertVisible: { id: "home-hero" }
 - tapOn: "Create"
 - tapOn: "Quiz"
 - assertNotVisible: "Quick note"

@@ -17,5 +17,5 @@ appId: ${APP_ID}
 - tapOn:
     id: "sign-in-submit"
 - extendedWaitUntil:
-    visible: "Make it happen"
+    visible: { id: "home-hero" }
     timeout: 20000

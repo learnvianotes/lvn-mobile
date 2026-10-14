@@ -3,13 +3,14 @@ import { Portal } from '@rn-primitives/portal'
 import { Check, Flag } from 'lucide-react-native'
 import { useEffect, useState } from 'react'
 import { BackHandler, Pressable, ScrollView, TextInput, View } from 'react-native'
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { ReportContentDocument, ViewerDocument, type ReportEntityType, type ReportReason } from '@/graphql/generated/graphql'
 import { REASONS, REPORT_TITLE } from './copy'
+import { SHEET_IN, SHEET_OUT } from '@/features/shell/sheet-motion'
 
 /**
  * "Report" on the phone (§15.1, ADR-0051): a reason and a few words, for the moderators of where it is (a group's, a
@@ -69,7 +70,7 @@ export function ReportSheet({ entityType, entityId, open, onClose }: { entityTyp
           <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(150)} style={{ position: 'absolute', inset: 0 }}>
             <Pressable onPress={close} style={{ flex: 1, backgroundColor: 'rgba(14,14,18,0.45)' }} accessibilityLabel="Close" />
           </Animated.View>
-          <Animated.View entering={SlideInDown.springify().damping(20).stiffness(220)} exiting={SlideOutDown.duration(180)} className="bg-card max-h-[85%] rounded-t-3xl px-5 pt-3" style={{ paddingBottom: insets.bottom + 16 }}>
+          <Animated.View entering={SHEET_IN} exiting={SHEET_OUT} className="bg-card max-h-[85%] rounded-t-3xl px-5 pt-3" style={{ paddingBottom: insets.bottom + 16 }}>
             <View className="bg-border mb-3 h-1.5 w-10 self-center rounded-full" />
             {sent ? (
               <View accessibilityRole="summary" className="items-center gap-3 py-6">
