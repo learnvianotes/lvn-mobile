@@ -1,0 +1,24 @@
+# Achievements (lvn-backend ADR-0080): the Profile tab's row leads to the Achievements screen, with the level, the
+# way to earn a first achievement, the points history and, for an adult, showing them on the profile.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Profile"
+- scrollUntilVisible:
+    element: "See all"
+    direction: DOWN
+- assertVisible: "Achievements"
+- tapOn: "See all achievements"
+- assertVisible: "Newcomer"
+- assertVisible: "50 more points to the next level"
+- assertVisible: "Review cards"
+- assertVisible: "Show on my profile"
+- tapOn: "Show my achievements and level on my profile"
+- scrollUntilVisible:
+    element: "Points history"
+    direction: DOWN
+- assertVisible: "No points yet.*"
+- tapOn: "Back"
+- assertVisible: "Profile"
