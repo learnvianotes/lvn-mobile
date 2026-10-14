@@ -311,6 +311,16 @@ query Profile($handle: String!) {
   userByHandle(handle: $handle) {
     ...PersonFields
     followerMilestone
+    achievements {
+      id
+      kind
+      title
+      description
+    }
+    contribution {
+      points
+      level
+    }
     followerCount
     followingCount
     profile {

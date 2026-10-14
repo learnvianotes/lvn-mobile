@@ -86,6 +86,7 @@ export default function RootLayout() {
                 <Stack.Screen name="history" />
                 <Stack.Screen name="subjects" />
                 <Stack.Screen name="rhythm" />
+                <Stack.Screen name="achievements" />
                 <Stack.Screen name="focus" options={{ animation: 'fade' }} />
                 <Stack.Screen name="teach" />
                 <Stack.Screen name="resources/index" />
