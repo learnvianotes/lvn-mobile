@@ -36,7 +36,7 @@ export function CatalogueScreen() {
       <ScreenHeader
         title="Resources"
         right={
-          <Pressable accessibilityRole="link" onPress={() => router.push('/resources/saved')} className="rounded-full px-3 py-1.5">
+          <Pressable accessibilityRole="link" onPress={() => router.push('/saved')} className="rounded-full px-3 py-1.5">
             <Text className="text-primary text-sm font-semibold">Saved</Text>
           </Pressable>
         }
@@ -77,27 +77,6 @@ export function CatalogueScreen() {
   )
 }
 
-/** The viewer's Saved resources (ADR-0075): private to them. */
-export function SavedScreen() {
-  const insets = useSafeAreaInsets()
-  const { data } = useQuery(SavedResourcesDocument, { variables: { first: 60 }, fetchPolicy: 'cache-and-network' })
-  const items = data?.savedResources.edges.map((e) => e.node) ?? []
-  return (
-    <View className="bg-background flex-1">
-      <ScreenHeader title="Saved resources" />
-      <FlatList
-        data={items}
-        keyExtractor={(r) => r.id}
-        contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 32 }}
-        ListHeaderComponent={<Text className="text-muted-foreground pb-1 text-sm">Only you see what you saved; others see how many people saved a resource.</Text>}
-        ListEmptyComponent={data ? <Text className="text-muted-foreground py-8 text-center">You have not saved a resource yet.</Text> : null}
-        renderItem={({ item }) => <ResourceCard resource={item} />}
-      />
-    </View>
-  )
-}
-
-/** One resource in a list, with its Save; `note` adds a line (who recommended it and why). */
 export function ResourceCard({ resource: r, note }: { resource: ResourceFieldsFragment; note?: string }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const Icon = TYPE_ICON[r.type]

@@ -1,4 +1,5 @@
 import { Check, Plus, X } from 'lucide-react-native'
+import { useRef } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
@@ -23,8 +24,19 @@ const toInline = (s: string): Inline => (s ? [{ type: 'text', text: s }] : [])
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- card content is checked per type before it is sent
 type Any = any
 
-export function CardEditor({ card, onChange }: { card: LocalCard; onChange: (content: unknown) => void }) {
+export function CardEditor({ card, onChange: save }: { card: LocalCard; onChange: (content: unknown) => void }) {
   const c = card.content as Any
+  // Each field writes the card's content as it was drawn, with its own change. Two quick edits (the front, then the
+  // back) before the first was saved and read back would undo each other, so each write keeps only what it changed,
+  // put onto the content as last written here (as on the web, lvn-backend ADR-0076).
+  const latest = useRef<{ id: string; content: Any }>({ id: card.id, content: c })
+  if (latest.current.id !== card.id) latest.current = { id: card.id, content: c }
+  const onChange = (next: Any) => {
+    const merged: Any = { ...latest.current.content }
+    for (const k of new Set([...Object.keys(c ?? {}), ...Object.keys(next ?? {})])) if (next?.[k] !== c?.[k]) merged[k] = next?.[k]
+    latest.current = { id: card.id, content: merged }
+    save(merged)
+  }
   const color = (name: string, fallback: string) => String(useCSSVariable(name) ?? fallback)
   const theme = {
     fg: color('--color-foreground', '#111827'),

@@ -91,7 +91,7 @@ const vars = [`APP_ID=${APP_IDS[variant]}`, `API_URL=${apiUrl}`, `MAILPIT_URL=${
 const vm = opt('vm') ?? process.env.LVN_VM
 if (vm) {
   const community = await seedCommunity(apiUrl, vm)
-  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`, `TEACHER_EMAIL=${community.teacherEmail}`, `TEACHER_PASSWORD=${community.teacherPassword}`, `SUSPENDED_EMAIL=${community.suspendedEmail}`, `SUSPENDED_PASSWORD=${community.suspendedPassword}`, `STAMP=${community.stamp}`, `CLASS_NAME=${community.className}`, `QUIZ_TITLE=${community.quizTitle}`, `RESOURCE_TITLE=${community.resourceTitle}`].flatMap((v) => ['-e', v]))
+  vars.push(...[`COMMUNITY_EMAIL=${community.email}`, `COMMUNITY_PASSWORD=${community.password}`, `COMMUNITY_GROUP=${community.group}`, `TEACHER_EMAIL=${community.teacherEmail}`, `TEACHER_PASSWORD=${community.teacherPassword}`, `SUSPENDED_EMAIL=${community.suspendedEmail}`, `SUSPENDED_PASSWORD=${community.suspendedPassword}`, `STAMP=${community.stamp}`, `CLASS_NAME=${community.className}`, `QUIZ_TITLE=${community.quizTitle}`, `RESOURCE_TITLE=${community.resourceTitle}`, `NOTE_TITLE=${community.noteTitle}`].flatMap((v) => ['-e', v]))
   console.log(`Community: ${community.email} and the group "${community.group}"`)
 }
 const run = spawnSync(maestroBin, ['--device', emulator, 'test', flows, ...vars, '--format', 'junit', '--output', 'dist/e2e/report.xml', '--test-output-dir', 'dist/e2e'], { cwd: root, stdio: 'inherit' })
@@ -160,5 +160,11 @@ async function seedCommunity(api, vmScript) {
   const sent = await gql('mutation ($input: SubmitResourceInput!) { submitResource(input: $input) { resource { id } userErrors { message } } }', { input: { type: 'COURSE', title: resourceTitle, url: `https://nptel.ac.in/courses/maestro-${stamp}`, topicIds: [topic.id] } }, owner.token)
   if (!sent.submitResource.resource) throw new Error(`submitResource failed: ${sent.submitResource.userErrors[0]?.message}`)
   await gql('mutation ($input: ModerateContentInput!) { moderateContent(input: $input) { ok } }', { input: { entityType: 'RESOURCE', entityId: sent.submitResource.resource.id, action: 'APPROVE' } }, admin.token)
-  return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, suspendedEmail: suspended.email, suspendedPassword: suspended.password, stamp, className, quizTitle, resourceTitle }
+  // A public note by someone else, for saving (ADR-0076): the learner finds it in Explore.
+  const noteTitle = `Maestro public note ${stamp}`
+  const noteCard = { id: crypto.randomUUID(), type: 'text', position: 'a0', content: { doc: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Heaps keep the smallest item on top.' }] }] } } }
+  const publicNote = (await gql('mutation ($input: CreateNoteInput!) { createNote(input: $input) { note { id } } }', { input: { title: noteTitle, cards: [noteCard] } }, owner.token)).createNote.note.id
+  await gql('mutation ($input: NoteIdInput!) { publishNote(input: $input) { note { id } } }', { input: { noteId: publicNote } }, owner.token)
+  await gql('mutation ($input: ChangeNoteVisibilityInput!) { changeNoteVisibility(input: $input) { note { id } } }', { input: { noteId: publicNote, visibility: 'PUBLIC' } }, owner.token)
+  return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, suspendedEmail: suspended.email, suspendedPassword: suspended.password, stamp, className, quizTitle, resourceTitle, noteTitle }
 }

@@ -1,0 +1,53 @@
+# Saved notes on the phone (lvn-backend ADR-0076): a learner finds someone's public note in Explore, saves it, and
+# finds it in Saved from the Profile tab. scripts/e2e-android.mjs makes the learner and the note when run with --vm;
+# without it this flow does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof NOTE_TITLE !== 'undefined' && NOTE_TITLE !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${COMMUNITY_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${COMMUNITY_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      # Home's search bar opens Explore.
+      - tapOn: "Search notes, topics and people"
+      - tapOn: "Search notes, people, groups and topics"
+      - inputText: ${NOTE_TITLE}
+      - hideKeyboard
+      - extendedWaitUntil:
+          visible: ${NOTE_TITLE}
+          timeout: 20000
+      # The result, not the search box that holds the same words: its first words are only in the result.
+      - tapOn: "Heaps keep the smallest item on top."
+      - extendedWaitUntil:
+          visible: "Save"
+          timeout: 20000
+      - tapOn: "Save"
+      - extendedWaitUntil:
+          visible: "Saved"
+          timeout: 15000
+      - tapOn: "Back"
+      - tapOn: "Profile"
+      - scrollUntilVisible:
+          element: "Saved"
+          centerElement: true
+      - tapOn: "Saved"
+      - extendedWaitUntil:
+          visible: ${NOTE_TITLE}
+          timeout: 15000

@@ -49,7 +49,7 @@ it('every row opens its screen, and the gear opens Settings', async () => {
   await screen.findByText('Asha Rao')
   const rows: [string, unknown][] = [
     ['My notes', '/notes'],
-    ['Saved resources', '/resources/saved'],
+    ['Saved', '/saved'],
     ['My groups', { pathname: '/community', params: { section: 'places' } }],
     ['My classrooms', { pathname: '/community', params: { section: 'places' } }],
     ['Learning history', '/history'],

@@ -171,8 +171,10 @@ it('edits a quiz: its question, choices, the right answer and several right answ
   expect(screen.getByRole('button', { name: 'Remove choice 1' })).toBeDisabled()
   await fireEvent.press(screen.getByRole('button', { name: 'Add a choice' }))
   expect(onChange.mock.lastCall[0].choices).toHaveLength(3)
+  // Several right answers keep the one chosen (Choice 2), even though this test never draws the card again.
   await fireEvent(screen.getByLabelText('More than one right answer'), 'valueChange', true)
-  expect(onChange.mock.lastCall[0]).toMatchObject({ multiple: true, correct: [a!.id] })
+  expect(onChange.mock.lastCall[0]).toMatchObject({ multiple: true, correct: [b!.id] })
+  expect(onChange.mock.lastCall[0].choices).toHaveLength(3)
 })
 
 it('edits a question with an optional hint, and a flashcard', async () => {
