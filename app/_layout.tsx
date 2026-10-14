@@ -84,6 +84,7 @@ export default function RootLayout() {
                 <Stack.Screen name="notification-settings" />
                 <Stack.Screen name="settings" />
                 <Stack.Screen name="history" />
+                <Stack.Screen name="subjects" />
                 <Stack.Screen name="rhythm" />
                 <Stack.Screen name="focus" options={{ animation: 'fade' }} />
                 <Stack.Screen name="teach" />
