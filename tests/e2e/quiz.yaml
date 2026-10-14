@@ -42,6 +42,12 @@ env:
           timeout: 15000
       - assertNotVisible: "Respiration happens in the mitochondria."
       - tapOn: "Mitochondria"
+      # One question at a time (ADR-0076): 1/2, then Next.
+      - assertVisible: "1/2"
+      - scrollUntilVisible:
+          element: "Next"
+          direction: DOWN
+      - tapOn: "Next"
       - scrollUntilVisible:
           element: "Cytoplasm"
           direction: DOWN

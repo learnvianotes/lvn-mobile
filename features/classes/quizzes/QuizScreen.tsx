@@ -15,9 +15,10 @@ type Quiz = ClassQuizFieldsFragment
 type Answers = Record<string, string[]>
 
 /**
- * Taking a class quiz on the phone (lvn-backend ADR-0064): the questions without their answers, submitted once for a
- * score by the server (one submission id kept until it is answered, so a retry is the same attempt), then each
- * question's result, the correct choices and the explanation. Later tries are practice.
+ * Taking a class quiz on the phone (lvn-backend ADR-0064): the questions without their answers, one at a time
+ * (lvn-backend ADR-0076), submitted once for a score by the server (one submission id kept until it is answered, so a
+ * retry is the same attempt), then each question's result, the correct choices and the explanation. Later tries are
+ * practice.
  */
 export function QuizScreen({ quizId }: { quizId: string }) {
   const insets = useSafeAreaInsets()
@@ -75,7 +76,12 @@ function TakeQuiz({ quiz, practice, onDone }: { quiz: Quiz; practice: boolean; o
   const [answers, setAnswers] = useState<Answers>({})
   const [error, setError] = useState<string | null>(null)
   const op = useRef<string | null>(null)
-  const left = quiz.questions.filter((q) => !answers[q.id]?.length).length
+  // One question at a time.
+  const [at, setAt] = useState(0)
+  const total = quiz.questions.length
+  const q = quiz.questions[Math.min(at, total - 1)]
+  const last = at >= total - 1
+  const left = quiz.questions.filter((x) => !answers[x.id]?.length).length
   const pick = (questionId: string, choiceId: string, multiple: boolean) =>
     setAnswers((a) => {
       const now = a[questionId] ?? []
@@ -97,10 +103,23 @@ function TakeQuiz({ quiz, practice, onDone }: { quiz: Quiz; practice: boolean; o
   return (
     <View className="gap-4">
       {practice ? <Text className="text-muted-foreground text-sm">Practice: your first attempt stays your score.</Text> : null}
-      {quiz.questions.map((q, i) => (
-        <View key={q.id} accessibilityLabel={`Question ${i + 1}`} className="bg-card border-border gap-2 rounded-2xl border p-4">
+      <View className="gap-2">
+        <View className="flex-row items-center justify-between">
+          <Text className="font-semibold" accessibilityLiveRegion="polite" accessibilityLabel={`Question ${at + 1} of ${total}`}>
+            {at + 1}/{total}
+          </Text>
+          <Text className="text-muted-foreground text-sm">
+            {total - left} of {total} answered
+          </Text>
+        </View>
+        <View className="bg-muted h-1.5 overflow-hidden rounded-full">
+          <View className="bg-primary h-full rounded-full" style={{ width: `${((at + 1) / total) * 100}%` }} />
+        </View>
+      </View>
+      {q ? (
+        <View key={q.id} accessibilityLabel={`Question ${at + 1}`} className="bg-card border-border gap-2 rounded-2xl border p-4">
           <View className="flex-row gap-2">
-            <Text className="text-muted-foreground font-bold">{i + 1}.</Text>
+            <Text className="text-muted-foreground font-bold">{at + 1}.</Text>
             <View className="flex-1">
               <RichDoc doc={q.question as Doc} />
             </View>
@@ -121,7 +140,24 @@ function TakeQuiz({ quiz, practice, onDone }: { quiz: Quiz; practice: boolean; o
             )
           })}
         </View>
-      ))}
+      ) : null}
+      <View className="flex-row flex-wrap gap-1.5">
+        {quiz.questions.map((x, i) => {
+          const answered = !!answers[x.id]?.length
+          return (
+            <Pressable
+              key={x.id}
+              accessibilityRole="button"
+              accessibilityLabel={answered ? `Question ${i + 1}, answered` : `Question ${i + 1}`}
+              accessibilityState={{ selected: i === at }}
+              onPress={() => setAt(i)}
+              className={cn('size-8 items-center justify-center rounded-full border', i === at ? 'border-primary bg-primary' : answered ? 'border-primary/50 bg-primary/10' : 'border-border')}
+            >
+              <Text className={cn('text-xs font-semibold', i === at ? 'text-primary-foreground' : answered ? 'text-primary' : 'text-muted-foreground')}>{i + 1}</Text>
+            </Pressable>
+          )
+        })}
+      </View>
       {left ? <Text className="text-muted-foreground text-sm">{left === 1 ? '1 question is unanswered; it counts as wrong.' : `${left} questions are unanswered; they count as wrong.`}</Text> : null}
       {error ? (
         <Text accessibilityRole="alert" className="text-destructive text-sm">
@@ -129,7 +165,8 @@ function TakeQuiz({ quiz, practice, onDone }: { quiz: Quiz; practice: boolean; o
         </Text>
       ) : null}
       <View className="flex-row flex-wrap gap-2">
-        <Pill label={submitting.loading ? 'Submitting…' : 'Submit answers'} primary disabled={submitting.loading} onPress={() => void send()} />
+        {at > 0 ? <Pill label="Previous" onPress={() => setAt(at - 1)} /> : null}
+        {last ? <Pill label={submitting.loading ? 'Submitting…' : 'Submit answers'} primary disabled={submitting.loading} onPress={() => void send()} /> : <Pill label="Next" primary onPress={() => setAt(at + 1)} />}
         {practice ? <Pill label="Cancel" onPress={onDone} /> : null}
       </View>
     </View>

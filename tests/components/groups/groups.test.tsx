@@ -50,7 +50,7 @@ it('asks to join with a note for the admins', async () => {
   expect(api.calls.find((c) => c.op === 'RequestToJoinGroup')?.variables).toEqual({ groupId: GROUP, message: 'I study graphs' })
 })
 
-it('a member posts and shares a note with the group', async () => {
+it('a member posts from the floating ＋ and shares a note with the group', async () => {
   let list = [post('p1', 'Week 2 is up')]
   let shared = false
   const api = mockApi({
@@ -66,9 +66,17 @@ it('a member posts and shares a note with the group', async () => {
   })
   await inApollo(<GroupScreen id={GROUP} />)
   expect(await screen.findByText('Week 2 is up')).toBeOnTheScreen()
+  expect(screen.queryByLabelText('Write a post')).toBeNull()
+  await fireEvent.press(screen.getByRole('button', { name: 'New post' }))
   await fireEvent.changeText(screen.getByLabelText('Write a post'), 'Hello all')
-  await fireEvent.press(screen.getByText('Post'))
+  await fireEvent.press(screen.getByRole('button', { name: 'Post' }))
   expect(await screen.findByText('Hello all')).toBeOnTheScreen()
+  expect(screen.queryByLabelText('Write a post')).toBeNull()
+  expect(api.calls.find((c) => c.op === 'CreateGroupPost')?.variables).toEqual({ groupId: GROUP, body: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hello all' }] }] } })
+  // Not on the other tabs.
+  await fireEvent.press(screen.getByText('Members'))
+  expect(screen.queryByRole('button', { name: 'New post' })).toBeNull()
+  await fireEvent.press(screen.getByText('Posts'))
   await fireEvent.press(screen.getByText('Notes'))
   await fireEvent.press(await screen.findByText('Share one of your notes'))
   await fireEvent.press(await screen.findByLabelText('Share Binary heaps'))

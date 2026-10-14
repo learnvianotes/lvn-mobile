@@ -40,6 +40,8 @@ env:
       - extendedWaitUntil:
           visible: "Welcome to the club"
           timeout: 15000
+      # A new post starts from the floating ＋ (ADR-0076).
+      - tapOn: "New post"
       - tapOn: "Write a post"
       - inputText: "Hello from the phone"
       - hideKeyboard
