@@ -61,7 +61,7 @@ export function CommunityScreen() {
       <ClassesSection />
       <MentorInvites onAnswered={() => void mine.refetch()} />
       <View className="flex-row items-center justify-between">
-        <Text className="text-muted-foreground text-sm font-semibold">Your groups</Text>
+        <Text className="flex-1 text-muted-foreground text-sm font-semibold">Your groups</Text>
         <Pressable accessibilityRole="button" onPress={() => router.push('/groups/new')} className="flex-row items-center gap-1 py-1">
           <Plus size={16} color={accent} />
           <Text className="text-primary text-sm font-semibold">New group</Text>

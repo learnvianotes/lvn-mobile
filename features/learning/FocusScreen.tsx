@@ -98,7 +98,7 @@ export function FocusScreen() {
       <LinearGradient colors={['#0f0c29', '#1e1b4b', '#312e81']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
       <View className="flex-1 px-6" style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }}>
         <View className="flex-row items-center justify-between">
-          <Text className="text-lg font-bold" style={{ color: '#ffffff' }} accessibilityRole="header">
+          <Text className="flex-1 text-lg font-bold" style={{ color: '#ffffff' }} accessibilityRole="header">
             Focus mode
           </Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Close focus mode" hitSlop={8} onPress={() => (router.canGoBack() ? router.back() : router.replace('/rhythm'))} className="rounded-full p-2">

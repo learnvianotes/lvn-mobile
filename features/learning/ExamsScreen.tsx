@@ -154,7 +154,7 @@ function StudyPlan({ exams }: { exams: Exam[] }) {
     <>
       <View className="bg-card border-border gap-3 rounded-2xl border p-4">
         <View className="flex-row items-center justify-between gap-3">
-          <Text className="text-lg font-bold" accessibilityRole="header">
+          <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
             Today
           </Text>
           {next ? (

@@ -94,11 +94,15 @@ export function RhythmScreen() {
   )
 }
 
+/**
+ * A card with a heading. The heading takes the row's width rather than its own measured one: on some Android phones
+ * (Samsung's font at a larger text size) a measured bold heading came out narrower than drawn and lost its last word.
+ */
 function Card({ title, badge, children }: { title: string; badge?: string | null; children: React.ReactNode }) {
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
           {title}
         </Text>
         {badge ? <Text className="bg-secondary text-primary rounded-full px-3 py-1 text-xs font-semibold">{badge}</Text> : null}

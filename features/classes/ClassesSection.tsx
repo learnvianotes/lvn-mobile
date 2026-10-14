@@ -34,7 +34,7 @@ export function ClassesSection() {
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text className="text-muted-foreground text-sm font-semibold">Your classes</Text>
+        <Text className="flex-1 text-muted-foreground text-sm font-semibold">Your classes</Text>
         {teacher ? (
           <Pressable accessibilityRole="button" onPress={() => router.push('/classes/new')} className="flex-row items-center gap-1 py-1">
             <Plus size={16} color={accent} />
