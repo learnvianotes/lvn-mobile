@@ -33,7 +33,8 @@ env:
       - extendedWaitUntil:
           visible: ${NOTE_TITLE}
           timeout: 20000
-      - tapOn: ${NOTE_TITLE}
+      # The result, not the search box that holds the same words: its first words are only in the result.
+      - tapOn: "Heaps keep the smallest item on top."
       - extendedWaitUntil:
           visible: "Save"
           timeout: 20000
