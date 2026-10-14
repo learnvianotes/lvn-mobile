@@ -126,7 +126,7 @@ function Empty({ text, links }: { text: string; links: { label: string; onPress:
 
 /** For You (lvn-backend ADR-0076): public notes on the person's topics, newest first; with none, the ways to have some. */
 export function ForYouFeed() {
-  const { data, fetchMore } = useQuery(ForYouFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, fetchMore, refetch } = useQuery(ForYouFeedDocument, { fetchPolicy: 'cache-and-network' })
   const feed = data?.forYouFeed
   if (!feed) return null
   if (!feed.edges.length) {
@@ -151,7 +151,7 @@ export function ForYouFeed() {
           </Text>
         </Text>
       ) : null}
-      {feed.edges.map(({ node, topic }) => (node ? <PostCard key={node.id} note={node} topic={topic} /> : null))}
+      {feed.edges.map(({ node, topic }) => (node ? <PostCard key={node.id} note={node} topic={topic} onChanged={() => void refetch()} /> : null))}
       {feed.pageInfo.hasNextPage ? <More onPress={() => void fetchMore({ variables: { after: feed.pageInfo.endCursor }, updateQuery: (prev, { fetchMoreResult }) => ({ forYouFeed: { ...fetchMoreResult.forYouFeed, edges: [...prev.forYouFeed.edges, ...fetchMoreResult.forYouFeed.edges] } }) })} /> : null}
     </View>
   )
@@ -159,13 +159,13 @@ export function ForYouFeed() {
 
 /** Trending (lvn-backend ADR-0076): the public notes most reacted to and discussed this week. */
 export function TrendingFeed({ onForYou }: { onForYou: () => void }) {
-  const { data, fetchMore } = useQuery(TrendingFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const { data, fetchMore, refetch } = useQuery(TrendingFeedDocument, { fetchPolicy: 'cache-and-network' })
   const feed = data?.trendingFeed
   if (!feed) return null
   if (!feed.edges.length) return <Empty text="Nothing is trending this week yet." links={[{ label: 'See For You', onPress: onForYou }]} />
   return (
     <View className="gap-3">
-      {feed.edges.map(({ node }) => (node ? <PostCard key={node.id} note={node} /> : null))}
+      {feed.edges.map(({ node }) => (node ? <PostCard key={node.id} note={node} onChanged={() => void refetch()} /> : null))}
       {feed.pageInfo.hasNextPage ? (
         <More
           onPress={() =>

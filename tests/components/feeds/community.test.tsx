@@ -18,6 +18,7 @@ const NOTE = '01920000-0000-7000-8000-00000000a0c1'
 const TOPIC = { __typename: 'Topic', id: '01920000-0000-7000-8000-0000000070a1', title: 'Heaps' }
 const ME = '01920000-0000-7000-8000-00000000aaaa'
 const inApp = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
+const reactions = (mine: string | null) => ({ __typename: 'Reactions', viewerReaction: mine, counts: mine ? [{ __typename: 'ReactionCount', kind: mine, count: 1, atLeast: false }] : [] })
 const post = (over: Record<string, unknown> = {}) => ({
   __typename: 'Note',
   id: NOTE,
@@ -29,16 +30,18 @@ const post = (over: Record<string, unknown> = {}) => ({
   owner: { __typename: 'User', id: '01920000-0000-7000-8000-00000000bbbb', displayName: 'Meera Iyer', profile: { __typename: 'StudentProfile', department: 'CSE' } },
   topics: [TOPIC],
   previewPicture: null,
-  discussion: { __typename: 'Discussion', commentCount: 3 },
+  discussion: { __typename: 'Discussion', commentCount: 3, reactions: reactions(null) },
   ...over,
 })
 const connection = (name: string, edges: unknown[], basedOn: unknown[] = []) => ({ data: { [name]: { __typename: 'CommunityConnection', edges, pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null }, basedOn } } })
 
 beforeEach(() => jest.clearAllMocks())
 
-it('For You shows post cards: the card opens the note, the topic its notes, and Save saves', async () => {
+it('For You shows post cards: the card opens the note, the topic its notes, a reaction is sent, and Save saves', async () => {
+  let mine: string | null = null
   const api = mockApi({
-    ForYouFeed: () => connection('forYouFeed', [{ __typename: 'CommunityEdge', cursor: 'c', node: post(), topic: TOPIC }], [TOPIC]),
+    ForYouFeed: () => connection('forYouFeed', [{ __typename: 'CommunityEdge', cursor: 'c', node: post({ discussion: { __typename: 'Discussion', commentCount: 3, reactions: reactions(mine) } }), topic: TOPIC }], [TOPIC]),
+    React: (v) => ((mine = (v.kind as string | null) ?? null), { data: { react: { __typename: 'ReactPayload', reactions: reactions(mine), userErrors: [] } } }),
     SaveNote: () => ({ data: { saveNote: { __typename: 'NotePayload', note: { __typename: 'Note', id: NOTE, viewerSaved: true }, userErrors: [] } } }),
   })
   await inApp(<ForYouFeed />)
@@ -47,6 +50,10 @@ it('For You shows post cards: the card opens the note, the topic its notes, and 
   expect(screen.getByText(/Meera Iyer · CSE/)).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('link', { name: 'Notes on Heaps' }))
   expect(router.push).toHaveBeenLastCalledWith({ pathname: '/explore', params: { topic: TOPIC.id, topicTitle: 'Heaps' } })
+  expect(screen.getByLabelText('3 comments')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Helpful' }))
+  expect(api.calls.find((c) => c.op === 'React')?.variables).toEqual({ target: { type: 'NOTE', id: NOTE }, kind: 'HELPFUL' })
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Helpful' })).toBeSelected())
   await fireEvent.press(screen.getByRole('button', { name: 'Save' }))
   expect(await screen.findByRole('button', { name: 'Saved' })).toBeOnTheScreen()
   expect(api.calls.find((c) => c.op === 'SaveNote')?.variables).toEqual({ noteId: NOTE })

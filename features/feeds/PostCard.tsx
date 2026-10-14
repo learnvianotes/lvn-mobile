@@ -5,6 +5,7 @@ import { Image, Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ago } from '@/features/notifications/describe'
+import { ReactionBar } from '@/features/discussion/Reactions'
 import { SaveNoteToggle } from '@/features/saved/SaveNoteToggle'
 import type { PostCardFieldsFragment } from '@/graphql/generated/graphql'
 
@@ -18,9 +19,10 @@ const KIND: Record<string, string> = { NOTE: 'Note', BLOG: 'Blog', POST: 'Post',
 
 /**
  * A public note in Community on the phone (lvn-backend ADR-0076): its author and department, when, its title and first
- * words, its picture, its topic, its comments and Save. The card opens the note; the topic opens its notes in Explore.
+ * words, its picture, its topic, reactions, its comments and Save. The card opens the note; the topic opens its notes in
+ * Explore; a reaction is the person's own (others see milestones, ADR-0027).
  */
-export function PostCard({ note, topic }: { note: PostCardFieldsFragment; topic?: { id: string; title: string } | null }) {
+export function PostCard({ note, topic, onChanged }: { note: PostCardFieldsFragment; topic?: { id: string; title: string } | null; onChanged: () => void }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const art = ART[note.kind] ?? ART.NOTE
   const Icon = art.icon
@@ -56,6 +58,7 @@ export function PostCard({ note, topic }: { note: PostCardFieldsFragment; topic?
             <Text className="text-primary text-xs font-semibold">{chip.title}</Text>
           </Pressable>
         ) : null}
+        {note.discussion ? <ReactionBar target={{ type: 'NOTE', id: note.id }} reactions={note.discussion.reactions} onChanged={onChanged} /> : null}
         <View className="flex-row items-center gap-1" accessibilityLabel={comments === 1 ? '1 comment' : `${comments} comments`}>
           <MessageSquare size={15} color={muted} />
           <Text className="text-muted-foreground text-sm">{comments}</Text>
