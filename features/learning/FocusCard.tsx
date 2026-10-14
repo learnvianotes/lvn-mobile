@@ -177,6 +177,10 @@ export function BuddiesCard({ shared }: { shared: boolean }) {
               {b.studyingNow && b.topicTitle ? `On ${b.topicTitle} · ` : ''}
               {b.countedDays} of {b.target} days this week
             </Text>
+            {/* The pair's week together (lvn-backend ADR-0081). */}
+            <Text className="text-muted-foreground text-sm">
+              Together: {b.together.countedDays} of {b.together.target} days
+            </Text>
           </View>
           {b.studyingNow && b.meetUrl ? (
             <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(b.meetUrl!)}>
