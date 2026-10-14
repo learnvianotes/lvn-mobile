@@ -6,7 +6,10 @@ import { createApolloClient } from '@/lib/apollo'
 import { mockApi } from '../../support/api'
 import { renderInApp } from '../../support/render'
 
-/** Feeds in the Community tab (lvn-backend ADR-0049): the activity of your places, and the Following feed. */
+/**
+ * Feeds in the Community tab (lvn-backend ADR-0049, ADR-0076): it opens on For You; the activity of your places, and
+ * the Following feed.
+ */
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() }, useLocalSearchParams: () => ({}) }))
 
 const GROUP = '01920000-0000-7000-8000-0000000a0009'
@@ -16,11 +19,13 @@ const page = (edges: unknown[], hasNextPage = false) => ({ edges, pageInfo: { __
 const item = (key: string, kind: string, over: Record<string, unknown>) => ({ __typename: 'ActivityEdge', node: { __typename: 'ActivityItem', key, kind, at: new Date().toISOString(), actor: meera, group: null, classroom: null, post: null, announcement: null, doubt: null, note: null, ...over } })
 const group = { __typename: 'Group', id: GROUP, name: 'Heap team' }
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
+const forYou = () => ({ data: { forYouFeed: { __typename: 'CommunityConnection', ...page([]), basedOn: [] } } })
 
 beforeEach(() => jest.clearAllMocks())
 
-it('opens on the activity of your places, adds older items, and opens a doubt', async () => {
+it('the activity of your places adds older items and opens a doubt', async () => {
   const api = mockApi({
+    ForYouFeed: forYou,
     ActivityFeed: (v) => ({
       data: {
         activityFeed: {
@@ -33,6 +38,8 @@ it('opens on the activity of your places, adds older items, and opens a doubt', 
     }),
   })
   await inApollo(<CommunityScreen />)
+  expect(screen.getByRole('tab', { name: 'For You' })).toBeSelected()
+  await fireEvent.press(screen.getByRole('tab', { name: 'Activity' }))
   expect(await screen.findByText('Which heap library?')).toBeOnTheScreen()
   await fireEvent.press(screen.getByText('Show more'))
   expect(await screen.findByText('Standup at 5')).toBeOnTheScreen()
@@ -45,10 +52,12 @@ it('opens on the activity of your places, adds older items, and opens a doubt', 
 
 it('the Following feed lists followed people’s public notes', async () => {
   mockApi({
+    ForYouFeed: forYou,
     ActivityFeed: () => ({ data: { activityFeed: { __typename: 'ActivityConnection', ...page([]) } } }),
     FollowingFeed: () => ({ data: { followingFeed: { __typename: 'NoteConnection', ...page([{ __typename: 'NoteEdge', node: { __typename: 'Note', id: 'n9', title: 'Why heaps matter', slug: 'why-heaps-matter', kind: 'BLOG', publishedAt: new Date().toISOString(), owner: meera } }]) } } }),
   })
   await inApollo(<CommunityScreen />)
+  await fireEvent.press(screen.getByRole('tab', { name: 'Activity' }))
   expect(await screen.findByText(/Nothing new in your groups and classes yet/)).toBeOnTheScreen()
   await fireEvent.press(screen.getByText('Following'))
   await fireEvent.press(await screen.findByLabelText('Why heaps matter'))

@@ -6,7 +6,8 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
-import { ActivityFeedDocument, FollowingFeedDocument, type ActivityFeedQuery } from '@/graphql/generated/graphql'
+import { ActivityFeedDocument, FollowingFeedDocument, ForYouFeedDocument, TrendingFeedDocument, type ActivityFeedQuery } from '@/graphql/generated/graphql'
+import { PostCard } from './PostCard'
 import type { Doc } from '@/lib/contracts/validation'
 
 type Item = ActivityFeedQuery['activityFeed']['edges'][number]['node']
@@ -100,6 +101,80 @@ export function FollowingFeed() {
             void fetchMore({
               variables: { after: feed.pageInfo.endCursor },
               updateQuery: (prev, { fetchMoreResult }) => ({ followingFeed: { ...fetchMoreResult.followingFeed, edges: [...prev.followingFeed.edges, ...fetchMoreResult.followingFeed.edges] } }),
+            })
+          }
+        />
+      ) : null}
+    </View>
+  )
+}
+
+function Empty({ text, links }: { text: string; links: { label: string; onPress: () => void }[] }) {
+  return (
+    <View className="border-border items-center gap-3 rounded-2xl border border-dashed p-5">
+      <Text className="text-muted-foreground text-center text-sm">{text}</Text>
+      <View className="flex-row flex-wrap justify-center gap-4">
+        {links.map((l) => (
+          <Pressable key={l.label} accessibilityRole="link" onPress={l.onPress}>
+            <Text className="text-primary text-sm font-semibold">{l.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  )
+}
+
+/** For You (lvn-backend ADR-0076): public notes on the person's topics, newest first; with none, the ways to have some. */
+export function ForYouFeed() {
+  const { data, fetchMore, refetch } = useQuery(ForYouFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const feed = data?.forYouFeed
+  if (!feed) return null
+  if (!feed.edges.length) {
+    return (
+      <Empty
+        text={feed.basedOn.length ? 'No public notes on your topics yet.' : 'For You shows public notes on the topics you choose, your exams’ topics and what you read lately.'}
+        links={[
+          { label: 'Choose topics', onPress: () => router.push('/settings') },
+          { label: 'Add an exam', onPress: () => router.push('/exams') },
+        ]}
+      />
+    )
+  }
+  const topics = feed.basedOn.flatMap((x) => (x ? [x.title] : [])).slice(0, 5)
+  return (
+    <View className="gap-3">
+      {topics.length ? (
+        <Text className="text-muted-foreground text-xs">
+          On {topics.join(', ')}.{' '}
+          <Text className="text-primary font-semibold" accessibilityRole="link" onPress={() => router.push('/settings')}>
+            Change
+          </Text>
+        </Text>
+      ) : null}
+      {feed.edges.map(({ node, topic }) => (node ? <PostCard key={node.id} note={node} topic={topic} onChanged={() => void refetch()} /> : null))}
+      {feed.pageInfo.hasNextPage ? <More onPress={() => void fetchMore({ variables: { after: feed.pageInfo.endCursor }, updateQuery: (prev, { fetchMoreResult }) => ({ forYouFeed: { ...fetchMoreResult.forYouFeed, edges: [...prev.forYouFeed.edges, ...fetchMoreResult.forYouFeed.edges] } }) })} /> : null}
+    </View>
+  )
+}
+
+/** Trending (lvn-backend ADR-0076): the public notes most reacted to and discussed this week. */
+export function TrendingFeed({ onForYou }: { onForYou: () => void }) {
+  const { data, fetchMore, refetch } = useQuery(TrendingFeedDocument, { fetchPolicy: 'cache-and-network' })
+  const feed = data?.trendingFeed
+  if (!feed) return null
+  if (!feed.edges.length) return <Empty text="Nothing is trending this week yet." links={[{ label: 'See For You', onPress: onForYou }]} />
+  return (
+    <View className="gap-3">
+      {feed.edges.map(({ node }) => (node ? <PostCard key={node.id} note={node} onChanged={() => void refetch()} /> : null))}
+      {feed.pageInfo.hasNextPage ? (
+        <More
+          onPress={() =>
+            void fetchMore({
+              variables: { after: feed.pageInfo.endCursor },
+              updateQuery: (prev, { fetchMoreResult }) => {
+                const seen = new Set(prev.trendingFeed.edges.map((e) => e.node?.id))
+                return { trendingFeed: { ...fetchMoreResult.trendingFeed, edges: [...prev.trendingFeed.edges, ...fetchMoreResult.trendingFeed.edges.filter((e) => !seen.has(e.node?.id))] } }
+              },
             })
           }
         />

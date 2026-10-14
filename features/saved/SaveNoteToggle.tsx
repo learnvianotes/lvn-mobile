@@ -6,13 +6,14 @@ import { NoteSavedDocument, SaveNoteDocument, UnsaveNoteDocument } from '@/graph
 import { haptic } from '@/lib/haptics'
 
 /** Save on a note (lvn-backend ADR-0076): to the person's Saved list, private to them. Online: hidden until known. */
-export function SaveNoteToggle({ noteId }: { noteId: string }) {
+/** `saved`: already known (a feed's card), so nothing more is asked. */
+export function SaveNoteToggle({ noteId, saved: known }: { noteId: string; saved?: boolean }) {
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
-  const { data } = useQuery(NoteSavedDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network' })
+  const { data } = useQuery(NoteSavedDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network', skip: known !== undefined })
   const [save, saving] = useMutation(SaveNoteDocument)
   const [unsave, unsaving] = useMutation(UnsaveNoteDocument)
-  const saved = data?.note?.viewerSaved
+  const saved = known ?? data?.note?.viewerSaved
   if (saved === undefined) return null
   return (
     <Pressable
