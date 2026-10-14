@@ -11,10 +11,12 @@ import { renderInApp } from '../../support/render'
 /** Running a group from the phone (lvn-backend ADR-0045, ADR-0048): starting one, roles, muting, hand-over, settings. */
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() } }))
 jest.mock('@/features/notes/store/db', () => ({ listNotes: jest.fn(async () => []), subscribe: () => () => {} }))
+jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn(async () => ({ canceled: false, assets: [{ uri: 'file:///club.png', fileName: 'club.png', mimeType: 'image/png', fileSize: 1000 }] })) }))
+jest.mock('@/features/notes/media/NoteMedia', () => ({ ...jest.requireActual('@/features/notes/media/NoteMedia'), uploadFile: jest.fn(async () => '01920000-0000-7000-8000-00000000f0d9') }))
 
 const GROUP = '01920000-0000-7000-8000-0000000a0001'
 const can = (over: Record<string, boolean> = {}) => ({ __typename: 'GroupActions', join: false, requestJoin: false, post: true, moderate: false, manage: false, delete: false, reviewRequests: false, leave: true, askDoubt: false, inviteMentor: false, acceptMentorInvite: false, ...over })
-const group = (over: Record<string, unknown> = {}) => ({ __typename: 'Group', moderationWarning: null, id: GROUP, type: 'COMMUNITY', viewerMentorInviteId: null, name: 'Algorithms study', description: 'Weekly problems', privacy: 'PUBLIC', joinPolicy: 'APPROVAL', memberCount: 3, viewerRole: 'OWNER', createdAt: '2026-10-01T10:00:00.000Z', viewerRequestId: null, owner: { __typename: 'User', id: 'me', displayName: 'Meera Iyer' }, viewerCan: can(), ...over })
+const group = (over: Record<string, unknown> = {}) => ({ __typename: 'Group', moderationWarning: null, id: GROUP, type: 'COMMUNITY', viewerMentorInviteId: null, pictureUrl: null, name: 'Algorithms study', description: 'Weekly problems', privacy: 'PUBLIC', joinPolicy: 'APPROVAL', memberCount: 3, viewerRole: 'OWNER', createdAt: '2026-10-01T10:00:00.000Z', viewerRequestId: null, owner: { __typename: 'User', id: 'me', displayName: 'Meera Iyer' }, viewerCan: can(), ...over })
 const person = (id: string, displayName: string, role: string, mutedUntil: string | null = null) => ({ __typename: 'GroupMember', role, joinedAt: '2026-10-01T10:00:00.000Z', mutedUntil, user: { __typename: 'User', id, displayName, handle: displayName.split(' ')[0]!.toLowerCase() } })
 const members = (list: unknown[], viewerRole = 'OWNER') => ({ data: { group: { __typename: 'Group', id: GROUP, viewerRole, members: list, joinRequests: [] } } })
 const empty = { data: { group: { __typename: 'Group', id: GROUP, posts: { __typename: 'GroupPostConnection', pinned: [], edges: [], pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } } } } }
@@ -146,4 +148,31 @@ it('an admin changes the settings and the owner deletes the group', async () => 
   await screen.findByRole('tab', { name: 'Settings' })
   expect(api.ops()).toContain('DeleteGroup')
   expect(router.replace).toHaveBeenCalledWith('/community')
+})
+
+it('an admin chooses the group’s picture, shown atop the group, and removes it (ADR-0076)', async () => {
+  const { uploadFile } = jest.requireMock('@/features/notes/media/NoteMedia') as { uploadFile: jest.Mock }
+  let picture: string | null = null
+  const admin = () => group({ pictureUrl: picture, viewerCan: can({ post: true, moderate: true, manage: true, delete: true, reviewRequests: true }) })
+  const api = mockApi({
+    Group: () => ({ data: { group: admin() } }),
+    GroupPosts: () => ({ data: { group: { __typename: 'Group', id: GROUP, posts: { __typename: 'GroupPostConnection', pinned: [], edges: [], pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } } } } }),
+    UpdateGroup: (v) => {
+      const input = v.input as { pictureFileId?: string; removePicture?: boolean }
+      picture = input.removePicture ? null : input.pictureFileId ? 'https://storage.test/group.png' : picture
+      return { data: { updateGroup: { __typename: 'GroupPayload', group: admin(), userErrors: [] } } }
+    },
+  })
+  await inApollo(<GroupScreen id={GROUP} />)
+  await fireEvent.press(await screen.findByText('Settings'))
+  expect(screen.getByText('No picture yet.')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Choose a picture' }))
+  expect(await screen.findByText('Picture saved.')).toBeOnTheScreen()
+  expect(uploadFile).toHaveBeenCalledWith(expect.anything(), { uri: 'file:///club.png', name: 'club.png', mimeType: 'image/png', size: 1000 }, { purpose: 'GROUP_PICTURE' })
+  expect(api.calls.find((c) => c.op === 'UpdateGroup')?.variables).toEqual({ input: { groupId: GROUP, pictureFileId: '01920000-0000-7000-8000-00000000f0d9' } })
+  expect(await screen.findByLabelText('The picture of Algorithms study')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Remove the picture' }))
+  expect(await screen.findByText('Picture removed.')).toBeOnTheScreen()
+  expect(api.calls.filter((c) => c.op === 'UpdateGroup').at(-1)?.variables).toEqual({ input: { groupId: GROUP, removePicture: true } })
+  expect(screen.queryByLabelText('The picture of Algorithms study')).toBeNull()
 })

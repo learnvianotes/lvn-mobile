@@ -1,10 +1,12 @@
-import { useMutation, useQuery } from '@apollo/client/react'
+import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
+import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
 import { MoreHorizontal } from 'lucide-react-native'
 import { useState } from 'react'
-import { Alert, Pressable, View } from 'react-native'
+import { Alert, Image, Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { mimeOf, uploadFile, UploadError } from '@/features/notes/media/NoteMedia'
 import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
 import { Choices, Field, Outcome, Pill, Toggle } from '@/features/shell/Form'
 import {
@@ -109,6 +111,55 @@ export function GroupMembers({ group, onChanged }: { group: GroupDetailFragment;
 }
 
 /** A group's name, description, privacy and join policy, and deleting it (ADR-0045). */
+const PICTURE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
+/** The group's picture (lvn-backend ADR-0076): chosen and saved at once by an admin, or taken away. */
+export function GroupPicture({ group, onSaved }: { group: GroupDetailFragment; onSaved: () => void }) {
+  const client = useApolloClient()
+  const [update] = useMutation(UpdateGroupDocument)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState<Message>(null)
+  const save = async (input: { pictureFileId?: string; removePicture?: boolean }, done: string) => {
+    const problem = await attempt(() => update({ variables: { input: { groupId: group.id, ...input } } }))
+    setMessage(problem ? { ok: false, text: problem } : { ok: true, text: done })
+    onSaved()
+  }
+  const choose = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85 })
+    const a = res.canceled ? null : res.assets[0]
+    if (!a) return
+    const name = a.fileName ?? a.uri.split('/').pop() ?? 'group.jpg'
+    const mimeType = mimeOf(name, a.mimeType)
+    if (!PICTURE_TYPES.includes(mimeType) || (a.fileSize ?? 0) > 2 * 1024 ** 2) return setMessage({ ok: false, text: 'Choose a JPEG, PNG or WebP picture under 2 MB.' })
+    setBusy(true)
+    setMessage(null)
+    try {
+      const fileId = await uploadFile(client, { uri: a.uri, name, mimeType, size: a.fileSize ?? null }, { purpose: 'GROUP_PICTURE' })
+      await save({ pictureFileId: fileId }, 'Picture saved.')
+    } catch (e) {
+      setMessage({ ok: false, text: e instanceof UploadError ? e.message : 'That did not work. Try again.' })
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <View className="gap-2">
+      <Text className="font-semibold">Group picture</Text>
+      {group.pictureUrl ? (
+        <Image source={{ uri: group.pictureUrl }} accessibilityIgnoresInvertColors style={{ width: 200, height: 100, borderRadius: 12 }} resizeMode="cover" />
+      ) : (
+        <Text className="text-muted-foreground text-sm">No picture yet.</Text>
+      )}
+      <View className="flex-row flex-wrap gap-2">
+        <Pill label={busy ? 'Uploading…' : group.pictureUrl ? 'Change the picture' : 'Choose a picture'} disabled={busy} onPress={() => void choose()} />
+        {group.pictureUrl ? <Pill label="Remove the picture" disabled={busy} onPress={() => void save({ removePicture: true }, 'Picture removed.')} /> : null}
+      </View>
+      <Text className="text-muted-foreground text-xs">A JPEG, PNG or WebP picture, up to 2 MB. Everyone who sees the group sees it.</Text>
+      <Outcome message={message} />
+    </View>
+  )
+}
+
 export function GroupSettings({ group, onSaved }: { group: GroupDetailFragment; onSaved: () => void }) {
   const [update, updating] = useMutation(UpdateGroupDocument)
   const [del] = useMutation(DeleteGroupDocument)

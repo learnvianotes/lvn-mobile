@@ -6,9 +6,10 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, TextInput, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
-import { CreateExamDocument, DeleteExamDocument, ExamDocument, ExamsDocument, ExamTopicOptionsDocument, UpdateExamDocument, WeakTopicsDocument, type ExamFieldsFragment } from '@/graphql/generated/graphql'
+import { CreateExamDocument, DeleteExamDocument, ExamDocument, ExamsDocument, ExamTopicOptionsDocument, SearchDocument, UpdateExamDocument, WeakTopicsDocument, type ExamFieldsFragment } from '@/graphql/generated/graphql'
 import { EXAM_LIMITS } from '@/lib/contracts/validation'
 import { haptic } from '@/lib/haptics'
+import { coreName } from './recommendationHref'
 import { cn } from '@/lib/utils'
 
 type Exam = ExamFieldsFragment
@@ -49,36 +50,221 @@ function ReadinessBar({ readiness, targetToday }: { readiness: number; targetTod
   )
 }
 
+type Tab = 'upcoming' | 'plan' | 'progress' | 'notes'
+const TABS: { tab: Tab; label: string }[] = [
+  { tab: 'upcoming', label: 'Upcoming' },
+  { tab: 'plan', label: 'Study Plan' },
+  { tab: 'progress', label: 'Progress' },
+  { tab: 'notes', label: 'Notes' },
+]
+/** Where a plan's topic leads: its notes in Explore, or a core subject's topic by name (lvn-backend ADR-0076). */
+const openTopic = (tp: { key: string; title: string }) =>
+  router.push(tp.key.startsWith('topic:') ? { pathname: '/explore', params: { topic: tp.key.slice(6), topicTitle: tp.title } } : { pathname: '/explore', params: { q: tp.title || coreName(tp.key) } })
+
 /**
- * Exams on the phone (lvn-backend ADR-0070): each exam's Readiness against the target line and today's revision,
- * adding one with its topics, and the weak topics to revise first. A task left is never framed as a loss.
+ * Exams on the phone (lvn-backend ADR-0070, ADR-0076) in tabs: Upcoming (each exam's Readiness against the target line,
+ * and adding one), Study Plan (today's sessions as a checklist and Continue plan), Progress (Readiness, the topics'
+ * mastery and the weak topics) and Notes (notes on an exam's topics). A task left is never framed as a loss.
  */
 export function ExamsScreen() {
   const insets = useSafeAreaInsets()
   const { data, loading, error } = useQuery(ExamsDocument, { fetchPolicy: 'cache-and-network' })
   const [adding, setAdding] = useState(false)
+  const [tab, setTab] = useState<Tab>('upcoming')
   const exams = data?.exams
+  const upcoming = exams?.filter((e) => !e.past) ?? []
   return (
     <View className="bg-background flex-1">
       <Header title="Exams" />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
         <Text className="text-muted-foreground text-sm">Add an exam and its topics: LearnViaNotes spreads revision sessions back from the day, and Readiness shows how well you know the topics now.</Text>
-        {adding ? (
-          <View className="bg-card border-border rounded-2xl border p-4">
-            <ExamForm onDone={() => setAdding(false)} />
-          </View>
-        ) : (
-          <Pressable accessibilityRole="button" onPress={() => setAdding(true)} className="bg-primary self-start rounded-xl px-4 py-2.5">
-            <Text className="text-primary-foreground font-semibold">Add an exam</Text>
-          </Pressable>
-        )}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="tablist" contentContainerStyle={{ gap: 8 }}>
+          {TABS.map((x) => (
+            <Pressable key={x.tab} accessibilityRole="tab" accessibilityState={{ selected: x.tab === tab }} onPress={() => setTab(x.tab)} className={`rounded-full px-4 py-2 ${x.tab === tab ? 'bg-primary' : 'bg-card border-border border'}`}>
+              <Text className={x.tab === tab ? 'text-primary-foreground font-semibold' : 'font-semibold'}>{x.label}</Text>
+            </Pressable>
+          ))}
+        </ScrollView>
         {!exams && loading ? <ActivityIndicator /> : null}
         {!exams && error ? <Text className="text-muted-foreground">Your exams could not load. Try again.</Text> : null}
-        {exams && !exams.length ? <Text className="text-muted-foreground text-center">No exams yet. Add one and its plan appears here.</Text> : null}
-        {exams?.map((e) => <ExamCard key={e.id} exam={e} />)}
-        <WeakTopics />
+        {tab === 'upcoming' ? (
+          <>
+            {adding ? (
+              <View className="bg-card border-border rounded-2xl border p-4">
+                <ExamForm onDone={() => setAdding(false)} />
+              </View>
+            ) : (
+              <Pressable accessibilityRole="button" onPress={() => setAdding(true)} className="bg-primary self-start rounded-xl px-4 py-2.5">
+                <Text className="text-primary-foreground font-semibold">Add an exam</Text>
+              </Pressable>
+            )}
+            {exams && !exams.length ? <Text className="text-muted-foreground text-center">No exams yet. Add one and its plan appears here.</Text> : null}
+            {exams?.map((e) => (
+              <ExamCard key={e.id} exam={e} />
+            ))}
+          </>
+        ) : null}
+        {exams && tab !== 'upcoming' && !upcoming.length ? (
+          <View className="border-border items-center gap-3 rounded-2xl border border-dashed p-5">
+            <Text className="text-muted-foreground text-center">No exam coming up. Add one and its plan, progress and notes appear here.</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                setTab('upcoming')
+                setAdding(true)
+              }}
+              className="bg-primary rounded-xl px-4 py-2.5"
+            >
+              <Text className="text-primary-foreground font-semibold">Add an exam</Text>
+            </Pressable>
+          </View>
+        ) : null}
+        {tab === 'plan' && upcoming.length ? <StudyPlan exams={upcoming} /> : null}
+        {tab === 'progress' && upcoming.length ? (
+          <>
+            {upcoming.map((e) => (
+              <View key={e.id} className="bg-card border-border gap-3 rounded-2xl border p-4">
+                <Text className="text-lg font-bold" accessibilityRole="header">
+                  {e.name}
+                </Text>
+                <View className="flex-row items-center gap-3">
+                  <Text className="w-28 text-sm font-semibold">Readiness {e.readiness}%</Text>
+                  <ReadinessBar readiness={e.readiness} targetToday={e.targetToday} />
+                </View>
+                <TopicMastery exam={e} />
+              </View>
+            ))}
+            <WeakTopics />
+          </>
+        ) : null}
+        {tab === 'notes' && upcoming.length ? <ExamNotes exams={upcoming} /> : null}
       </ScrollView>
     </View>
+  )
+}
+
+/**
+ * Today's sessions as a checklist (lvn-backend ADR-0076). A session is done by studying its topics (ADR-0070), so each
+ * line shows whether it is and leads to its topics; Continue plan opens the first topic still to study today.
+ */
+function StudyPlan({ exams }: { exams: Exam[] }) {
+  const today = exams.flatMap((e) => e.tasks.filter((x) => x.today).map((task) => ({ exam: e, task })))
+  const next = today.find((x) => !x.task.done && x.task.topics.length)
+  return (
+    <>
+      <View className="bg-card border-border gap-3 rounded-2xl border p-4">
+        <View className="flex-row items-center justify-between gap-3">
+          <Text className="text-lg font-bold" accessibilityRole="header">
+            Today
+          </Text>
+          {next ? (
+            <Pressable accessibilityRole="button" onPress={() => openTopic(next.task.topics[0]!)} className="bg-primary rounded-xl px-4 py-2">
+              <Text className="text-primary-foreground font-semibold">Continue plan</Text>
+            </Pressable>
+          ) : null}
+        </View>
+        <Text className="text-muted-foreground text-sm">{today.length ? (next ? 'A session is done by 10 minutes on its topics that day, or a quiz on them.' : 'Today’s revision is done') : 'No session planned today.'}</Text>
+        {today.map(({ exam, task }) => (
+          <View key={task.id} className={cn('flex-row items-start gap-3 rounded-xl px-3 py-2', task.done ? 'bg-primary/10' : 'bg-muted')}>
+            <View accessible accessibilityLabel={task.done ? 'done' : 'to do'} className={cn('mt-0.5 size-5 items-center justify-center rounded-full', task.done ? 'bg-primary' : 'border-border border')}>
+              {task.done ? <Check size={12} color="#ffffff" /> : null}
+            </View>
+            <View className="flex-1 gap-1">
+              <Text className="font-medium">{exam.name}</Text>
+              <View className="flex-row flex-wrap gap-x-3 gap-y-1">
+                {task.topics.map((tp) => (
+                  <Pressable key={tp.key} accessibilityRole="link" accessibilityLabel={`Study ${tp.title || coreName(tp.key)}`} onPress={() => openTopic(tp)}>
+                    <Text className="text-primary text-sm font-semibold">{tp.title || coreName(tp.key)}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </View>
+        ))}
+      </View>
+      {exams.map((e) => (
+        <Pressable key={e.id} accessibilityRole="link" onPress={() => router.push(`/exams/${e.id}`)}>
+          <Text className="text-primary text-sm font-semibold">The whole plan for {e.name}</Text>
+        </Pressable>
+      ))}
+    </>
+  )
+}
+
+/** Notes on an exam's topics: one's own, shared and public, newest first (lvn-backend ADR-0076). */
+function ExamNotes({ exams }: { exams: Exam[] }) {
+  const [examId, setExamId] = useState(exams[0]!.id)
+  const exam = exams.find((e) => e.id === examId) ?? exams[0]!
+  const topicIds = exam.topics.flatMap((tp) => (tp.key.startsWith('topic:') ? [tp.key.slice(6)] : [])).slice(0, 20)
+  const { data, fetchMore } = useQuery(SearchDocument, { variables: { query: '', scopes: ['NOTES'], filters: { topicIds } }, skip: !topicIds.length })
+  const found = data?.search
+  const notes = found?.notes ?? []
+  return (
+    <View className="gap-3">
+      {exams.length > 1 ? (
+        <View className="flex-row flex-wrap gap-2">
+          {exams.map((e) => (
+            <Pressable
+              key={e.id}
+              accessibilityRole="button"
+              accessibilityState={{ selected: e.id === exam.id }}
+              onPress={() => setExamId(e.id)}
+              className={`rounded-full px-3 py-1.5 ${e.id === exam.id ? 'bg-primary' : 'border-border border'}`}
+            >
+              <Text className={e.id === exam.id ? 'text-primary-foreground text-xs font-semibold' : 'text-xs font-semibold'}>{e.name}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+      <Text className="text-muted-foreground text-sm">Notes on the topics of {exam.name}: yours, those shared with you and public ones, newest first.</Text>
+      {!topicIds.length || (found && !notes.length) ? (
+        <View className="border-border items-center gap-2 rounded-2xl border border-dashed p-5">
+          <Text className="text-muted-foreground text-center">No notes on these topics yet.</Text>
+          <Pressable accessibilityRole="link" onPress={() => router.push('/explore')}>
+            <Text className="text-primary text-sm font-semibold">Search notes</Text>
+          </Pressable>
+        </View>
+      ) : null}
+      {notes.map(({ note }) => (
+        <Pressable key={note.id} accessibilityRole="link" accessibilityLabel={note.title || 'Untitled note'} onPress={() => router.push(`/notes/${note.id}`)} className="bg-card border-border gap-0.5 rounded-2xl border px-4 py-3">
+          <Text className="font-semibold">{note.title || 'Untitled note'}</Text>
+          <Text className="text-muted-foreground text-xs">by {note.owner.displayName}</Text>
+        </Pressable>
+      ))}
+      {found?.notesCursor ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() =>
+            void fetchMore({
+              variables: { after: found.notesCursor },
+              updateQuery: (prev, { fetchMoreResult }) => ({ search: { ...prev.search, notes: [...prev.search.notes, ...fetchMoreResult.search.notes], notesCursor: fetchMoreResult.search.notesCursor } }),
+            })
+          }
+          className="border-border self-center rounded-full border px-4 py-2"
+        >
+          <Text className="text-sm font-semibold">More notes</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  )
+}
+
+/** Each topic's mastery, with the recall and quiz accuracy behind it (lvn-backend ADR-0070). */
+function TopicMastery({ exam }: { exam: Exam }) {
+  return (
+    <>
+      {exam.topics.map((tp) => (
+        <View key={tp.key} className="gap-1">
+          <Text className="font-medium">{tp.title}</Text>
+          <Text className="text-muted-foreground text-sm">
+            {tp.recall === null && tp.accuracy === null ? 'No flashcards or quizzes yet' : [tp.recall !== null ? `Recall ${pct(tp.recall)}%` : null, tp.accuracy !== null ? `Accuracy ${pct(tp.accuracy)}%` : null].filter(Boolean).join(' · ')}
+          </Text>
+          <View className="bg-muted h-1.5 rounded-full">
+            <View className="bg-primary/70 h-full rounded-full" style={{ width: `${pct(tp.mastery)}%` }} />
+          </View>
+        </View>
+      ))}
+    </>
   )
 }
 
@@ -156,19 +342,7 @@ export function ExamScreen({ id }: { id: string }) {
                 Topics
               </Text>
               <Text className="text-muted-foreground text-sm">Recall is how likely you are to remember a topic’s flashcards now; accuracy is your last quiz answers on it.</Text>
-              {exam.topics.map((tp) => (
-                <View key={tp.key} className="gap-1">
-                  <Text className="font-medium">{tp.title}</Text>
-                  <Text className="text-muted-foreground text-sm">
-                    {tp.recall === null && tp.accuracy === null
-                      ? 'No flashcards or quizzes yet'
-                      : [tp.recall !== null ? `Recall ${pct(tp.recall)}%` : null, tp.accuracy !== null ? `Accuracy ${pct(tp.accuracy)}%` : null].filter(Boolean).join(' · ')}
-                  </Text>
-                  <View className="bg-muted h-1.5 rounded-full">
-                    <View className="bg-primary/70 h-full rounded-full" style={{ width: `${pct(tp.mastery)}%` }} />
-                  </View>
-                </View>
-              ))}
+              <TopicMastery exam={exam} />
             </View>
             <View className="bg-card border-border gap-2 rounded-2xl border p-4">
               <Text className="text-lg font-bold" accessibilityRole="header">
