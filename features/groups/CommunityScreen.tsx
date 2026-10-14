@@ -7,17 +7,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { ClassesSection } from '@/features/classes/ClassesSection'
-import { ActivityFeed, FollowingFeed } from '@/features/feeds/Feeds'
+import { ActivityFeed, FollowingFeed, ForYouFeed, TrendingFeed } from '@/features/feeds/Feeds'
 import { AnswerMentorInviteDocument, DiscoverGroupsDocument, MyGroupsDocument, MyMentorInvitesDocument, type GroupCardFragment } from '@/graphql/generated/graphql'
 import { attempt, ROLE } from './shared'
 
-type Section = 'activity' | 'following' | 'places'
-const SECTIONS: Record<Section, string> = { activity: 'Activity', following: 'Following', places: 'Groups & classes' }
+type Section = 'forYou' | 'trending' | 'following' | 'activity' | 'places'
+const SECTIONS: Record<Section, string> = { forYou: 'For You', trending: 'Trending', following: 'Following', activity: 'Activity', places: 'Groups & classes' }
 
 /**
- * The Community tab (spec §13.1, lvn-backend ADR-0045, ADR-0046, ADR-0049): the activity of your groups and classes,
- * the Following feed, and your classes (with a class code to enter), your groups and public groups to find. Anyone
- * verified starts a group here; teachers start classes from the classes section.
+ * The Community tab (spec §13.1, lvn-backend ADR-0045, ADR-0046, ADR-0049, ADR-0076): For You and Trending (public
+ * notes), the Following feed, the activity of your groups and classes, and your classes (with a class code to enter),
+ * your groups and public groups to find. Anyone verified starts a group here; teachers start classes from the classes
+ * section.
  */
 export function CommunityScreen() {
   const insets = useSafeAreaInsets()
@@ -33,7 +34,7 @@ export function CommunityScreen() {
   const found = useQuery(DiscoverGroupsDocument, { variables: { query: settled || null }, fetchPolicy: 'cache-and-network' })
   const myIds = new Set(mine.data?.myGroups.map((g) => g.id))
   const discover = (found.data?.discoverGroups ?? []).filter((g) => !myIds.has(g.id))
-  const [section, setSection] = useState<Section>('activity')
+  const [section, setSection] = useState<Section>('forYou')
   // The Profile tab's My groups and My classrooms open the places (section=places).
   const asked = useLocalSearchParams<{ section?: string }>().section
   useEffect(() => {
@@ -51,6 +52,8 @@ export function CommunityScreen() {
           </Pressable>
         ))}
       </View>
+      {section === 'forYou' ? <ForYouFeed /> : null}
+      {section === 'trending' ? <TrendingFeed onForYou={() => setSection('forYou')} /> : null}
       {section === 'activity' ? <ActivityFeed /> : null}
       {section === 'following' ? <FollowingFeed /> : null}
       {section === 'places' ? (

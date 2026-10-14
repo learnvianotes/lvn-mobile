@@ -71,3 +71,70 @@ query ActivityFeed($after: String) {
     }
   }
 }
+
+# Community's For You and Trending (lvn-backend ADR-0076): public notes as post cards.
+fragment PostCardFields on Note {
+  id
+  title
+  kind
+  publishedAt
+  excerpt
+  viewerSaved
+  owner {
+    id
+    displayName
+    profile {
+      department
+    }
+  }
+  topics {
+    id
+    title
+  }
+  previewPicture {
+    id
+    mediumUrl
+    url
+  }
+  discussion {
+    commentCount
+  }
+}
+
+query ForYouFeed($after: String) {
+  forYouFeed(first: 20, after: $after) {
+    edges {
+      cursor
+      node {
+        ...PostCardFields
+      }
+      topic {
+        id
+        title
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+    basedOn {
+      id
+      title
+    }
+  }
+}
+
+query TrendingFeed($after: String) {
+  trendingFeed(first: 20, after: $after) {
+    edges {
+      cursor
+      node {
+        ...PostCardFields
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

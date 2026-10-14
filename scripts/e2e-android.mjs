@@ -163,8 +163,10 @@ async function seedCommunity(api, vmScript) {
   // A public note by someone else, for saving (ADR-0076): the learner finds it in Explore.
   const noteTitle = `Maestro public note ${stamp}`
   const noteCard = { id: crypto.randomUUID(), type: 'text', position: 'a0', content: { doc: { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Heaps keep the smallest item on top.' }] }] } } }
-  const publicNote = (await gql('mutation ($input: CreateNoteInput!) { createNote(input: $input) { note { id } } }', { input: { title: noteTitle, cards: [noteCard] } }, owner.token)).createNote.note.id
+  const publicNote = (await gql('mutation ($input: CreateNoteInput!) { createNote(input: $input) { note { id } } }', { input: { title: noteTitle, cards: [noteCard], ...(topic ? { topicIds: [topic.id] } : {}) } }, owner.token)).createNote.note.id
   await gql('mutation ($input: NoteIdInput!) { publishNote(input: $input) { note { id } } }', { input: { noteId: publicNote } }, owner.token)
   await gql('mutation ($input: ChangeNoteVisibilityInput!) { changeNoteVisibility(input: $input) { note { id } } }', { input: { noteId: publicNote, visibility: 'PUBLIC' } }, owner.token)
+  // The learner follows its topic, so it is in their Community's For You (ADR-0076).
+  if (topic) await gql('mutation ($input: UpdateProfileInput!) { updateProfile(input: $input) { userErrors { message } } }', { input: { interestTopicIds: [topic.id] } }, learner.token)
   return { email: learner.email, password: learner.password, group, teacherEmail: teacher.email, teacherPassword: teacher.password, suspendedEmail: suspended.email, suspendedPassword: suspended.password, stamp, className, quizTitle, resourceTitle, noteTitle }
 }

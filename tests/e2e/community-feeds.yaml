@@ -1,0 +1,44 @@
+# Community's For You on the phone (lvn-backend ADR-0076): a learner who follows a topic finds someone's public note on
+# it in For You and opens it; Settings shows the topic they follow. scripts/e2e-android.mjs makes the learner, the
+# note and the topic they follow when run with --vm; without it this flow does nothing.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow:
+    when:
+      true: ${typeof NOTE_TITLE !== 'undefined' && NOTE_TITLE !== ''}
+    commands:
+      - launchApp:
+          clearState: true
+      - tapOn:
+          id: "welcome-sign-in"
+      - tapOn:
+          id: "sign-in-email"
+      - inputText: ${COMMUNITY_EMAIL}
+      - tapOn:
+          id: "sign-in-password"
+      - inputText: ${COMMUNITY_PASSWORD}
+      - hideKeyboard
+      - tapOn:
+          id: "sign-in-submit"
+      - extendedWaitUntil:
+          visible: "Make it happen"
+          timeout: 20000
+      - tapOn: "Community"
+      - extendedWaitUntil:
+          visible: ${NOTE_TITLE}
+          timeout: 20000
+      - tapOn: ${NOTE_TITLE}
+      # The note opens (Back is on the note, not on the tab); saved-notes may already have saved it, so Save or Saved.
+      - extendedWaitUntil:
+          visible: "Back"
+          timeout: 20000
+      - assertVisible: "Saved?"
+      - tapOn: "Back"
+      # The topics followed are in Settings, behind the Profile tab's gear.
+      - tapOn: "Profile"
+      - tapOn: "Settings"
+      - scrollUntilVisible:
+          element: "Topics you follow"
+      - assertVisible: "Remove .*"

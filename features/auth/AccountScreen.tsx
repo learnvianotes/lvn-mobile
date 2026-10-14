@@ -16,6 +16,7 @@ import { copy } from './copy'
 import { Notice } from './Notice'
 import { forgetPushToken } from '@/features/push/push'
 import { AiAccountCard } from '@/features/ai/AiScreen'
+import { InterestsCard } from './Interests'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
 
@@ -42,6 +43,7 @@ export function AccountScreen() {
       <ScrollView contentContainerClassName="gap-5 px-5 pt-2" contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}>
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {viewer ? <StudyDetailsCard /> : null}
+        {viewer ? <InterestsCard /> : null}
         {viewer ? <LegacyDataCard /> : null}
         {viewer ? <AiAccountCard className={card} /> : null}
         {viewer ? <NotificationSettingsLink /> : null}
