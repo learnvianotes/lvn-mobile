@@ -45,7 +45,7 @@ it('starts a focus session, shows the time left, and ends it', async () => {
 it('shows buddies studying now, answers an invite, says why an invite cannot go, and turns sharing on', async () => {
   let list = {
     __typename: 'RhythmBuddies',
-    buddies: [{ __typename: 'RhythmBuddy', id: '01920000-0000-7000-8000-0000000b0001', user: user('01920000-0000-7000-8000-0000000000aa', 'Ravi Kumar'), studyingNow: true, studyingSince: new Date().toISOString(), topicTitle: 'Paging', meetUrl: 'https://meet.google.com/abc-defg-hij', countedDays: 2, target: 4, met: false }],
+    buddies: [{ __typename: 'RhythmBuddy', id: '01920000-0000-7000-8000-0000000b0001', user: user('01920000-0000-7000-8000-0000000000aa', 'Ravi Kumar'), studyingNow: true, studyingSince: new Date().toISOString(), topicTitle: 'Paging', meetUrl: 'https://meet.google.com/abc-defg-hij', countedDays: 2, target: 4, met: false, together: { __typename: 'BuddyTogether', countedDays: 5, target: 8 } }],
     invites: [{ __typename: 'RhythmBuddyInvite', id: '01920000-0000-7000-8000-0000000b0002', at: new Date().toISOString(), user: user('01920000-0000-7000-8000-0000000000bb', 'Meena Shah') }],
     sent: [],
   }
@@ -74,7 +74,7 @@ it('shows buddies studying now, answers an invite, says why an invite cannot go,
 
 it('shows a class its Rhythm this week, and staff its performance and hard topics', async () => {
   mockApi({
-    ClassroomRhythmRing: () => ({ data: { classroom: { __typename: 'Classroom', id: CLASS, rhythmRing: { __typename: 'ClassroomRhythm', students: 2, metCount: 1, countedDays: 5, targetDays: 8, people: [{ __typename: 'ClassroomRhythmPerson', name: 'Kiran', countedDays: 4, target: 4, met: true, user: { __typename: 'User', id: '01920000-0000-7000-8000-0000000000dd' } }] } } } }),
+    ClassroomRhythmRing: () => ({ data: { classroom: { __typename: 'Classroom', id: CLASS, rhythmRing: { __typename: 'ClassroomRhythm', students: 2, metCount: 1, countedDays: 5, targetDays: 8, people: [{ __typename: 'ClassroomRhythmPerson', name: 'Kiran', countedDays: 4, target: 4, met: true, user: { __typename: 'User', id: '01920000-0000-7000-8000-0000000000dd' } }], goal: null } } } }),
     ClassroomPerformance: () => ({
       data: {
         classroom: {

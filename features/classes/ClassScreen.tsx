@@ -150,7 +150,7 @@ export function ClassScreen({ id }: { id: string }) {
             {tab === 'quizzes' ? <ClassQuizzes classroom={classroom} /> : null}
             {tab === 'notes' ? <Notes classroom={classroom} /> : null}
             {tab === 'resources' ? <PlaceResources to={{ classroomId: classroom.id }} /> : null}
-            {tab === 'rhythm' ? <ClassRhythm classroomId={classroom.id} /> : null}
+            {tab === 'rhythm' ? <ClassRhythm classroomId={classroom.id} staff={classroom.viewerCan.review} /> : null}
             {tab === 'performance' ? <ClassPerformance classroomId={classroom.id} /> : null}
             {tab === 'people' ? <People classroom={classroom} onChanged={() => void refetch()} /> : null}
             {tab === 'requests' ? <Requests classroom={classroom} onChanged={() => void refetch()} /> : null}

@@ -40,9 +40,11 @@ env:
 - assertVisible: "0[45]:\\d\\d left"
 - tapOn: "Skip break"
 - tapOn: "Close focus mode"
+# Back on Rhythm where focus started (this week's tasks now sit between the week and focus mode).
 - extendedWaitUntil:
-    visible: "This week"
+    visible: "Start focusing"
     timeout: 15000
 - scrollUntilVisible:
     element: "Rhythm buddies"
-- assertVisible: "No buddies yet."
+- scrollUntilVisible:
+    element: "No buddies yet."

@@ -12,6 +12,7 @@ import { haptic } from '@/lib/haptics'
 import { cn } from '@/lib/utils'
 import { BuddiesCard, FocusCard } from './FocusCard'
 import { Recommendations } from './Recommendations'
+import { WeeklyTasks } from './WeeklyTasks'
 
 type R = RhythmQuery['rhythm']
 
@@ -80,6 +81,7 @@ export function RhythmScreen() {
               </View>
             ) : null}
             <Week r={r} />
+            <WeeklyTasks />
             <Counters r={r} />
             <FocusCard />
             <Recommendations />

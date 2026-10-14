@@ -1,0 +1,35 @@
+# Weekly tasks (lvn-backend ADR-0081): a learner adds a task with a plan on Rhythm, sees it with its progress, and
+# removes it; the server keeps each change.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Profile"
+- scrollUntilVisible:
+    element: "Rhythm"
+- tapOn: "Rhythm"
+- extendedWaitUntil:
+    visible: "This week’s tasks"
+    timeout: 15000
+- scrollUntilVisible:
+    element: "Add a task"
+- tapOn: "Add a task"
+- scrollUntilVisible:
+    element: "When and where \\(optional\\)"
+- tapOn: "When and where \\(optional\\)"
+- inputText: "After lunch"
+- hideKeyboard
+- scrollUntilVisible:
+    element: "Add the task"
+- tapOn: "Add the task"
+- scrollUntilVisible:
+    element: "Plan: After lunch"
+    direction: UP
+    timeout: 15000
+- assertVisible: "Review 50 flashcards"
+- assertVisible: "0 / 50"
+- tapOn: "Remove the task Review 50 flashcards"
+- extendedWaitUntil:
+    visible: "Pick up to three things to do this week.*"
+    timeout: 15000
