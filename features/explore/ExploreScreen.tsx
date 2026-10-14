@@ -297,6 +297,14 @@ export function ExploreScreen() {
       </View>
       {!ready ? (
         <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 100, gap: 8 }} keyboardShouldPersistTaps="handled">
+          {/* The subjects notes are organised by (the app's own catalogue, not /core). */}
+          <Pressable accessibilityRole="link" onPress={() => router.push('/subjects')} className="bg-card border-border mb-2 flex-row items-center gap-3 rounded-2xl border p-4">
+            <BookMarked size={18} color={primary} />
+            <View className="flex-1">
+              <Text className="font-semibold">Browse subjects</Text>
+              <Text className="text-muted-foreground text-xs">Topics by subject, each with its notes</Text>
+            </View>
+          </Pressable>
           {recent.length ? (
             <>
               <View className="flex-row items-center justify-between">
