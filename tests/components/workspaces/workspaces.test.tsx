@@ -21,7 +21,7 @@ const doc = (s: string) => ({ type: 'doc', content: [{ type: 'paragraph', conten
 const can = (over: Record<string, boolean> = {}) => ({ __typename: 'GroupActions', join: false, requestJoin: false, post: true, moderate: false, manage: false, delete: false, reviewRequests: false, leave: true, askDoubt: true, inviteMentor: false, acceptMentorInvite: false, ...over })
 const workspace = (over: Record<string, unknown> = {}) => ({ __typename: 'Group', moderationWarning: null, id: GROUP, type: 'PROJECT', name: 'Heap visualiser', description: null, privacy: 'PUBLIC', joinPolicy: 'OPEN', memberCount: 4, viewerRole: 'MEMBER', createdAt: '2026-10-01T10:00:00.000Z', viewerRequestId: null, viewerMentorInviteId: null, pictureUrl: null, owner: { __typename: 'User', id: 'u2', displayName: 'Meera Iyer' }, viewerCan: can(), ...over })
 const posts = () => ({ data: { group: { __typename: 'Group', id: GROUP, posts: { __typename: 'GroupPostConnection', pinned: [], edges: [], pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } } } } })
-const repository = { __typename: 'GroupRepository', provider: 'GITHUB', url: 'https://github.com/team/heap-viz', available: true, name: 'team/heap-viz', description: 'Watch a heap grow', language: 'TypeScript', stars: 42, pushedAt: '2026-10-10T09:00:00.000Z' }
+const repository = { __typename: 'GroupRepository', provider: 'GITHUB', url: 'https://github.com/team/heap-viz', available: true, name: 'team/heap-viz', description: 'Watch a heap grow', language: 'TypeScript', stars: 42, pushedAt: '2026-10-10T09:00:00.000Z', app: null, events: null }
 const idea = (id: string, text: string) => ({ __typename: 'GroupPost', moderation: 'OK', moderationReason: null, moderationCanAppeal: false, id, kind: 'IDEA', body: doc(text), pinned: false, createdAt: new Date().toISOString(), editedAt: null, author: meera, viewerCan: { __typename: 'GroupPostActions', edit: false, delete: false, pin: false }, discussion: { __typename: 'Discussion', commentCount: 0 } })
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 
@@ -172,4 +172,24 @@ it('a showcase note credits the team, then the mentor; other notes show nothing'
   mockApi({ NoteContributors: () => contributors([]) })
   await inApollo(<NoteCredits noteId="n8" />)
   await waitFor(() => expect(screen.queryByText(/Built by/)).toBeNull())
+})
+
+it('with the GitHub App set up, an admin connects it in the browser, and members read the repository’s activity (ADR-0078)', async () => {
+  const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true)
+  let linked: unknown = { ...repository, app: { __typename: 'RepositoryApp', connected: false, installUrl: 'https://github.com/apps/learnvianotes/installations/new?state=abc' }, events: [] }
+  mockApi({
+    Group: () => ({ data: { group: workspace({ viewerRole: 'ADMIN', viewerCan: can({ manage: true, post: true, askDoubt: true }) }) } }),
+    GroupPosts: () => ({ data: { group: { __typename: 'Group', id: GROUP, posts: { __typename: 'GroupPostConnection', pinned: [], edges: [], pageInfo: { __typename: 'PageInfo', hasNextPage: false, endCursor: null } } } } }),
+    Workspace: () => ({ data: { group: { __typename: 'Group', id: GROUP, repository: linked, showcase: null } } }),
+  })
+  const view = await inApollo(<GroupScreen id={GROUP} />)
+  await fireEvent.press(await screen.findByRole('button', { name: 'Connect the GitHub App' }))
+  expect(openURL).toHaveBeenCalledWith('https://github.com/apps/learnvianotes/installations/new?state=abc')
+  await view.unmount()
+  linked = { ...repository, app: { __typename: 'RepositoryApp', connected: true, installUrl: null }, events: [{ __typename: 'RepositoryEvent', id: 'e1', kind: 'PULL_REQUEST', action: 'merged', title: 'Heap sort', number: 7, authorLogin: 'ravi', url: 'https://github.com/team/heap-viz/pull/7', at: new Date().toISOString() }] }
+  await inApollo(<GroupScreen id={GROUP} />)
+  await fireEvent.press(await screen.findByText('#7 Heap sort'))
+  expect(openURL).toHaveBeenLastCalledWith('https://github.com/team/heap-viz/pull/7')
+  expect(screen.getByText('Pull request merged by ravi')).toBeOnTheScreen()
+  expect(screen.getByRole('button', { name: 'Disconnect the GitHub App' })).toBeOnTheScreen()
 })

@@ -16,7 +16,7 @@ const GROUP = '01920000-0000-7000-8000-0000000a0009'
 const meera = { __typename: 'User', id: 'u2', displayName: 'Meera Iyer', handle: 'meera' }
 const doc = (s: string) => ({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: s }] }] })
 const page = (edges: unknown[], hasNextPage = false) => ({ edges, pageInfo: { __typename: 'PageInfo', hasNextPage, endCursor: hasNextPage ? 'c1' : null } })
-const item = (key: string, kind: string, over: Record<string, unknown>) => ({ __typename: 'ActivityEdge', node: { __typename: 'ActivityItem', key, kind, at: new Date().toISOString(), actor: meera, group: null, classroom: null, post: null, announcement: null, doubt: null, note: null, ...over } })
+const item = (key: string, kind: string, over: Record<string, unknown>) => ({ __typename: 'ActivityEdge', node: { __typename: 'ActivityItem', key, kind, at: new Date().toISOString(), actor: meera, group: null, classroom: null, post: null, announcement: null, doubt: null, note: null, repositoryEvent: null, ...over } })
 const group = { __typename: 'Group', id: GROUP, name: 'Heap team' }
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 const forYou = () => ({ data: { forYouFeed: { __typename: 'CommunityConnection', ...page([]), basedOn: [] } } })

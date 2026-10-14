@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client/react'
 import { router, type Href } from 'expo-router'
-import { BookOpen, CircleHelp, FileText, Lightbulb, Megaphone, MessageSquare } from 'lucide-react-native'
-import { Pressable, View } from 'react-native'
+import { BookOpen, CircleHelp, FileText, GitBranch, Lightbulb, Megaphone, MessageSquare } from 'lucide-react-native'
+import { Linking, Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { RichDoc } from '@/features/notes/render/RichText'
@@ -12,8 +12,8 @@ import type { Doc } from '@/lib/contracts/validation'
 
 type Item = ActivityFeedQuery['activityFeed']['edges'][number]['node']
 
-const DID: Record<Item['kind'], string> = { GROUP_POST: 'posted in', IDEA: 'shared an idea in', DOUBT: 'asked a doubt in', CLASS_ANNOUNCEMENT: 'posted an announcement in', SHARED_NOTE: 'shared a note with' }
-const ICON = { GROUP_POST: MessageSquare, IDEA: Lightbulb, DOUBT: CircleHelp, CLASS_ANNOUNCEMENT: Megaphone, SHARED_NOTE: FileText } as const
+const DID: Record<Item['kind'], string> = { GROUP_POST: 'posted in', IDEA: 'shared an idea in', DOUBT: 'asked a doubt in', CLASS_ANNOUNCEMENT: 'posted an announcement in', SHARED_NOTE: 'shared a note with', REPOSITORY: 'on GitHub, in' }
+const ICON = { GROUP_POST: MessageSquare, IDEA: Lightbulb, DOUBT: CircleHelp, CLASS_ANNOUNCEMENT: Megaphone, SHARED_NOTE: FileText, REPOSITORY: GitBranch } as const
 const KIND: Record<string, string> = { NOTE: 'Note', PROJECT: 'Project', BLOG: 'Blog', POST: 'Post' }
 
 function More({ onPress }: { onPress: () => void }) {
@@ -54,18 +54,26 @@ function ActivityCard({ item }: { item: Item }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
   const Icon = ICON[item.kind]
   const place = item.group?.name ?? item.classroom?.name ?? null
+  // A repository event opens on GitHub (lvn-backend ADR-0078).
+  const external = item.repositoryEvent?.url ?? null
   const href = (item.doubt && item.group ? `/groups/${item.group.id}/doubts/${item.doubt.id}` : item.note ? `/notes/${item.note.id}` : item.group ? `/groups/${item.group.id}` : item.classroom ? `/classes/${item.classroom.id}` : null) as Href | null
   const body = item.post?.body ?? item.announcement?.body
   return (
-    <Pressable accessibilityRole="link" disabled={!href} onPress={() => href && router.push(href)} className="bg-card border-border gap-2 rounded-2xl border p-4">
+    <Pressable accessibilityRole="link" disabled={!href && !external} onPress={() => (external ? void Linking.openURL(external) : href && router.push(href))} className="bg-card border-border gap-2 rounded-2xl border p-4">
       <View className="flex-row items-start gap-2">
         <Icon size={16} color={accent} />
         <Text className="flex-1 text-sm">
-          {item.actor?.displayName ?? 'Someone'} {DID[item.kind]} {place ? <Text className="font-semibold">{place}</Text> : null}
+          {item.actor?.displayName ?? item.repositoryEvent?.authorLogin ?? 'Someone'} {DID[item.kind]} {place ? <Text className="font-semibold">{place}</Text> : null}
         </Text>
         <Text className="text-muted-foreground text-xs">{ago(item.at)}</Text>
       </View>
       {item.doubt ? <Text className="font-semibold">{item.doubt.title}</Text> : null}
+      {item.repositoryEvent ? (
+        <Text className="font-semibold">
+          {item.repositoryEvent.number ? `#${item.repositoryEvent.number} ` : ''}
+          {item.repositoryEvent.title}
+        </Text>
+      ) : null}
       {item.note ? (
         <View className="flex-row items-center gap-2">
           <BookOpen size={14} color={accent} />

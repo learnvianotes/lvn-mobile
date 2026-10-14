@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { Award, ExternalLink, GitBranch, Lightbulb, MessageSquare, Star } from 'lucide-react-native'
 import { useState } from 'react'
-import { Linking, Pressable, TextInput, View } from 'react-native'
+import { Alert, Linking, Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { PostComments } from '@/features/discussion/PostComments'
@@ -13,7 +13,18 @@ import { ReportLink } from '@/features/moderation/ReportSheet'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { Field, Outcome, Pill } from '@/features/shell/Form'
 import { ago } from '@/features/notifications/describe'
-import { AnswerMentorInviteDocument, AskDoubtDocument, CreateIdeaDocument, SetGroupRepositoryDocument, WorkspaceDocument, WorkspaceDoubtsDocument, WorkspaceIdeasDocument, type DoubtStatus, type GroupDetailFragment } from '@/graphql/generated/graphql'
+import {
+  AnswerMentorInviteDocument,
+  AskDoubtDocument,
+  CreateIdeaDocument,
+  DisconnectRepositoryAppDocument,
+  SetGroupRepositoryDocument,
+  WorkspaceDocument,
+  WorkspaceDoubtsDocument,
+  WorkspaceIdeasDocument,
+  type DoubtStatus,
+  type GroupDetailFragment,
+} from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
 
 export const STATUS: Record<DoubtStatus, string> = { OPEN: 'Open', ANSWERED: 'Answered', RESOLVED: 'Resolved' }
@@ -84,6 +95,7 @@ export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragme
           )}
         </Pressable>
       ) : null}
+      {repo?.app ? <RepositoryApp groupId={group.id} app={repo.app} events={repo.events ?? []} canManage={group.viewerCan.manage} onChanged={() => void refetch()} /> : null}
       {group.viewerCan.manage && data?.group ? <RepositoryEditor groupId={group.id} url={repo?.url ?? null} onChanged={() => void refetch()} /> : null}
       {showcase ? (
         <Pressable accessibilityRole="link" onPress={() => router.push(`/notes/${showcase.id}`)} className="flex-row items-center gap-1.5 self-start">
@@ -279,6 +291,80 @@ export function Doubts({ group }: { group: GroupDetailFragment }) {
         ))
       ) : data ? (
         <Text className="text-muted-foreground py-6 text-center">No doubts here.</Text>
+      ) : null}
+    </View>
+  )
+}
+
+/**
+ * The GitHub App on a workspace's repository (lvn-backend ADR-0078): its activity for members; admins connect it in the
+ * browser (GitHub returns to the web to finish) or disconnect it.
+ */
+function RepositoryApp({
+  groupId,
+  app,
+  events,
+  canManage,
+  onChanged,
+}: {
+  groupId: string
+  app: { connected: boolean; installUrl?: string | null }
+  events: { id: string; kind: string; action: string; title: string; number?: number | null; authorLogin?: string | null; url: string; at: string }[]
+  canManage: boolean
+  onChanged: () => void
+}) {
+  const [disconnect] = useMutation(DisconnectRepositoryAppDocument)
+  const [error, setError] = useState<string | null>(null)
+  const KIND_NAME: Record<string, string> = { PUSH: 'Commit', PULL_REQUEST: 'Pull request', ISSUE: 'Issue' }
+  if (!app.connected) {
+    if (!app.installUrl) return <Text className="text-muted-foreground text-xs">The GitHub App is not connected to this repository.</Text>
+    return (
+      <View className="gap-1.5">
+        <Text className="text-muted-foreground text-xs">Install the LearnViaNotes App on this repository to see its commits, pull requests and issues here. Only titles, names and links come: never code.</Text>
+        <View className="flex-row">
+          <Pill label="Connect the GitHub App" primary onPress={() => void Linking.openURL(app.installUrl!)} />
+        </View>
+      </View>
+    )
+  }
+  return (
+    <View className="gap-2">
+      <Text className="font-semibold" accessibilityRole="header">
+        Repository activity
+      </Text>
+      {events.length ? (
+        events.map((e) => (
+          <Pressable key={e.id} accessibilityRole="link" onPress={() => void Linking.openURL(e.url)} className="gap-0.5">
+            <Text className="font-medium">
+              {e.number ? `#${e.number} ` : ''}
+              {e.title}
+            </Text>
+            <Text className="text-muted-foreground text-xs">
+              {KIND_NAME[e.kind] ?? e.kind} {e.action}
+              {e.authorLogin ? ` by ${e.authorLogin}` : ''}
+            </Text>
+          </Pressable>
+        ))
+      ) : (
+        <Text className="text-muted-foreground text-xs">Nothing yet: new commits, pull requests and issues appear here.</Text>
+      )}
+      {canManage ? (
+        <View className="flex-row">
+          <Pill
+            label="Disconnect the GitHub App"
+            onPress={() =>
+              Alert.alert('Disconnect the GitHub App?', 'Its activity here is deleted.', [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Disconnect', style: 'destructive', onPress: () => void attempt(() => disconnect({ variables: { groupId } })).then((problem) => (setError(problem), onChanged())) },
+              ])
+            }
+          />
+        </View>
+      ) : null}
+      {error ? (
+        <Text accessibilityRole="alert" className="text-destructive text-sm">
+          {error}
+        </Text>
       ) : null}
     </View>
   )
