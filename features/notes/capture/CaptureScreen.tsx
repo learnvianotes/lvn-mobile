@@ -11,7 +11,7 @@ import { Text } from '@/components/ui/text'
 import { RunAiTaskDocument } from '@/graphql/generated/graphql'
 import { QuickNoteLimits } from '@/lib/contracts/domain/enums'
 import { UploadError, uploadToNote } from '../media/NoteMedia'
-import { appendCard, createNote, setTitle } from '../store/actions'
+import { appendCard, createNote, deleteCard, setTitle } from '../store/actions'
 import * as db from '../store/db'
 import { syncNow } from '../sync/engine'
 import { pickForTray, type Source } from './prepare'
@@ -88,6 +88,8 @@ export function CaptureScreen({ start }: { start?: Source }) {
       if (!made.current) {
         const id = await createNote({ id: '', name: '' })
         await setTitle(id, `Quick note, ${new Date().toLocaleString([], { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' })}`)
+        // The note is its photos and PDFs: no empty text card above them.
+        for (const card of await db.getCards(id)) await deleteCard(card)
         setBusy({ upload: 0, of: items.length })
         await syncNow(client)
         made.current = { noteId: id, carded: new Set() }
