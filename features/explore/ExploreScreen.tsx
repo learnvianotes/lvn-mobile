@@ -136,7 +136,7 @@ export function ExploreScreen() {
   /** On All, a section's heading leads to its tab. */
   const heading = (label: string, x: Tab) => (
     <View className="flex-row items-center justify-between">
-      <Text className="text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
+      <Text className="flex-1 text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
         {label}
       </Text>
       {tab === 'all' ? (
@@ -308,7 +308,7 @@ export function ExploreScreen() {
           {recent.length ? (
             <>
               <View className="flex-row items-center justify-between">
-                <Text className="text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
+                <Text className="flex-1 text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
                   Recent searches
                 </Text>
                 <Pressable accessibilityRole="button" accessibilityLabel="Clear recent searches" onPress={() => void forget(null).then(setRecent)}>

@@ -66,7 +66,7 @@ export function FocusCard() {
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
           Focus
         </Text>
         {/* Board A's dark focus screen: the timer large, pause and resume, Pomodoro and breaks (ADR-0076). */}

@@ -150,7 +150,7 @@ export function SkillsImport({ drafts, imported }: { drafts: TeacherSkillFieldsF
       {drafts.length ? (
         <View className="gap-2">
           <View className="flex-row items-center justify-between">
-            <Text className="font-semibold">{drafts.length === 1 ? '1 draft to review' : `${drafts.length} drafts to review`}</Text>
+            <Text className="flex-1 font-semibold">{drafts.length === 1 ? '1 draft to review' : `${drafts.length} drafts to review`}</Text>
             <Pill label="Publish all" primary onPress={() => void run(() => publish({ variables: { skillIds: drafts.map((d) => d.id) } }), 'Published on your profile.')} />
           </View>
           {drafts.map((d) => (

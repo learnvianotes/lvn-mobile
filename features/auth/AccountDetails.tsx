@@ -30,7 +30,7 @@ export function InstitutionalEmailCard({ viewer }: { viewer: ViewerFieldsFragmen
   return (
     <View className={card}>
       <View className="flex-row items-center justify-between">
-        <Text className="text-base font-semibold" accessibilityRole="header">
+        <Text className="flex-1 text-base font-semibold" accessibilityRole="header">
           College or organisation email
         </Text>
         {!editing ? <Pill label={!status || status === 'NONE' ? 'Add' : 'Change'} onPress={() => setEditing(true)} /> : null}
