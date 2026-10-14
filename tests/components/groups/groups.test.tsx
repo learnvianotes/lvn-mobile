@@ -107,3 +107,44 @@ it('an admin approves a request to join', async () => {
   await waitFor(() => expect(api.calls.find((c) => c.op === 'ReviewGroupJoinRequest')?.variables).toEqual({ requestId: 'jr1', decision: 'APPROVED' }))
   expect(await screen.findByText('No requests waiting.')).toBeOnTheScreen()
 })
+
+it('chooses posts to delete together, after asking, and takes one’s own notes out of the group (owner, 2026-10-14)', async () => {
+  const deletable = (id: string, text: string) => ({ ...post(id, text), viewerCan: { __typename: 'GroupPostActions', edit: false, delete: true, pin: false } })
+  let list = [deletable('p1', 'Old timetable'), deletable('p2', 'Spam link'), post('p3', 'Someone else’s post')]
+  const note = (id: string, title: string, owner: string) => ({ __typename: 'NoteEdge', node: { __typename: 'Note', id, title, kind: 'NOTE', visibility: 'SHARED', publishedAt: null, owner: { __typename: 'User', id: owner, displayName: owner === 'me' ? 'Ravi Kumar' : 'Meera Iyer' } } })
+  let notes = [note('n1', 'Binary heaps', 'me'), note('n2', 'Graphs', 'o1')]
+  const alert = jest.spyOn(require('react-native').Alert, 'alert').mockImplementation((...args: unknown[]) => (args[2] as { text: string; onPress?: () => void }[]).find((b) => b.text === 'Delete' || b.text === 'Remove')?.onPress?.())
+  const api = mockApi({
+    Viewer: () => ({ data: { viewer: { __typename: 'User', id: 'me', handle: 'ravi', displayName: 'Ravi Kumar', email: 'ravi@example.com', emailVerified: true, registrationComplete: true, verified: true, verificationMethod: 'INSTITUTIONAL_EMAIL', globalRole: 'STUDENT', teacherStatus: 'NONE', restrictedMinor: false, institutionalEmail: null, institutionalEmailStatus: 'NONE', institution: null, avatarUrl: null } } }),
+    Group: () => ({ data: { group: group({ viewerRole: 'ADMIN', viewerCan: can({ post: true, leave: true }) }) } }),
+    GroupPosts: () => posts(list),
+    DeleteGroupPost: (v) => ((list = list.filter((p) => p.id !== v.postId)), { data: { deleteGroupPost: { __typename: 'GroupPayload', group: { __typename: 'Group', id: GROUP }, userErrors: [] } } }),
+    GroupNotes: () => ({ data: { group: { __typename: 'Group', id: GROUP, sharedNotes: { __typename: 'NoteConnection', edges: notes } } } }),
+    UnshareNoteFromGroup: (v) => ((notes = notes.filter((n) => n.node.id !== v.noteId)), { data: { unshareNoteFromGroup: { __typename: 'NotePayload', note: { __typename: 'Note', id: v.noteId }, userErrors: [] } } }),
+  })
+  await inApollo(<GroupScreen id={GROUP} />)
+  expect(await screen.findByText('Old timetable')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Select posts to delete' }))
+  // Only one's own deletable posts can be chosen; the floating ＋ makes way for the bar.
+  expect(screen.getAllByRole('checkbox')).toHaveLength(2)
+  expect(screen.queryByRole('button', { name: 'New post' })).toBeNull()
+  await fireEvent.press(screen.getByRole('button', { name: 'Select all' }))
+  expect(screen.getByText('2 chosen')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Delete' }))
+  await waitFor(() => expect(api.calls.filter((c) => c.op === 'DeleteGroupPost').map((c) => c.variables)).toEqual([{ postId: 'p1' }, { postId: 'p2' }]))
+  expect(alert).toHaveBeenCalledWith('Delete 2 posts?', 'They are deleted for everyone in the group.', expect.anything())
+  await waitFor(() => expect(screen.queryByText('Old timetable')).toBeNull())
+  expect(screen.getByText('Someone else’s post')).toBeOnTheScreen()
+  expect(screen.getByRole('button', { name: 'New post' })).toBeOnTheScreen()
+
+  // Notes: a long press on one's own starts choosing; another's cannot be chosen.
+  await fireEvent.press(screen.getByText('Notes'))
+  await fireEvent(await screen.findByText('Binary heaps'), 'longPress')
+  expect(screen.getByText('1 chosen')).toBeOnTheScreen()
+  expect(screen.getAllByRole('checkbox')).toHaveLength(1)
+  await fireEvent.press(screen.getByRole('button', { name: 'Remove' }))
+  await waitFor(() => expect(api.calls.find((c) => c.op === 'UnshareNoteFromGroup')?.variables).toEqual({ noteId: 'n1', groupId: GROUP }))
+  await waitFor(() => expect(screen.queryByText('Binary heaps')).toBeNull())
+  expect(screen.getByText('Graphs')).toBeOnTheScreen()
+  alert.mockRestore()
+})

@@ -46,7 +46,7 @@ export function HeroCard({ firstName }: { firstName: string }) {
   const starsStyle = useAnimatedStyle(() => ({ opacity: twinkle.value }))
 
   return (
-    <View className="overflow-hidden rounded-3xl" style={{ minHeight: 176 }}>
+    <View testID="home-hero" className="overflow-hidden rounded-3xl" style={{ minHeight: 176 }}>
       <LinearGradient colors={['#141233', '#2b2560', '#4c3a8f']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
       <Animated.View style={[{ position: 'absolute', inset: 0 }, starsStyle]} pointerEvents="none">
         <Svg width="100%" height="100%">

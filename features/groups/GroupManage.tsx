@@ -187,8 +187,19 @@ export function GroupSettings({ group, onSaved }: { group: GroupDetailFragment; 
       <Outcome message={message} />
       <View className="flex-row flex-wrap justify-between gap-2">
         <Pill label="Save" primary disabled={!name.trim() || updating.loading} onPress={() => void save()} />
-        {group.viewerCan.delete ? <Pill label="Delete group" destructive onPress={() => confirm(`Delete ${group.name} for everyone?`, 'Delete', () => void remove(), 'This cannot be undone.')} /> : null}
       </View>
+      {group.viewerCan.delete ? (
+        // Its own place, apart from saving: deleting cannot be undone (owner, 2026-10-14).
+        <View className="border-destructive/40 mt-4 gap-2 rounded-2xl border p-4" accessibilityRole="summary">
+          <Text className="text-destructive font-bold" accessibilityRole="header">
+            Delete this group
+          </Text>
+          <Text className="text-muted-foreground text-sm">Its posts, shared notes, members and requests go for everyone. Notes stay with the people who wrote them. This cannot be undone.</Text>
+          <View className="flex-row">
+            <Pill label="Delete group" destructive onPress={() => confirm(`Delete ${group.name} for everyone?`, 'Delete', () => void remove(), 'This cannot be undone.')} />
+          </View>
+        </View>
+      ) : null}
     </View>
   )
 }

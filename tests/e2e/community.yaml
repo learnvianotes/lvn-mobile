@@ -24,7 +24,7 @@ env:
       - tapOn:
           id: "sign-in-submit"
       - extendedWaitUntil:
-          visible: "Make it happen"
+          visible: { id: "home-hero" }
           timeout: 20000
       - tapOn: "Community"
       - tapOn: "Groups & classes"

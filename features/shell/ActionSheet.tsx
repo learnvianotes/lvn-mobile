@@ -1,9 +1,10 @@
 import { Portal } from '@rn-primitives/portal'
 import { useEffect } from 'react'
 import { BackHandler, Pressable, View } from 'react-native'
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideOutDown } from 'react-native-reanimated'
+import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Text } from '@/components/ui/text'
+import { SHEET_IN, SHEET_OUT } from './sheet-motion'
 
 export type SheetAction = { text: string; destructive?: boolean; onPress: () => void }
 
@@ -28,7 +29,7 @@ export function ActionSheet({ name, title, actions, open, onClose }: { name: str
           <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(150)} style={{ position: 'absolute', inset: 0 }}>
             <Pressable onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(14,14,18,0.45)' }} accessibilityLabel="Close" />
           </Animated.View>
-          <Animated.View entering={SlideInDown.springify().damping(20).stiffness(220)} exiting={SlideOutDown.duration(180)} className="bg-card gap-1 rounded-t-3xl px-3 pt-3" style={{ paddingBottom: insets.bottom + 12 }}>
+          <Animated.View entering={SHEET_IN} exiting={SHEET_OUT} className="bg-card gap-1 rounded-t-3xl px-3 pt-3" style={{ paddingBottom: insets.bottom + 12 }}>
             <View className="bg-border mb-2 h-1.5 w-10 self-center rounded-full" />
             {title ? (
               <Text className="text-muted-foreground px-3 pb-1 text-sm font-semibold" accessibilityRole="header">
