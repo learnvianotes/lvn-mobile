@@ -8,7 +8,7 @@ import { uploadFile } from '@/features/notes/media/NoteMedia'
 it('declares the size of the bytes it sends, not the size the picker reported', async () => {
   const body = new Blob([new Uint8Array([1, 2, 3])], { type: 'image/jpeg' })
   const put = jest.fn(async () => ({ ok: true }))
-  global.fetch = jest.fn(async (url: string) => (url === 'file:///photo.jpg' ? { blob: async () => body } : put())) as unknown as typeof fetch
+  globalThis.fetch = jest.fn(async (url: string) => (url === 'file:///photo.jpg' ? { blob: async () => body } : put())) as unknown as typeof fetch
   const mutate = jest
     .fn()
     .mockResolvedValueOnce({ data: { createUploadIntent: { intent: { fileId: 'f1', uploadUrl: 'http://storage/put', uploadHeaders: [{ name: 'Content-Type', value: 'image/jpeg' }, { name: 'Content-Length', value: '3' }] }, userErrors: [] } } })
