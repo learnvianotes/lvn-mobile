@@ -1,0 +1,16 @@
+# Weekly contests (lvn-backend ADR-0082): Explore leads to Contests, which lists this week's contests or says none is
+# open, and back.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Explore"
+- tapOn: "Contests"
+- extendedWaitUntil:
+    visible: "A weekly set of questions with a timer.*"
+    timeout: 15000
+- assertVisible:
+    text: "(Join now|No contest is open this week. Check back on Saturday.|Upcoming|Closed|Open)"
+- tapOn: "Back"
+- assertVisible: "Browse subjects"

@@ -8,11 +8,12 @@ import { Text } from '@/components/ui/text'
 import { ContinueCard } from './ContinueCard'
 import { ExamReadiness } from './ExamReadiness'
 import { HeroCard } from './HeroCard'
-import { RecommendationsDocument, ViewerDocument } from '@/graphql/generated/graphql'
+import { ContestsDocument, RecommendationsDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { HomeHeader } from './HomeHeader'
 import { QuickActions } from './QuickActions'
 import { Recommended } from './Recommended'
 import { RhythmCard } from './RhythmCard'
+import { ContestCard } from '@/features/contests/ContestsScreen'
 
 /** Sections rise in quickly and in order (40 ms apart); Reanimated skips this when the system asks for reduced motion. */
 function Section({ index, title, action, onAction, children }: { index: number; title?: string; action?: string; onAction?: () => void; children: ReactNode }) {
@@ -59,6 +60,7 @@ export function HomeScreen() {
           <RhythmCard />
           <ExamReadiness />
         </Section>
+        <OpenContest />
         {next ? (
           <Section index={4} title="Continue learning">
             <ContinueCard item={next} />
@@ -71,3 +73,15 @@ export function HomeScreen() {
     </SafeAreaView>
   )
 }
+
+/** Board A's weekly contest card, while one is open (lvn-backend ADR-0082); nothing otherwise. */
+function OpenContest() {
+  const open = useQuery(ContestsDocument, { fetchPolicy: 'cache-and-network' }).data?.contests.find((c) => c.state === 'OPEN')
+  if (!open) return null
+  return (
+    <Section index={4} title="Weekly contest" action="All contests" onAction={() => router.push('/contests')}>
+      <ContestCard contest={open} />
+    </Section>
+  )
+}
+

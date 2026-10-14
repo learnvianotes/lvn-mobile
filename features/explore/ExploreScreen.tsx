@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client/react'
 import { router, useLocalSearchParams } from 'expo-router'
-import { BookMarked, Clock, FileText, GraduationCap, Search, Users, X, Library } from 'lucide-react-native'
+import { BookMarked, Clock, FileText, GraduationCap, Library, Search, Trophy, Users, X } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
 import { FlatList, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -303,6 +303,14 @@ export function ExploreScreen() {
             <View className="flex-1">
               <Text className="font-semibold">Browse subjects</Text>
               <Text className="text-muted-foreground text-xs">Topics by subject, each with its notes</Text>
+            </View>
+          </Pressable>
+          {/* Weekly contests (lvn-backend ADR-0082). */}
+          <Pressable accessibilityRole="link" onPress={() => router.push('/contests')} className="bg-card border-border mb-2 flex-row items-center gap-3 rounded-2xl border p-4">
+            <Trophy size={18} color={primary} />
+            <View className="flex-1">
+              <Text className="font-semibold">Contests</Text>
+              <Text className="text-muted-foreground text-xs">A weekly timed quiz, every answer explained after</Text>
             </View>
           </Pressable>
           {recent.length ? (
