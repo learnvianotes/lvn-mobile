@@ -62,7 +62,7 @@ jobs:
         with: { distribution: temurin, java-version: 17, cache: gradle }
       - run: pnpm install --frozen-lockfile
       - run: pnpm build:android sandbox
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with: { name: LearnViaNotes-sandbox-apk, path: dist/*.apk, retention-days: 30 }
 
   secrets:
