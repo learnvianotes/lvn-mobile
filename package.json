@@ -51,7 +51,7 @@
     "graphql": "^16.14.2",
     "graphql-ws": "6.3.0",
     "lucide-react-native": "^1.52.0",
-    "pdfjs-dist": "6.3.289",
+    "pdfjs-dist": "6.4.299",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-hook-form": "^7.89.0",
