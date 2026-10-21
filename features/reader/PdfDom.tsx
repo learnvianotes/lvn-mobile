@@ -44,7 +44,8 @@ const COLORS: Record<string, string> = {
   GREEN: 'rgba(74, 222, 128, 0.45)',
   BLUE: 'rgba(96, 165, 250, 0.45)',
   PINK: 'rgba(244, 114, 182, 0.45)',
-  PURPLE: 'rgba(167, 139, 250, 0.5)',
+  // The API's PURPLE is drawn, and named, orange (lvn-backend ADR-0094).
+  PURPLE: 'rgba(251, 146, 60, 0.45)',
 }
 
 export default function PdfDom({
@@ -102,8 +103,8 @@ export default function PdfDom({
     }
     const lit = flash.current && flash.current.page === page && flash.current.until > Date.now() ? flash.current.rects : []
     const boxes = [
-      ...marksRef.current.filter((m) => m.page === page).flatMap((m) => m.rects.map((r) => ({ r, style: m.kind === 'highlight' ? `background:${COLORS[m.color ?? 'YELLOW']}` : 'background:rgba(79,70,229,0.08);border-bottom:2px solid rgba(79,70,229,0.75)' }))),
-      ...lit.map((r) => ({ r, style: 'background:rgba(79,70,229,0.35);animation:lvn-flash 1.8s ease-out forwards' })),
+      ...marksRef.current.filter((m) => m.page === page).flatMap((m) => m.rects.map((r) => ({ r, style: m.kind === 'highlight' ? `background:${COLORS[m.color ?? 'YELLOW']}` : 'background:rgba(37,99,235,0.08);border-bottom:2px solid rgba(37,99,235,0.75)' }))),
+      ...lit.map((r) => ({ r, style: 'background:rgba(37,99,235,0.35);animation:lvn-flash 1.8s ease-out forwards' })),
     ]
     layer.replaceChildren(
       ...boxes.map(({ r: [x0, y0, x1, y1], style }) => {

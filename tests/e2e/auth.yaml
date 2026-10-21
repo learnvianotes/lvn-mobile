@@ -75,6 +75,14 @@ tags: [auth]
 - tapOn:
     id: "sign-up-submit"
 
+# Every date of birth is confirmed in words before it is sent (lvn-backend ADR-0091).
+- extendedWaitUntil:
+    visible: "Is this right?"
+    timeout: 10000
+- assertVisible: "1 May 2004"
+- tapOn:
+    id: "dob-confirm"
+
 # The code screen follows; a wrong code is refused, the mailed one is accepted.
 - extendedWaitUntil:
     visible: "Enter your code"

@@ -80,7 +80,7 @@ export function CatalogueScreen() {
 }
 
 export function ResourceCard({ resource: r, note }: { resource: ResourceFieldsFragment; note?: string }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const Icon = TYPE_ICON[r.type]
   return (
     <View className="bg-card border-border overflow-hidden rounded-2xl border">
@@ -114,7 +114,7 @@ export function ResourceCard({ resource: r, note }: { resource: ResourceFieldsFr
 
 /** Save and unsave: private, only the count is public (ADR-0075). */
 export function SaveToggle({ resource: r }: { resource: Pick<ResourceFieldsFragment, 'id' | 'viewerSaved' | 'status'> }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const [save, saving] = useMutation(SaveResourceDocument)
   const [unsave, unsaving] = useMutation(UnsaveResourceDocument)
   if (r.status !== 'APPROVED') return null

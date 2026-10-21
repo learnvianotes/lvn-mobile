@@ -47,28 +47,28 @@ export function HeroCard({ firstName }: { firstName: string }) {
 
   return (
     <View testID="home-hero" className="overflow-hidden rounded-3xl" style={{ minHeight: 176 }}>
-      <LinearGradient colors={['#141233', '#2b2560', '#4c3a8f']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
+      <LinearGradient colors={['#0B1220', '#1e3a8a', '#1d4ed8']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
       <Animated.View style={[{ position: 'absolute', inset: 0 }, starsStyle]} pointerEvents="none">
         <Svg width="100%" height="100%">
           {STARS.map(([x, y, r], i) => (
             <Circle key={i} cx={`${(x / 320) * 100}%`} cy={y} r={r} fill="#ffffff" opacity={0.85} />
           ))}
           <Circle cx="84%" cy={40} r={13} fill="#fef3c7" opacity={0.95} />
-          <Circle cx="86.5%" cy={36} r={12} fill="#2b2560" />
+          <Circle cx="86.5%" cy={36} r={12} fill="#1e3a8a" />
         </Svg>
       </Animated.View>
       <Svg width="100%" height={86} viewBox="0 0 320 86" preserveAspectRatio="none" style={{ position: 'absolute', bottom: 0 }} pointerEvents="none">
-        <Path d="M0 86 L0 52 L46 22 L82 48 L122 14 L170 58 L214 30 L262 60 L300 38 L320 50 L320 86 Z" fill="#3a2f7a" opacity={0.9} />
-        <Path d="M0 86 L0 66 L60 44 L110 70 L160 50 L220 74 L270 56 L320 70 L320 86 Z" fill="#1f1a4d" />
+        <Path d="M0 86 L0 52 L46 22 L82 48 L122 14 L170 58 L214 30 L262 60 L300 38 L320 50 L320 86 Z" fill="#1e3a8a" opacity={0.9} />
+        <Path d="M0 86 L0 66 L60 44 L110 70 L160 50 L220 74 L270 56 L320 70 L320 86 Z" fill="#172554" />
       </Svg>
       <View className="flex-1 justify-center gap-1.5 px-5 py-5">
-        <Text className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#c7d2fe' }}>
+        <Text className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#bfdbfe' }}>
           {firstName ? `Keep learning, ${firstName}` : 'Keep learning'}
         </Text>
         <Text className="text-2xl font-bold" style={{ color: '#ffffff' }} accessibilityRole="header" numberOfLines={2}>
           {today.title}
         </Text>
-        <Text className="text-sm" style={{ color: '#e0e7ff', maxWidth: 240 }} numberOfLines={3}>
+        <Text className="text-sm" style={{ color: '#dbeafe', maxWidth: 240 }} numberOfLines={3}>
           {today.line}
         </Text>
       </View>

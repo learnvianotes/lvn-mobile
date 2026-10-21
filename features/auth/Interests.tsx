@@ -15,7 +15,7 @@ const field = 'text-foreground border-border bg-background rounded-xl border px-
  */
 export function InterestsCard() {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const { data } = useQuery(MyInterestsDocument, { fetchPolicy: 'cache-and-network' })
   // The profile comes back without the viewer around it: the list is asked for again.
   const [save, saving] = useMutation(SetInterestsDocument, { refetchQueries: [MyInterestsDocument], awaitRefetchQueries: true })

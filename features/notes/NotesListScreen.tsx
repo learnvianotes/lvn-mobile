@@ -15,7 +15,7 @@ import * as actions from './store/actions'
 import * as db from './store/db'
 import { syncNow } from './sync/engine'
 
-const ACCENTS = ['#6366F1', '#0EA5E9', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6']
+const ACCENTS = ['#3B82F6', '#0EA5E9', '#10B981', '#F59E0B', '#EC4899', '#06B6D4']
 const accentOf = (id: string) => ACCENTS[parseInt(id.replace(/-/g, '').slice(-4), 16) % ACCENTS.length]!
 
 function ago(iso: string): string {

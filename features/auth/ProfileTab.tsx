@@ -131,7 +131,7 @@ function Achievements() {
 /** The rows, then a teacher's Skills tab, the way to teach for students, and the queues of platform admins. */
 function Links({ viewer }: { viewer: ViewerFieldsFragment }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const rows: Row[] = [
     ...ROWS.map((r) => (r.href === '/u/me' ? { ...r, href: `/u/${viewer.handle}` as Href } : r)),
     {

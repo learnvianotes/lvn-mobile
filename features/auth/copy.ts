@@ -42,6 +42,14 @@ export const copy = {
     haveAccount: 'Already have an account?',
     signIn: 'Sign in',
   },
+  age: {
+    confirmTitle: 'Is this right?',
+    confirmLead: 'Your date of birth:',
+    confirm: 'Yes, that’s right',
+    change: 'Change it',
+    refusedTitle: 'Sorry, you can’t create an account',
+    refusedLead: 'LearnViaNotes accounts are only for adults. If you already have an account, you can still sign in.',
+  },
   details: {
     title: (firstName?: string) => (firstName ? `Almost there, ${firstName}` : 'Almost there'),
     lead: 'One quick step — we ask once, then you are in.',

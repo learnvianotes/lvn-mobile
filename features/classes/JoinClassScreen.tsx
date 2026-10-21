@@ -17,7 +17,7 @@ import { cleanCode } from './shared'
 export function JoinClassScreen({ code: raw, via }: { code: string; via: 'CODE' | 'LINK' }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const code = cleanCode(raw)
   const { data, loading, error: lookup, refetch } = useQuery(ClassroomByCodeDocument, { variables: { code }, fetchPolicy: 'network-only' })
   const [request] = useMutation(RequestToJoinClassroomDocument)

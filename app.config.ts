@@ -61,7 +61,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       ...(googleServices ? { googleServicesFile: googleServices } : {}),
       // Icons and splash are rendered from assets/brand/logo-paths.json by scripts/brand-assets.mjs.
       adaptiveIcon: {
-        backgroundColor: '#4F46E5',
+        backgroundColor: '#2563EB',
         foregroundImage: './assets/android-icon-foreground.png',
         backgroundImage: './assets/android-icon-background.png',
         monochromeImage: './assets/android-icon-monochrome.png',
@@ -99,8 +99,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
           image: './assets/splash-icon.png',
           imageWidth: 136,
           resizeMode: 'contain',
-          backgroundColor: '#F7F7FB',
-          dark: { image: './assets/splash-icon.png', backgroundColor: '#0E0E12' },
+          backgroundColor: '#F6F8FB',
+          dark: { image: './assets/splash-icon.png', backgroundColor: '#0D1117' },
         },
       ],
     ],

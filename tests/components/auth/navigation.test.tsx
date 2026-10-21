@@ -92,6 +92,9 @@ describe('signed out', () => {
     await settle()
     expect(screen.getByText('Create account')).toBeEnabled()
     await press(screen.getByText('Create account'))
+    // Every date of birth is confirmed in words before it is sent (lvn-backend ADR-0091).
+    expect(screen.getByText('1 May 2004')).toBeVisible()
+    await press(screen.getByText('Yes, that’s right'))
     expect(screen.getByText('We sent a 6-digit code to asha@iitb.ac.in.')).toBeVisible()
     expect(api.calls.find((c) => c.op === 'SignUp')!.variables.input).toEqual({
       displayName: 'Asha Rao',
@@ -133,6 +136,7 @@ describe('signed out', () => {
     await fireEvent.changeText(screen.getByLabelText('Date of birth, Year'), '2004')
     await press(screen.getByRole('checkbox'))
     await press(screen.getByText('Create account'))
+    await press(screen.getByText('Yes, that’s right'))
     expect(screen.getByText('Something went wrong. Check your connection and try again.')).toBeVisible()
     expect(api.ops().filter((op) => op === 'SignInOptions').length).toBeGreaterThan(1) // tried again
     expect(api.ops()).not.toContain('SignUp')
@@ -167,6 +171,7 @@ describe('signed in', () => {
     await settle()
     expect(screen.getByText('Continue')).toBeEnabled()
     await press(screen.getByText('Continue'))
+    await press(screen.getByText('Yes, that’s right'))
     await settle()
     expect(screen.getByLabelText('Search notes, topics and people')).toBeVisible()
   })

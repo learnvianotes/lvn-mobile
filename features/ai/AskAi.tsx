@@ -89,7 +89,7 @@ export function AskForm({ scope, noteId, doubtId, offNotice = true }: { scope: A
 /** One answer: the question, the text with its citations, and the sources they point to. */
 export function AnswerCard({ answer: a }: { answer: Answer }) {
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const [remove, removing] = useMutation(DeleteAiAnswerDocument, { refetchQueries: ['MyAiAnswers'] })
   const pending = a.status === 'QUEUED' || a.status === 'RUNNING'
   const cited = new Set(a.sources.map((s) => s.n))
@@ -177,7 +177,7 @@ const SCOPES: { scope: AskAiScope; label: string; hint: string; icon: LucideIcon
 /** The Ask AI screen: questions over the asker's notes, their groups' and classes', or public notes. */
 export function AskScreen() {
   const insets = useSafeAreaInsets()
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const [scope, setScope] = useState<AskAiScope>('MY_NOTES')
   const current = SCOPES.find((s) => s.scope === scope)!

@@ -8,7 +8,9 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
 import { SignInOptionsDocument, SignUpDocument } from '@/graphql/generated/graphql'
+import { markAgeRefused } from '@/lib/auth/age'
 import { applyProblems, dateOfBirth } from '@/lib/auth/forms'
+import { AgeRefused, birthDateHint, ConfirmBirthDate, useAgeRefused } from './AgeCheck'
 import { AuthScreen } from './AuthScreen'
 import { CheckRow, TextField } from './Controls'
 import { copy } from './copy'
@@ -38,7 +40,10 @@ export async function currentTerms(loaded: { termsVersion: string } | undefined,
   return version
 }
 
-/** Email + password registration; GitHub and LinkedIn above it when configured. */
+/**
+ * Email + password registration; GitHub and LinkedIn above it when configured. The date of birth is confirmed in words
+ * before anything is sent; a refusal (lvn-backend ADR-0091) closes this form on the device for a day.
+ */
 export function SignUpForm() {
   const t = copy.signUp
   const { data: options, refetch: refetchOptions } = useQuery(SignInOptionsDocument)
@@ -47,14 +52,24 @@ export function SignUpForm() {
   const [general, setGeneral] = useState<string | null>(null)
   // "Teach" leads to the application to teach after sign-up (lvn-backend ADR-0073).
   const [teaches, setTeaches] = useState(false)
+  const refused = useAgeRefused()
+  // The values waiting for "Is this right?" about the date of birth.
+  const [pending, setPending] = useState<Values | null>(null)
+  const [sending, setSending] = useState(false)
   const form = useForm<Values>({
     resolver: zodResolver(schema),
     defaultValues: { displayName: '', email: '', password: '', dob: { day: '', month: '', year: '' }, institutionalEmail: '', terms: false as unknown as true },
   })
   const { errors, isSubmitting } = form.formState
+  const dob = form.watch('dob')
 
-  const onSubmit = form.handleSubmit(async ({ terms: _terms, dob, institutionalEmail, email, ...values }) => {
+  const onSubmit = form.handleSubmit((values) => {
     setGeneral(null)
+    setPending(values)
+  })
+
+  const send = async ({ terms: _terms, dob, institutionalEmail, email, ...values }: Values) => {
+    setSending(true)
     try {
       const termsVersion = await currentTerms(options, refetchOptions)
       const { data } = await signUp({
@@ -70,18 +85,39 @@ export function SignUpForm() {
       })
       const payload = data!.signUp
       if (payload.session) return await finish(payload.session, teaches ? '/teach' : institutionalEmail ? '/verify' : undefined)
+      // Too young for an account: nothing was created; this device keeps the form closed for a day.
+      if (payload.userErrors.some((p) => p.code === 'UNDER_MINIMUM_AGE')) return await markAgeRefused()
       // The API names `dateOfBirth`; the form's field is `dob`.
       const problems = payload.userErrors.map((p) => (p.field?.at(-1) === 'dateOfBirth' ? { ...p, field: ['input', 'dob'] } : p))
       setGeneral(applyProblems(problems, form.setError, FIELDS))
     } catch {
       setGeneral(copy.errors.generic)
+    } finally {
+      setPending(null)
+      setSending(false)
     }
-  })
+  }
 
   const message = (name: (typeof FIELDS)[number], fallback: string) => {
     const e = errors[name]
     if (!e) return undefined
     return e.type === 'server' ? e.message : fallback
+  }
+
+  if (refused) {
+    return (
+      <AuthScreen title={t.title}>
+        <AgeRefused
+          action={
+            <Link href="/sign-in" replace asChild>
+              <Button variant="outline" className="self-start">
+                <Text>{t.signIn}</Text>
+              </Button>
+            </Link>
+          }
+        />
+      </AuthScreen>
+    )
   }
 
   return (
@@ -138,7 +174,7 @@ export function SignUpForm() {
           control={form.control}
           name="dob"
           render={({ field }) => (
-            <FormField label={t.dob} hint={t.dobHint} error={message('dob', t.dobInvalid)}>
+            <FormField label={t.dob} hint={birthDateHint(dateOfBirth(dob.day, dob.month, dob.year), t.dobHint)} error={message('dob', t.dobInvalid)}>
               <DateOfBirthField value={field.value} onChange={field.onChange} invalid={!!errors.dob} />
             </FormField>
           )}
@@ -158,10 +194,16 @@ export function SignUpForm() {
           render={({ field }) => <CheckRow testID="terms" label={t.terms} checked={!!field.value} onChange={field.onChange} invalid={!!errors.terms} />}
         />
         {errors.terms ? <Text role="alert" className="text-destructive -mt-2 text-xs font-medium">{t.termsRequired}</Text> : null}
-        <Button testID="sign-up-submit" size="lg" disabled={isSubmitting} onPress={() => void onSubmit()}>
+        <Button testID="sign-up-submit" size="lg" disabled={isSubmitting || sending} onPress={() => void onSubmit()}>
           <Text>{t.submit}</Text>
         </Button>
       </View>
+      <ConfirmBirthDate
+        value={pending ? dateOfBirth(pending.dob.day, pending.dob.month, pending.dob.year) : null}
+        busy={sending}
+        onConfirm={() => pending && void send(pending)}
+        onChange={() => setPending(null)}
+      />
       <View className="flex-row flex-wrap items-center justify-center gap-1">
         <Text className="text-muted-foreground text-sm">{t.haveAccount}</Text>
         <Link href="/sign-in" replace asChild>

@@ -13,7 +13,7 @@ export interface Badge {
 
 /** Each kind's icon and tint, as board A draws the Profile's achievement row. */
 const LOOK: Record<AchievementKindName, { icon: LucideIcon; bg: string; fg: string }> = {
-  TOPICS_MASTERED: { icon: Brain, bg: '#ede9fe', fg: '#6d28d9' },
+  TOPICS_MASTERED: { icon: Brain, bg: '#ccfbf1', fg: '#0f766e' },
   QUIZ_MASTER: { icon: Target, bg: '#fef3c7', fg: '#b45309' },
   EXAM_READY: { icon: ClipboardCheck, bg: '#e0f2fe', fg: '#0369a1' },
   RHYTHM_WEEKS: { icon: CalendarCheck, bg: '#ffedd5', fg: '#c2410c' },

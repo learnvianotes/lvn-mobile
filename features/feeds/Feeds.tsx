@@ -53,7 +53,7 @@ export function ActivityFeed() {
 }
 
 function ActivityCard({ item }: { item: Item }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const Icon = ICON[item.kind]
   const place = item.group?.name ?? item.classroom?.name ?? null
   // A repository event opens on GitHub (lvn-backend ADR-0078).

@@ -23,7 +23,7 @@ const DOCUMENTS = [
  * new version, the app waits until it is accepted. The Profile tab stays open, so people who do not agree can sign out.
  */
 export function TermsGate() {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const pathname = usePathname()
   const status = useQuery(TermsStatusDocument, { fetchPolicy: 'cache-and-network' })
   const [accept, accepting] = useMutation(AcceptTermsDocument)

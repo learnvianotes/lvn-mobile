@@ -95,7 +95,7 @@ export function FocusScreen() {
   return (
     <View className="flex-1">
       <StatusBar style="light" />
-      <LinearGradient colors={['#0f0c29', '#1e1b4b', '#312e81']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
+      <LinearGradient colors={['#0f0c29', '#172554', '#1e3a8a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
       <View className="flex-1 px-6" style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }}>
         <View className="flex-row items-center justify-between">
           <Text className="flex-1 text-lg font-bold" style={{ color: '#ffffff' }} accessibilityRole="header">
@@ -111,7 +111,7 @@ export function FocusScreen() {
             const on = p.key === preset
             return (
               <Pressable key={p.key} accessibilityRole="tab" accessibilityState={{ selected: on }} disabled={!!session && p.key === 'POMODORO'} onPress={() => void choose(p.key)} className={cn('rounded-full px-4 py-2', on ? 'bg-white' : 'bg-white/10')}>
-                <Text className="text-sm font-semibold" style={{ color: on ? '#1e1b4b' : '#e0e7ff' }}>
+                <Text className="text-sm font-semibold" style={{ color: on ? '#172554' : '#dbeafe' }}>
                   {p.label}
                 </Text>
               </Pressable>
@@ -121,24 +121,24 @@ export function FocusScreen() {
 
         <View className="flex-1 items-center justify-center gap-4">
           {topic ? (
-            <Text className="text-sm" style={{ color: '#c7d2fe' }}>
+            <Text className="text-sm" style={{ color: '#bfdbfe' }}>
               On {topic}
             </Text>
           ) : null}
           <View className="items-center justify-center" style={{ width: 260, height: 260 }}>
             <Svg width={260} height={260} viewBox="0 0 260 260" style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
               <Circle cx={130} cy={130} r={118} stroke="rgba(255,255,255,0.12)" strokeWidth={10} fill="none" />
-              <Circle cx={130} cy={130} r={118} stroke="#a5b4fc" strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 118 * share} ${2 * Math.PI * 118}`} />
+              <Circle cx={130} cy={130} r={118} stroke="#93c5fd" strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 118 * share} ${2 * Math.PI * 118}`} />
             </Svg>
             <Text className="text-6xl font-extrabold" style={{ color: '#ffffff', fontVariant: ['tabular-nums'] }} accessibilityLabel={`${clock(left)} left`}>
               {clock(left)}
             </Text>
-            <Text className="mt-1 text-sm" style={{ color: '#c7d2fe' }}>
+            <Text className="mt-1 text-sm" style={{ color: '#bfdbfe' }}>
               {status}
             </Text>
           </View>
           {counted ? (
-            <Text className="text-sm" style={{ color: '#a5b4fc' }}>
+            <Text className="text-sm" style={{ color: '#93c5fd' }}>
               {Math.round(counted / 60) === 1 ? '1 minute counted.' : `${Math.round(counted / 60)} minutes counted.`}
             </Text>
           ) : null}
@@ -186,7 +186,7 @@ export function FocusScreen() {
 function Big({ label, onPress, ghost, disabled }: { label: string; onPress: () => void; ghost?: boolean; disabled?: boolean }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} className={cn('min-w-32 items-center rounded-full px-6 py-3.5', ghost ? 'border border-white/40' : 'bg-white')}>
-      <Text className="text-base font-bold" style={{ color: ghost ? '#ffffff' : '#1e1b4b' }}>
+      <Text className="text-base font-bold" style={{ color: ghost ? '#ffffff' : '#172554' }}>
         {label}
       </Text>
     </Pressable>

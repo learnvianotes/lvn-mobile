@@ -55,7 +55,7 @@ const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Dou
 export function GroupScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const query = useQuery(GroupDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [tab, setTab] = useState<Tab>('posts')
@@ -323,7 +323,7 @@ function Posts({ group, selection, onSelection }: { group: GroupDetailFragment }
 }
 
 function Notes({ group, selection, onSelection }: { group: GroupDetailFragment } & Selecting) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const viewerId = useQuery(ViewerDocument).data?.viewer?.id
   const query = useQuery(GroupNotesDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query

@@ -21,7 +21,7 @@ const NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday
 export function RhythmCard() {
   const success = String(useCSSVariable('--color-success') ?? '#15803d')
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
-  const secondaryFg = String(useCSSVariable('--color-secondary-foreground') ?? '#3730a3')
+  const secondaryFg = String(useCSSVariable('--color-secondary-foreground') ?? '#1e40af')
   const { data, error, refetch } = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
   const r = data?.rhythm
   if (!r) {

@@ -9,7 +9,7 @@ import { haptic } from '@/lib/haptics'
 /** `saved`: already known (a feed's card), so nothing more is asked. */
 export function SaveNoteToggle({ noteId, saved: known }: { noteId: string; saved?: boolean }) {
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const { data } = useQuery(NoteSavedDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network', skip: known !== undefined })
   const [save, saving] = useMutation(SaveNoteDocument)
   const [unsave, unsaving] = useMutation(UnsaveNoteDocument)

@@ -127,7 +127,7 @@ const timeOf = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: 'nu
 
 export function AiScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const state = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
   const list = useQuery(NoteAiArtifactsDocument, { variables: { noteId: id }, fetchPolicy: 'cache-and-network' })
   const localCards = useLocal(() => db.getCards(id), [id])
@@ -281,7 +281,7 @@ function Poll({ id }: { id: string }) {
 
 function Result({ noteId, artifact: a, canEdit, onRetry }: { noteId: string; artifact: Artifact; canEdit: boolean; onRetry: () => void }) {
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const [remove, removing] = useMutation(DeleteAiArtifactDocument)
   const pending = a.status === 'QUEUED' || a.status === 'RUNNING'
   const label = a.task === 'TRANSLATE' ? `Translated into ${LANGUAGE[a.language]}` : TASK_LABEL[a.task]
@@ -426,7 +426,7 @@ function KeepCards({ artifact: a, canEdit }: { artifact: Artifact; canEdit: bool
  */
 function ApplyChanges({ artifact: a }: { artifact: Artifact }) {
   const client = useApolloClient()
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const changes = a.changes ?? []
   const open = changes.filter((c) => !c.applied)
   const [chosen, setChosen] = useState<ReadonlySet<string>>(() => new Set(open.map((c) => c.cardId)))
@@ -507,7 +507,7 @@ function ApplyChanges({ artifact: a }: { artifact: Artifact }) {
 
 /** The account screen's view of AI (P5b): whether it answers, and how much of today's allowance is used. */
 export function AiAccountCard({ className }: { className?: string }) {
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const { data } = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
   if (!data) return null
   const { aiStatus: status, myAiAllowance: allowance } = data

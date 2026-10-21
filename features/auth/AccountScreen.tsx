@@ -59,7 +59,7 @@ export function AccountScreen() {
 
 function NotificationSettingsLink() {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   return (
     <Pressable accessibilityRole="link" onPress={() => router.push('/notification-settings')} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border px-5 py-4">
       <Bell size={20} color={primary} />

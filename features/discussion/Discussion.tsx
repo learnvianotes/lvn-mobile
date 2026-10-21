@@ -20,7 +20,7 @@ import { ReportLink } from '@/features/moderation/ReportSheet'
  * may do with each, editing one's own included. Read with its own query, so threads stay within the depth limit.
  */
 export function Discussion({ target, compact }: { target: { type: CommentTargetType; id: string }; compact?: boolean }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const thread = useQuery(DiscussionDocument, { variables: { target }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = thread

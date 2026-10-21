@@ -1,8 +1,8 @@
 import { useColorScheme } from 'react-native'
 
-/** Brand palette from the LearnViaNotes UI reference — the same tokens as lvn-web's app/globals.css. */
-const light = { bg: '#f7f7fb', surface: '#ffffff', fg: '#1e1b2e', muted: '#5f5f73', border: '#e6e6ef', accent: '#4f46e5', accentFg: '#ffffff', accentSoft: '#eef2ff' }
-const dark: typeof light = { bg: '#0e0e12', surface: '#17171c', fg: '#f4f4f5', muted: '#a1a1aa', border: '#2c2c35', accent: '#818cf8', accentFg: '#0e0e12', accentSoft: '#1e1b4b' }
+/** Brand palette from the LearnViaNotes UI reference — the same tokens as lvn-web's app/globals.css (ADR-0094: blue). */
+const light = { bg: '#f6f8fb', surface: '#ffffff', fg: '#111827', muted: '#5b6475', border: '#e3e8ef', accent: '#2563eb', accentFg: '#ffffff', accentSoft: '#eff6ff' }
+const dark: typeof light = { bg: '#0d1117', surface: '#161b22', fg: '#f4f4f5', muted: '#a1a1aa', border: '#2d3440', accent: '#60a5fa', accentFg: '#0d1117', accentSoft: '#172554' }
 
 export type Colors = typeof light
 

@@ -20,7 +20,7 @@ const ICONS: Partial<Record<NotificationFieldsFragment['category'], typeof Bell>
 export function NotificationsScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const client = useApolloClient()
   const query = useQuery(NotificationsDocument, { variables: { first: PAGE }, fetchPolicy: 'cache-and-network' })
   const { data, refetch, fetchMore } = query

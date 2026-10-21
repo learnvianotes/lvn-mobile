@@ -26,7 +26,7 @@ const STATUS: Record<string, string> = { QUEUED: 'Waiting its turn', RUNNING: 'B
 
 export function StudyAids({ noteId }: { noteId: string }) {
   const client = useApolloClient()
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const { data, refetch } = useQuery(NoteInsightsDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network' })
   const [keepCards, keeping] = useMutation(KeepAiCardsDocument)
   const [setHidden, hiding] = useMutation(SetAiInsightHiddenDocument)

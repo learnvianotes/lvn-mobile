@@ -25,7 +25,7 @@ import { StatusChip } from './WorkspaceParts'
 export function DoubtScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const query = useQuery(DoubtDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query

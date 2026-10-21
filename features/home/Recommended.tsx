@@ -11,11 +11,11 @@ type Rec = RecommendationsQuery['recommendations'][number]
 const ICONS: Record<RecommendationKind, typeof BookOpen> = { EXAM_TOPIC: CalendarClock, REVISE_TOPIC: RotateCcw, CONTINUE_NOTE: BookOpen, QUIZ_ON_TOPIC: ListChecks, POPULAR_NOTE: TrendingUp, RESOURCE: Library }
 const TONES: Record<RecommendationKind, readonly [string, string]> = {
   EXAM_TOPIC: ['#ea580c', '#db2777'],
-  REVISE_TOPIC: ['#4f46e5', '#7c3aed'],
-  CONTINUE_NOTE: ['#0284c7', '#4f46e5'],
+  REVISE_TOPIC: ['#2563eb', '#0891b2'],
+  CONTINUE_NOTE: ['#0284c7', '#2563eb'],
   QUIZ_ON_TOPIC: ['#059669', '#0284c7'],
-  POPULAR_NOTE: ['#7c3aed', '#db2777'],
-  RESOURCE: ['#0d9488', '#4f46e5'],
+  POPULAR_NOTE: ['#0891b2', '#db2777'],
+  RESOURCE: ['#0d9488', '#2563eb'],
 }
 
 /** Recommendations always say why (§14.3, lvn-backend ADR-0071). */

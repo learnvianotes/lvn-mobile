@@ -40,7 +40,7 @@ type Kind = keyof typeof KINDS
 export function ProfileScreen({ handle }: { handle: string }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const query = useQuery(ProfileDocument, { variables: { handle }, fetchPolicy: 'cache-and-network' })
   const { data } = query
   const [kind, setKind] = useState<Kind>('NOTE')

@@ -26,7 +26,7 @@ const RULE: Record<string, [earned: string, back: string]> = {
 export function AchievementsScreen() {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const mine = useQuery(MyAchievementsDocument, { fetchPolicy: 'cache-and-network' })
   const points = useQuery(MyPointsDocument, { variables: { first: 30 }, fetchPolicy: 'cache-and-network' })
   const viewer = mine.data?.viewer

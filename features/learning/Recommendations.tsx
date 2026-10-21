@@ -18,7 +18,7 @@ const ICONS: Record<RecommendationKind, typeof BookOpen> = { EXAM_TOPIC: Calenda
  * 30 days. The API reads every note through the read rule when asked.
  */
 export function Recommendations({ limit = 6 }: { limit?: number }) {
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const recs = useQuery(RecommendationsDocument, { variables: { limit }, fetchPolicy: 'cache-and-network' })
   const [dismiss] = useMutation(DismissRecommendationDocument, { refetchQueries: [RecommendationsDocument] })

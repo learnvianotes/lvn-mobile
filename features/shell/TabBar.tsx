@@ -90,7 +90,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
             accessibilityRole="button"
             accessibilityLabel={open ? 'Close create menu' : 'Create'}
             className="bg-primary -mt-6 size-[60px] items-center justify-center rounded-full"
-            style={{ shadowColor: '#4f46e5', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}
+            style={{ shadowColor: '#2563eb', shadowOpacity: 0.35, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 8 }}
           >
             <Animated.View style={plus}>
               <Plus size={28} color={fg} strokeWidth={2.6} />
