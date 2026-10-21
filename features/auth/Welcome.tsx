@@ -10,6 +10,7 @@ import { Logo } from '@/components/brand/Logo'
 import { Text } from '@/components/ui/text'
 import { PressScale } from '@/features/shell/PressScale'
 import { copy } from './copy'
+import { useAgeRefused } from './AgeCheck'
 import { GoogleButton } from './GoogleButton'
 import { Notice } from './Notice'
 import { useGoogleSignIn } from './useGoogleSignIn'
@@ -30,6 +31,8 @@ export function Welcome() {
   const { height } = useWindowDimensions()
   const { theme } = useUniwind()
   const google = useGoogleSignIn()
+  // A device refused an account in the last day (lvn-backend ADR-0091): no email sign-up; signing in still works.
+  const refused = useAgeRefused()
   const t = copy.welcome
 
   return (
@@ -79,19 +82,22 @@ export function Welcome() {
           <Text className="text-muted-foreground text-sm">{t.sheetLead}</Text>
         </View>
 
+        {refused ? <Notice tone="info">{`${copy.age.refusedTitle}. ${copy.age.refusedLead}`}</Notice> : null}
         {google.error ? <Notice>{google.error}</Notice> : null}
         {google.available ? (
           <GoogleButton testID="welcome-google" tone={theme === 'dark' ? 'light' : 'dark'} busy={google.busy} onPress={() => void google.signIn()} />
         ) : null}
 
-        <Link href="/sign-up" asChild>
-          <PressScale testID="welcome-email" accessibilityRole="button" accessibilityLabel={t.email} disabled={google.busy}>
-            <View className={google.available ? 'border-border bg-muted/40 h-14 flex-row items-center justify-center gap-2.5 rounded-full border' : 'bg-primary h-14 flex-row items-center justify-center gap-2.5 rounded-full'}>
-              <Mail size={18} color={google.available ? (theme === 'dark' ? '#F4F4F5' : '#1E1B2E') : '#FFFFFF'} />
-              <Text className={google.available ? 'text-base font-semibold' : 'text-primary-foreground text-base font-semibold'}>{t.email}</Text>
-            </View>
-          </PressScale>
-        </Link>
+        {refused ? null : (
+          <Link href="/sign-up" asChild>
+            <PressScale testID="welcome-email" accessibilityRole="button" accessibilityLabel={t.email} disabled={google.busy}>
+              <View className={google.available ? 'border-border bg-muted/40 h-14 flex-row items-center justify-center gap-2.5 rounded-full border' : 'bg-primary h-14 flex-row items-center justify-center gap-2.5 rounded-full'}>
+                <Mail size={18} color={google.available ? (theme === 'dark' ? '#F4F4F5' : '#1E1B2E') : '#FFFFFF'} />
+                <Text className={google.available ? 'text-base font-semibold' : 'text-primary-foreground text-base font-semibold'}>{t.email}</Text>
+              </View>
+            </PressScale>
+          </Link>
+        )}
 
         <View className="flex-row items-center justify-center gap-1 pt-1">
           <Text className="text-muted-foreground text-sm">{t.haveAccount}</Text>
