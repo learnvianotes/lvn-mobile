@@ -4,7 +4,7 @@ import { Text } from '@/components/ui/text'
 import { cn } from '@/lib/utils'
 import logo from '@/assets/brand/logo-paths.json'
 
-/** The LearnViaNotes mark on its indigo tile, drawn from the same paths as the app icon (assets/brand/logo-paths.json). */
+/** The LearnViaNotes mark on its blue tile, drawn from the same paths as the app icon (assets/brand/logo-paths.json). */
 export function Logo({ size = 32 }: { size?: number }) {
   const c = logo.colors
   return (

@@ -47,22 +47,22 @@ export function ContestsScreen() {
 export function ContestCard({ contest: c }: { contest: Item }) {
   const done = c.viewerAttempt?.finished
   return (
-    <View className="gap-3 rounded-3xl p-5" style={{ backgroundColor: '#1C1A3A' }}>
+    <View className="gap-3 rounded-3xl p-5" style={{ backgroundColor: '#0B1220' }}>
       <View className="flex-row items-start gap-3">
         <View className="flex-1 gap-1">
-          <Text className="text-xs font-semibold uppercase" style={{ color: '#c7c3f5' }}>
+          <Text className="text-xs font-semibold uppercase" style={{ color: '#bfdbfe' }}>
             Weekly contest
           </Text>
           <Text className="text-xl font-extrabold" style={{ color: '#ffffff' }}>
             {c.title}
           </Text>
-          <Text className="text-sm" style={{ color: '#e5e3ff' }}>
+          <Text className="text-sm" style={{ color: '#dbeafe' }}>
             {c.subjectTitle ? `Test yourself on ${c.subjectTitle}.` : 'Test yourself.'}
           </Text>
         </View>
         <Trophy size={44} color="#fcd34d" />
       </View>
-      <Text className="text-sm" style={{ color: '#e5e3ff' }}>
+      <Text className="text-sm" style={{ color: '#dbeafe' }}>
         {[`${c.questionCount} questions`, `${c.minutes} minutes`, c.participantsMilestone ? `${c.participantsMilestone.toLocaleString('en-IN')}+ taking part` : null].filter(Boolean).join(' · ')}
       </Text>
       <Pressable accessibilityRole="link" onPress={() => router.push(`/contests/${c.id}`)} className="bg-primary items-center rounded-xl py-3">

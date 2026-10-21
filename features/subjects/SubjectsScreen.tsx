@@ -17,7 +17,7 @@ const openTopic = (t: { id: string; title: string }) => router.push({ pathname: 
  */
 export function SubjectsScreen() {
   const insets = useSafeAreaInsets()
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const { slug } = useLocalSearchParams<{ slug?: string }>()
   const { data, loading, error } = useQuery(SubjectsDocument, { fetchPolicy: 'cache-and-network' })

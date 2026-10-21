@@ -36,18 +36,18 @@ export function Welcome() {
   const t = copy.welcome
 
   return (
-    <View className="flex-1" style={{ backgroundColor: '#120F2E' }}>
+    <View className="flex-1" style={{ backgroundColor: '#0B1220' }}>
       <StatusBar style="light" />
-      <LinearGradient colors={['#120F2E', '#2B2560', '#4F46E5']} locations={[0, 0.55, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
+      <LinearGradient colors={['#0B1220', '#1E3A8A', '#2563EB']} locations={[0, 0.55, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
       {/* Soft light behind the logo: depth without an image. */}
-      <View pointerEvents="none" className="absolute -right-24 -top-16 size-72 rounded-full" style={{ backgroundColor: 'rgba(129,140,248,0.18)' }} />
+      <View pointerEvents="none" className="absolute -right-24 -top-16 size-72 rounded-full" style={{ backgroundColor: 'rgba(96,165,250,0.18)' }} />
       <View pointerEvents="none" className="absolute -left-20 top-64 size-56 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }} />
 
       <View className="flex-1 justify-center gap-7 px-7" style={{ paddingTop: insets.top + 12 }}>
         <Animated.View entering={FadeInDown.duration(500)} className="flex-row items-center gap-3" accessible accessibilityRole="header" accessibilityLabel="LearnViaNotes">
           <Logo size={52} />
           <Text className="text-2xl font-extrabold tracking-tight text-white">
-            LearnVia<Text className="text-2xl font-extrabold tracking-tight" style={{ color: '#A5B4FC' }}>Notes</Text>
+            LearnVia<Text className="text-2xl font-extrabold tracking-tight" style={{ color: '#93C5FD' }}>Notes</Text>
           </Text>
         </Animated.View>
 
@@ -66,8 +66,8 @@ export function Welcome() {
                 className="flex-row items-center gap-3 self-start rounded-2xl border px-3.5 py-2.5"
                 style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.14)' }}
               >
-                <View className="size-8 items-center justify-center rounded-xl" style={{ backgroundColor: 'rgba(165,180,252,0.18)' }}>
-                  <Icon size={18} color="#C7D2FE" />
+                <View className="size-8 items-center justify-center rounded-xl" style={{ backgroundColor: 'rgba(147,197,253,0.18)' }}>
+                  <Icon size={18} color="#BFDBFE" />
                 </View>
                 <Text className="text-[15px] font-medium text-white">{text}</Text>
               </Animated.View>
@@ -92,7 +92,7 @@ export function Welcome() {
           <Link href="/sign-up" asChild>
             <PressScale testID="welcome-email" accessibilityRole="button" accessibilityLabel={t.email} disabled={google.busy}>
               <View className={google.available ? 'border-border bg-muted/40 h-14 flex-row items-center justify-center gap-2.5 rounded-full border' : 'bg-primary h-14 flex-row items-center justify-center gap-2.5 rounded-full'}>
-                <Mail size={18} color={google.available ? (theme === 'dark' ? '#F4F4F5' : '#1E1B2E') : '#FFFFFF'} />
+                <Mail size={18} color={google.available ? (theme === 'dark' ? '#F4F4F5' : '#111827') : '#FFFFFF'} />
                 <Text className={google.available ? 'text-base font-semibold' : 'text-primary-foreground text-base font-semibold'}>{t.email}</Text>
               </View>
             </PressScale>

@@ -112,7 +112,7 @@ export function ExploreScreen() {
   const found = ready ? (data ?? (error ? undefined : previousData))?.search : undefined
   const searching = loading && !data
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value])
   /** Opens a result, remembering what was searched for it. */
   const open = (path: string) => {

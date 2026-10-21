@@ -15,7 +15,7 @@ export const questions = (n: number) => `${n} question${n === 1 ? '' : 's'}`
 
 /** The class's quizzes on the phone (lvn-backend ADR-0064): every member takes them; staff publish and remove them. */
 export function ClassQuizzes({ classroom }: { classroom: ClassroomDetailFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const { data, loading, refetch } = useQuery(ClassroomQuizzesDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const [remove] = useMutation(DeleteClassQuizDocument)

@@ -55,7 +55,7 @@ type Member = NonNullable<NonNullable<ClassroomPeopleQuery['classroom']>['member
 export function ClassScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const query = useQuery(ClassroomDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [tab, setTab] = useState<Tab>('posts')
@@ -248,7 +248,7 @@ function Posts({ classroom }: { classroom: ClassroomDetailFragment }) {
 }
 
 function Notes({ classroom }: { classroom: ClassroomDetailFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const query = useQuery(ClassroomNotesDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [share] = useMutation(ShareNoteToClassroomDocument)

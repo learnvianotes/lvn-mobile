@@ -44,7 +44,7 @@ export function StatusChip({ status }: { status: DoubtStatus }) {
  * (opened in the browser; admins link, change or unlink it) and the showcase (chosen in Settings).
  */
 export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragment; onChanged: () => void }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const workspace = useQuery(WorkspaceDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = workspace

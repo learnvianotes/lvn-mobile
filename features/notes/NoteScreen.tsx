@@ -125,7 +125,7 @@ function ReadAloudButton({ reader }: { reader: ReturnType<typeof useReadAloud> }
 
 /** Opens the note's AI tasks (lvn-backend ADR-0059); a note made here waits until the server has it. */
 function AiButton({ noteId, localOnly }: { noteId: string; localOnly?: boolean }) {
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   return (
     <Pressable
       accessibilityRole="button"
@@ -149,7 +149,7 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
   const reader = useReadAloud(spoken)
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const titleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const changed = () => syncSoon(client)
 

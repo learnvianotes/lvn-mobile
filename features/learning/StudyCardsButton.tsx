@@ -10,7 +10,7 @@ import { haptic } from '@/lib/haptics'
  * leave them. Filled when studying. Nothing offline (the server decides who may study a note).
  */
 export function StudyCardsButton({ noteId }: { noteId: string }) {
-  const primary = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const { data } = useQuery(NoteStudyingDocument, { variables: { id: noteId } })
   const refresh = { refetchQueries: [{ query: NoteStudyingDocument, variables: { id: noteId } }], awaitRefetchQueries: true }

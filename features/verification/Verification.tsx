@@ -222,7 +222,7 @@ export function ReviewRequests({ admin }: { admin?: boolean }) {
 
 function RequestCard({ request: r, onDone }: { request: Request; onDone: () => void }) {
   const client = useApolloClient()
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const [review, reviewing] = useMutation(ReviewVerificationRequestDocument)
   const [reason, setReason] = useState('')

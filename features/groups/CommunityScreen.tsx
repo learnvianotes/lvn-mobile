@@ -24,7 +24,7 @@ const SECTIONS: Record<Section, string> = { forYou: 'For You', trending: 'Trendi
 export function CommunityScreen() {
   const insets = useSafeAreaInsets()
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const mine = useQuery(MyGroupsDocument, { fetchPolicy: 'cache-and-network' })
   const [query, setQuery] = useState('')
   const [settled, setSettled] = useState('')
@@ -82,7 +82,7 @@ export function CommunityScreen() {
 }
 
 function GroupRow({ group }: { group: GroupCardFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const Icon = group.privacy === 'PRIVATE' ? Lock : Globe
   return (

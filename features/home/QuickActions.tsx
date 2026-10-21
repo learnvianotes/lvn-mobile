@@ -27,7 +27,7 @@ export function QuickActions() {
         <PressScale key={label} accessibilityRole="button" accessibilityLabel={label} accessibilityHint={hint} onPress={() => (go.startsWith('/') ? router.push(go as '/notes') : void create(go as CreateAction))}>
           <View className="items-center gap-1.5">
             <View className={`${bg} size-14 items-center justify-center rounded-2xl`}>
-              <Icon size={22} color={String(colors[i] ?? '#4f46e5')} />
+              <Icon size={22} color={String(colors[i] ?? '#2563eb')} />
             </View>
             <Text className="text-muted-foreground text-xs font-medium">{label}</Text>
           </View>

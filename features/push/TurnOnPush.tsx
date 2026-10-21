@@ -12,7 +12,7 @@ import { pushPermission, registerForPush } from './push'
  */
 export function TurnOnPush({ onEnabled }: { onEnabled?: () => void }) {
   const client = useApolloClient()
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const [state, setState] = useState<{ granted: boolean; canAsk: boolean } | null>(null)
   const [busy, setBusy] = useState(false)
   useEffect(() => {

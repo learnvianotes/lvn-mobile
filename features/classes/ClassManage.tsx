@@ -30,7 +30,7 @@ export function memberActions(classroom: ClassroomDetailFragment, m: Member, ops
 
 /** A class's name and description, a new code (the old one and its link stop working), and deleting it. */
 export function ClassSettings({ classroom, onSaved }: { classroom: ClassroomDetailFragment; onSaved: () => void }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const [update, updating] = useMutation(UpdateClassroomDocument)
   const [del] = useMutation(DeleteClassroomDocument)
   const [name, setName] = useState(classroom.name)

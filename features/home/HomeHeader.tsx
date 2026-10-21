@@ -31,7 +31,7 @@ function NotificationBell({ color }: { color: string }) {
 
 /** The word mark, the bell and the person's avatar (their Profile tab); the search bar opens Explore, ready to type. */
 export function HomeHeader() {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#1e1b2e')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#5f5f73')
   const name = useQuery(ViewerDocument).data?.viewer?.displayName.trim() ?? ''
   return (

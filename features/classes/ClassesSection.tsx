@@ -16,7 +16,7 @@ import { CLASS_ROLE, cleanCode } from './shared'
  */
 export function ClassesSection() {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const classes = useQuery(MyClassroomsDocument, { fetchPolicy: 'cache-and-network' })
   const { data, refetch } = classes
   const viewer = useQuery(ViewerDocument)
@@ -80,7 +80,7 @@ export function ClassesSection() {
 }
 
 function ClassRow({ classroom }: { classroom: ClassroomCardFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={classroom.name} onPress={() => router.push(`/classes/${classroom.id}`)} className="bg-card border-border gap-1.5 rounded-2xl border p-4">

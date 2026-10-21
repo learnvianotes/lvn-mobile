@@ -61,7 +61,7 @@ function Video({ uri }: { uri: string }) {
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
 function Audio({ uri, name }: { uri: string; name: string }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   const player = useAudioPlayer(uri)
   const status = useAudioPlayerStatus(player)
   const playing = status.playing
@@ -96,7 +96,7 @@ function Audio({ uri, name }: { uri: string; name: string }) {
 }
 
 function FileLink({ url, name }: { url: string | null; name: string }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#4f46e5')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={`Open ${name}`} disabled={!url} onPress={() => url && void Linking.openURL(url)} className="border-border flex-row items-center gap-3 rounded-2xl border p-3">
       <FileText size={20} color={accent} />

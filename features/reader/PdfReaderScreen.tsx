@@ -38,7 +38,7 @@ const COLORS: { color: HighlightColor; swatch: string; label: string }[] = [
   { color: 'GREEN', swatch: 'bg-green-400', label: 'green' },
   { color: 'BLUE', swatch: 'bg-blue-400', label: 'blue' },
   { color: 'PINK', swatch: 'bg-pink-400', label: 'pink' },
-  { color: 'PURPLE', swatch: 'bg-violet-400', label: 'purple' },
+  { color: 'PURPLE', swatch: 'bg-orange-400', label: 'orange' },
 ]
 
 const pageKey = (fileId: string) => `reader.page.${fileId}`
@@ -61,7 +61,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const background = String(useCSSVariable('--color-secondary') ?? '#f1f1f7')
+  const background = String(useCSSVariable('--color-secondary') ?? '#f1f4f8')
 
   const note = useLocal(() => db.getNote(noteId), [noteId])
   const localCards = useLocal(() => db.getCards(noteId), [noteId])

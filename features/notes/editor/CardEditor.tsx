@@ -41,7 +41,7 @@ export function CardEditor({ card, onChange: save }: { card: LocalCard; onChange
   const theme = {
     fg: color('--color-foreground', '#111827'),
     muted: color('--color-muted-foreground', '#6b7280'),
-    accent: color('--color-primary', '#4f46e5'),
+    accent: color('--color-primary', '#2563eb'),
     bg: color('--color-background', '#ffffff'),
     surface: color('--color-secondary', '#f3f4f6'),
     border: color('--color-border', '#e5e7eb'),

@@ -10,9 +10,9 @@ import { SaveNoteToggle } from '@/features/saved/SaveNoteToggle'
 import type { PostCardFieldsFragment } from '@/graphql/generated/graphql'
 
 const ART = {
-  NOTE: { icon: BookOpen, colors: ['#4F46E5', '#7C3AED'] },
+  NOTE: { icon: BookOpen, colors: ['#2563EB', '#0891B2'] },
   BLOG: { icon: PenLine, colors: ['#EA580C', '#DB2777'] },
-  POST: { icon: Megaphone, colors: ['#0284C7', '#4F46E5'] },
+  POST: { icon: Megaphone, colors: ['#0284C7', '#2563EB'] },
   PROJECT: { icon: FolderGit2, colors: ['#059669', '#0284C7'] },
 } as const
 const KIND: Record<string, string> = { NOTE: 'Note', BLOG: 'Blog', POST: 'Post', PROJECT: 'Project' }
