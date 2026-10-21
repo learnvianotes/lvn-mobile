@@ -11,6 +11,7 @@ import { ViewerDocument } from '@/graphql/generated/graphql'
 import { useCreate, type CreateAction } from './create'
 import { PressScale } from './PressScale'
 import { SHEET_IN, SHEET_OUT } from './sheet-motion'
+import { UPLOAD_ACTIONS, useUploadsEnabled } from '@/features/notes/media/uploads'
 
 /**
  * The centre sheet of spec §13.1: Note, Quick Note, Voice Note, Photo, Upload, Quiz, Flashcard; then a project for
@@ -50,6 +51,9 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
   const viewer = useQuery(ViewerDocument, { skip: !open })
   const teacher = viewer.data?.viewer?.globalRole === 'TEACHER'
   const kinds = KINDS.filter((k) => !k.teachers || teacher)
+  // Voice note, Photo and Upload send files: only while uploads are on (lvn-backend ADR-0097).
+  const uploadsOn = useUploadsEnabled()
+  const options = OPTIONS.filter((o) => uploadsOn || !UPLOAD_ACTIONS.has(o.label))
   const choose = async (label: CreateAction) => {
     onClose()
     await create(label)
@@ -70,7 +74,7 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
             <View className="bg-border h-1.5 w-10 self-center rounded-full" />
             <Text className="text-lg font-bold" accessibilityRole="header">Create</Text>
             <View className="flex-row flex-wrap gap-3">
-              {[...OPTIONS, ...kinds].map(({ label, icon: Icon }) => (
+              {[...options, ...kinds].map(({ label, icon: Icon }) => (
                 <PressScale key={label} onPress={() => void choose(label)} accessibilityRole="button" accessibilityLabel={label} style={{ width: '30.5%' }}>
                   <View className="bg-secondary items-center gap-2 rounded-2xl py-4">
                     <Icon size={22} color={primary} />

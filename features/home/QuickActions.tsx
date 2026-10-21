@@ -5,6 +5,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { useCreate, type CreateAction } from '@/features/shell/create'
 import { PressScale } from '@/features/shell/PressScale'
+import { UPLOAD_ACTIONS, useUploadsEnabled } from '@/features/notes/media/uploads'
 
 /**
  * Tinted icon tiles from the UI board; each does what it says (lvn-backend ADR-0076): Notes opens the notes, Q&A asks
@@ -21,9 +22,11 @@ const ACTIONS: { label: string; hint: string; icon: LucideIcon; bg: string; fg: 
 export function QuickActions() {
   const colors = useCSSVariable(ACTIONS.map((a) => a.fg)) as (string | undefined)[]
   const create = useCreate()
+  // Camera, Voice and Upload send files: only while uploads are on (lvn-backend ADR-0097).
+  const uploadsOn = useUploadsEnabled()
   return (
     <View className="flex-row justify-between">
-      {ACTIONS.map(({ label, hint, icon: Icon, bg, go }, i) => (
+      {ACTIONS.map((action, i) => ({ ...action, i })).filter((a) => uploadsOn || !UPLOAD_ACTIONS.has(a.go)).map(({ label, hint, icon: Icon, bg, go, i }) => (
         <PressScale key={label} accessibilityRole="button" accessibilityLabel={label} accessibilityHint={hint} onPress={() => (go.startsWith('/') ? router.push(go as '/notes') : void create(go as CreateAction))}>
           <View className="items-center gap-1.5">
             <View className={`${bg} size-14 items-center justify-center rounded-2xl`}>

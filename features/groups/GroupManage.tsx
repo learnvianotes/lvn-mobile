@@ -7,6 +7,7 @@ import { Alert, Image, Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { mimeOf, uploadFile, UploadError } from '@/features/notes/media/NoteMedia'
+import { useUploadsEnabled } from '@/features/notes/media/uploads'
 import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
 import { Choices, Field, Outcome, Pill, Toggle } from '@/features/shell/Form'
 import {
@@ -115,6 +116,7 @@ const PICTURE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 /** The group's picture (lvn-backend ADR-0076): chosen and saved at once by an admin, or taken away. */
 export function GroupPicture({ group, onSaved }: { group: GroupDetailFragment; onSaved: () => void }) {
+  const uploadsOn = useUploadsEnabled()
   const client = useApolloClient()
   const [update] = useMutation(UpdateGroupDocument)
   const [busy, setBusy] = useState(false)
@@ -142,6 +144,8 @@ export function GroupPicture({ group, onSaved }: { group: GroupDetailFragment; o
       setBusy(false)
     }
   }
+  // A new picture is an upload (lvn-backend ADR-0097): while uploads are off only removing one is offered.
+  if (!uploadsOn && !group.pictureUrl) return null
   return (
     <View className="gap-2">
       <Text className="font-semibold">Group picture</Text>
@@ -151,10 +155,10 @@ export function GroupPicture({ group, onSaved }: { group: GroupDetailFragment; o
         <Text className="text-muted-foreground text-sm">No picture yet.</Text>
       )}
       <View className="flex-row flex-wrap gap-2">
-        <Pill label={busy ? 'Uploading…' : group.pictureUrl ? 'Change the picture' : 'Choose a picture'} disabled={busy} onPress={() => void choose()} />
+        {uploadsOn ? <Pill label={busy ? 'Uploading…' : group.pictureUrl ? 'Change the picture' : 'Choose a picture'} disabled={busy} onPress={() => void choose()} /> : null}
         {group.pictureUrl ? <Pill label="Remove the picture" disabled={busy} onPress={() => void save({ removePicture: true }, 'Picture removed.')} /> : null}
       </View>
-      <Text className="text-muted-foreground text-xs">A JPEG, PNG or WebP picture, up to 2 MB. Everyone who sees the group sees it.</Text>
+      {uploadsOn ? <Text className="text-muted-foreground text-xs">A JPEG, PNG or WebP picture, up to 2 MB. Everyone who sees the group sees it.</Text> : null}
       <Outcome message={message} />
     </View>
   )

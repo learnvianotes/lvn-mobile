@@ -28,6 +28,7 @@ import { StudyAids } from '@/features/ai/StudyAids'
 import { useLearningTime } from '@/features/learning/useLearningTime'
 import { StudyCardsButton } from '@/features/learning/StudyCardsButton'
 import { SaveNoteToggle } from '@/features/saved/SaveNoteToggle'
+import { useUploadsEnabled } from '@/features/notes/media/uploads'
 
 const NEW_CARDS: { type: CardType; label: string }[] = [
   { type: 'text', label: 'Text' },
@@ -143,6 +144,7 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
   const insets = useSafeAreaInsets()
   const [selected, setSelected] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
+  const uploadsOn = useUploadsEnabled()
   const [title, setTitle] = useState(note.title)
   const unsent = useLocal(() => db.unsentNoteIds().then((s) => s.has(note.id)), [note.id]) ?? false
   const spoken = useMemo(() => cards.map((c) => ({ id: c.id, text: cardPlainText(c.type, c.content) })), [cards])
@@ -270,13 +272,14 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
                 <Text className="text-secondary-foreground text-sm font-semibold">{t.label}</Text>
               </Pressable>
             ))}
-            {NEW_MEDIA.map((m) => (
+            {(uploadsOn ? NEW_MEDIA : []).map((m) => (
               <Pressable key={m.source} accessibilityRole="button" onPress={() => void addMedia(m.source)} className="border-primary/40 bg-primary/10 rounded-full border px-3 py-2">
                 <Text className="text-primary text-sm font-semibold">{m.label}</Text>
               </Pressable>
             ))}
-            {/* A voice note (lvn-backend ADR-0062): recorded on its own screen, then an audio card of this note. */}
-            <Pressable
+            {/* A voice note (lvn-backend ADR-0062): recorded on its own screen, then an audio card of this note. Media and
+                voice notes are uploads: only while uploads are on (ADR-0097). */}
+            {uploadsOn ? <Pressable
               accessibilityRole="button"
               onPress={() => {
                 setAdding(false)
@@ -286,7 +289,7 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
               className="border-primary/40 bg-primary/10 rounded-full border px-3 py-2"
             >
               <Text className="text-primary text-sm font-semibold">Voice note</Text>
-            </Pressable>
+            </Pressable> : null}
           </View>
         ) : (
           <Pressable accessibilityRole="button" disabled={uploading} onPress={() => setAdding(true)} className="border-border flex-row items-center gap-2 self-start rounded-full border border-dashed px-4 py-2.5">

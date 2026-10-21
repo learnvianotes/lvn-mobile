@@ -28,6 +28,11 @@ function json(body: unknown, status = 200): Response {
   return make()
 }
 
+/** Answers every test gets unless it passes its own: uploads are on (lvn-backend ADR-0097), as on a developer's stack. */
+const DEFAULTS: Record<string, Handler> = {
+  UploadsEnabled: () => ({ data: { uploadsEnabled: true } }),
+}
+
 export function mockApi(handlers: Record<string, Handler>) {
   const calls: Call[] = []
   const fetchMock = jest.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
@@ -35,7 +40,7 @@ export function mockApi(handlers: Record<string, Handler>) {
     const op = body.operationName ?? /(?:query|mutation)\s+(\w+)/.exec(body.query)?.[1] ?? 'unknown'
     const headers = new Headers(init?.headers)
     calls.push({ op, variables: body.variables ?? {}, headers })
-    const handler = handlers[op]
+    const handler = handlers[op] ?? DEFAULTS[op]
     if (!handler) return json({ errors: [{ message: `unmocked ${op}` }] }, 500)
     const result = handler(body.variables ?? {}, headers)
     if (result instanceof Error) throw result

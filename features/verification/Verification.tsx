@@ -10,6 +10,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { mimeOf, UploadError, uploadFile } from '@/features/notes/media/NoteMedia'
+import { useUploadsEnabled } from '@/features/notes/media/uploads'
 import { Field, Outcome, Pill } from '@/features/shell/Form'
 import {
   FindTeachersDocument,
@@ -33,6 +34,9 @@ const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
  * three pictures or PDFs that platform admins check (not for restricted minors). One request waits at a time.
  */
 export function VerifyCard({ restrictedMinor }: { restrictedMinor: boolean }) {
+  // Documents are uploads: offered only while uploads are on (lvn-backend ADR-0097); asking a teacher always works.
+  const uploadsOn = useUploadsEnabled()
+  const documents = !restrictedMinor && uploadsOn
   const mine = useQuery(MyVerificationRequestsDocument, { fetchPolicy: 'cache-and-network' })
   const [withdraw] = useMutation(WithdrawVerificationRequestDocument)
   const [mode, setMode] = useState<'teacher' | 'documents' | null>(null)
@@ -68,10 +72,14 @@ export function VerifyCard({ restrictedMinor }: { restrictedMinor: boolean }) {
       ) : (
         <>
           {last?.status === 'REJECTED' ? <Text className="rounded-xl bg-red-50 p-3 text-sm text-red-950">Your last request was not accepted: {last.reason}</Text> : null}
-          <Text className="text-muted-foreground text-sm">No college email? Ask a teacher who knows you to vouch for you, or send proof that you study (an ID card or a fee receipt) for our team to check.</Text>
+          <Text className="text-muted-foreground text-sm">
+            {documents
+              ? 'No college email? Ask a teacher who knows you to vouch for you, or send proof that you study (an ID card or a fee receipt) for our team to check.'
+              : 'No college email? Ask a teacher who knows you to vouch for you.'}
+          </Text>
           <View className="flex-row flex-wrap gap-2">
             <Pill label="Ask a teacher" primary={mode === 'teacher'} onPress={() => setMode(mode === 'teacher' ? null : 'teacher')} />
-            {!restrictedMinor ? <Pill label="Send proof of study" primary={mode === 'documents'} onPress={() => setMode(mode === 'documents' ? null : 'documents')} /> : null}
+            {documents ? <Pill label="Send proof of study" primary={mode === 'documents'} onPress={() => setMode(mode === 'documents' ? null : 'documents')} /> : null}
           </View>
           {mode === 'teacher' ? <AskTeacher onSent={() => void done()} /> : null}
           {mode === 'documents' ? <SendDocuments onSent={() => void done()} /> : null}
