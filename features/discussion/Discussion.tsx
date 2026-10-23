@@ -20,8 +20,8 @@ import { ReportLink } from '@/features/moderation/ReportSheet'
  * may do with each, editing one's own included. Read with its own query, so threads stay within the depth limit.
  */
 export function Discussion({ target, compact }: { target: { type: CommentTargetType; id: string }; compact?: boolean }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const thread = useQuery(DiscussionDocument, { variables: { target }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = thread
   const [add] = useMutation(AddCommentDocument)
@@ -111,7 +111,7 @@ export function Discussion({ target, compact }: { target: { type: CommentTargetT
 }
 
 function CommentView({ comment: c, onChanged, onReply }: { comment: CommentFieldsFragment; onChanged: () => void; onReply?: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [remove] = useMutation(DeleteCommentDocument)
   const [approve] = useMutation(ApproveCommentDocument)
   const [edit] = useMutation(EditCommentDocument)
@@ -126,7 +126,7 @@ function CommentView({ comment: c, onChanged, onReply }: { comment: CommentField
   }
   if (c.removed) return <Text className="bg-secondary text-muted-foreground rounded-2xl px-3 py-2 text-sm italic">This comment was removed.</Text>
   return (
-    <View className={`gap-1.5 rounded-2xl border px-3 py-2.5 ${c.pendingApproval ? 'border-dashed border-amber-500' : 'border-border'}`}>
+    <View className={`gap-1.5 rounded-2xl border px-3 py-2.5 ${c.pendingApproval ? 'border-dashed border-warm' : 'border-border'}`}>
       <View className="flex-row flex-wrap items-center gap-2">
         {c.author ? (
           <Pressable accessibilityRole="link" onPress={() => router.push(`/u/${c.author!.handle}`)}>
@@ -143,7 +143,7 @@ function CommentView({ comment: c, onChanged, onReply }: { comment: CommentField
             <Text className="text-muted-foreground text-xs">Private thread</Text>
           </View>
         ) : null}
-        {c.pendingApproval ? <Text className="text-xs text-amber-700">Waiting for approval</Text> : null}
+        {c.pendingApproval ? <Text className="text-xs text-warm">Waiting for approval</Text> : null}
       </View>
       <ContentModeration entityType="COMMENT" item={c} onAppealed={onChanged} />
       {editing ? (

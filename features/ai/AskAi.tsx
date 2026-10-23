@@ -40,7 +40,7 @@ function Follow({ id }: { id: string }) {
 /** A question box, or for a doubt one button: the doubt is the question. */
 /** `offNotice` false: the screen already says AI is off. */
 export function AskForm({ scope, noteId, doubtId, offNotice = true }: { scope: AskAiScope; noteId?: string; doubtId?: string; offNotice?: boolean }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const state = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
   const [askAi, asking] = useMutation(AskAiDocument, { refetchQueries: ['MyAiAnswers'] })
   const [askDoubt, askingDoubt] = useMutation(AskAiAboutDoubtDocument, { refetchQueries: ['MyAiAnswers'] })
@@ -88,8 +88,8 @@ export function AskForm({ scope, noteId, doubtId, offNotice = true }: { scope: A
 
 /** One answer: the question, the text with its citations, and the sources they point to. */
 export function AnswerCard({ answer: a }: { answer: Answer }) {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const [remove, removing] = useMutation(DeleteAiAnswerDocument, { refetchQueries: ['MyAiAnswers'] })
   const pending = a.status === 'QUEUED' || a.status === 'RUNNING'
   const cited = new Set(a.sources.map((s) => s.n))
@@ -177,8 +177,8 @@ const SCOPES: { scope: AskAiScope; label: string; hint: string; icon: LucideIcon
 /** The Ask AI screen: questions over the asker's notes, their groups' and classes', or public notes. */
 export function AskScreen() {
   const insets = useSafeAreaInsets()
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const [scope, setScope] = useState<AskAiScope>('MY_NOTES')
   const current = SCOPES.find((s) => s.scope === scope)!
   return (

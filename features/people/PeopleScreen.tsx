@@ -32,7 +32,7 @@ const TABS: Record<Tab, { label: string; undo: string; empty: string }> = {
 /** The person's people (lvn-backend ADR-0043): followers (young learners counted, not named), following, blocked, restricted. */
 export function PeopleScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const [tab, setTab] = useState<Tab>('followers')
   const query = useQuery(MyPeopleDocument, { variables: { first: 100 }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query

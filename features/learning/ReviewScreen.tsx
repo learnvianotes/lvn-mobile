@@ -31,7 +31,7 @@ const RATINGS: { rating: Rating; label: string }[] = [
  */
 export function ReviewScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const { data, error, refetch } = useQuery(ReviewQueueDocument, { fetchPolicy: 'network-only' })
   const [queue, setQueue] = useState<Queue | null>(null)
   const [cards, setCards] = useState<Card[] | null>(null)

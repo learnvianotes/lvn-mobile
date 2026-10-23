@@ -80,7 +80,7 @@ export function ModerationQueue({ scope, groupId }: { scope?: { scope: 'GROUP' |
 }
 
 function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?: string; platform?: boolean; onDone: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [moderate, deciding] = useMutation(ModerateContentDocument)
   const [mute] = useMutation(MuteGroupMemberDocument)
   const [reason, setReason] = useState('')
@@ -108,8 +108,8 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
         <Text className="text-muted-foreground text-xs font-semibold uppercase">{ENTITY[c.entityType]}</Text>
         {platform && c.scope !== 'PLATFORM' ? <Text className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-semibold">{WHERE[c.scope]}</Text> : null}
         {state ? <Text className="bg-secondary rounded-full px-2 py-0.5 text-xs">{STATE[state]}</Text> : null}
-        {c.suspendedUntil ? <Text className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Suspended until {new Date(c.suspendedUntil).toLocaleDateString()}</Text> : null}
-        {c.removedGroup ? <Text className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">Removed</Text> : null}
+        {c.suspendedUntil ? <Text className="rounded-full bg-rose-soft px-2 py-0.5 text-xs font-semibold text-destructive">Suspended until {new Date(c.suspendedUntil).toLocaleDateString()}</Text> : null}
+        {c.removedGroup ? <Text className="rounded-full bg-rose-soft px-2 py-0.5 text-xs font-semibold text-destructive">Removed</Text> : null}
         <Text className="text-muted-foreground ml-auto text-xs">opened {ago(c.openedAt)}</Text>
       </View>
       {title ? (

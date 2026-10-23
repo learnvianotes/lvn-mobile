@@ -13,7 +13,7 @@ const TITLE = { PENDING_REVIEW: 'Waiting for a moderator', HIDDEN: 'Hidden by mo
  * or a warning on content that stays; and the one appeal. Only the author is ever sent a reason.
  */
 export function ModerationNotice({ entityType, entityId, state, reason, canAppeal, onAppealed }: { entityType: ReportEntityType; entityId: string; state: ModerationState; reason?: string | null; canAppeal: boolean; onAppealed?: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [writing, setWriting] = useState(false)
   const [message, setMessage] = useState('')
   const [appealed, setAppealed] = useState(false)
@@ -32,20 +32,20 @@ export function ModerationNotice({ entityType, entityId, state, reason, canAppea
     onAppealed?.()
   }
   return (
-    <View accessibilityRole="summary" className={`gap-1 rounded-xl border px-3 py-2 ${held || warned ? 'border-amber-500/40 bg-amber-50' : 'border-red-500/40 bg-red-50'}`}>
-      <Text className={`text-sm font-semibold ${held || warned ? 'text-amber-950' : 'text-red-950'}`}>{TITLE[warned ? 'WARNED' : state]}</Text>
-      {reason ? <Text className={`text-sm ${held || warned ? 'text-amber-950' : 'text-red-950'}`}>{reason}</Text> : null}
-      <Text className={`text-xs ${held || warned ? 'text-amber-900' : 'text-red-900'}`}>{lead}</Text>
-      {appealed ? <Text className="text-sm font-semibold text-red-950">Your appeal is with the moderators.</Text> : null}
+    <View accessibilityRole="summary" className={`gap-1 rounded-xl border px-3 py-2 ${held || warned ? 'border-warm bg-warm-soft' : 'border-destructive bg-rose-soft'}`}>
+      <Text className={`text-sm font-semibold ${held || warned ? 'text-warm' : 'text-destructive'}`}>{TITLE[warned ? 'WARNED' : state]}</Text>
+      {reason ? <Text className={`text-sm ${held || warned ? 'text-warm' : 'text-destructive'}`}>{reason}</Text> : null}
+      <Text className={`text-xs ${held || warned ? 'text-warm' : 'text-destructive'}`}>{lead}</Text>
+      {appealed ? <Text className="text-sm font-semibold text-destructive">Your appeal is with the moderators.</Text> : null}
       {canAppeal && !appealed && !writing ? (
-        <Pressable accessibilityRole="button" onPress={() => setWriting(true)} className="self-start rounded-full border border-red-500/40 px-3 py-1.5">
-          <Text className="text-sm font-semibold text-red-950">Appeal</Text>
+        <Pressable accessibilityRole="button" onPress={() => setWriting(true)} className="self-start rounded-full border border-destructive px-3 py-1.5">
+          <Text className="text-sm font-semibold text-destructive">Appeal</Text>
         </Pressable>
       ) : null}
       {writing ? (
         <View className="gap-2 pt-1">
-          <Text className="text-xs text-red-900">Tell the moderators why it should come back. You can appeal once.</Text>
-          <TextInput accessibilityLabel="Your message" value={message} onChangeText={setMessage} placeholderTextColor={muted} maxLength={2000} multiline className="text-foreground min-h-16 rounded-xl border border-red-500/40 bg-white px-3 py-2" />
+          <Text className="text-xs text-destructive">Tell the moderators why it should come back. You can appeal once.</Text>
+          <TextInput accessibilityLabel="Your message" value={message} onChangeText={setMessage} placeholderTextColor={muted} maxLength={2000} multiline className="text-foreground bg-card min-h-16 rounded-xl border border-destructive px-3 py-2" />
           {error ? (
             <Text accessibilityRole="alert" className="text-destructive text-sm">
               {error}
@@ -53,7 +53,7 @@ export function ModerationNotice({ entityType, entityId, state, reason, canAppea
           ) : null}
           <View className="flex-row justify-end gap-2">
             <Pressable accessibilityRole="button" onPress={() => setWriting(false)} className="rounded-full px-3 py-1.5">
-              <Text className="font-semibold text-red-950">Cancel</Text>
+              <Text className="font-semibold text-destructive">Cancel</Text>
             </Pressable>
             <Pressable accessibilityRole="button" disabled={!message.trim() || appealing.loading} onPress={() => void send()} className={`rounded-full px-3 py-1.5 ${message.trim() ? 'bg-primary' : 'bg-muted'}`}>
               <Text className="text-primary-foreground font-semibold">Send appeal</Text>

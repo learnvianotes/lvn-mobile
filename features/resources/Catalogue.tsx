@@ -21,7 +21,7 @@ export const savesText = (n: number) => (n === 0 ? 'No saves yet' : n === 1 ? 'S
 /** The catalogue on the phone (lvn-backend ADR-0075): approved resources, filtered by type and words, most saved first. */
 export function CatalogueScreen() {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [typed, setTyped] = useState('')
   const [query, setQuery] = useState('')
   const [type, setType] = useState<ResourceType | null>(null)
@@ -80,7 +80,7 @@ export function CatalogueScreen() {
 }
 
 export function ResourceCard({ resource: r, note }: { resource: ResourceFieldsFragment; note?: string }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const Icon = TYPE_ICON[r.type]
   return (
     <View className="bg-card border-border overflow-hidden rounded-2xl border">
@@ -114,7 +114,7 @@ export function ResourceCard({ resource: r, note }: { resource: ResourceFieldsFr
 
 /** Save and unsave: private, only the count is public (ADR-0075). */
 export function SaveToggle({ resource: r }: { resource: Pick<ResourceFieldsFragment, 'id' | 'viewerSaved' | 'status'> }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const [save, saving] = useMutation(SaveResourceDocument)
   const [unsave, unsaving] = useMutation(UnsaveResourceDocument)
   if (r.status !== 'APPROVED') return null

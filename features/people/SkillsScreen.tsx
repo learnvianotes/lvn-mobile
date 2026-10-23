@@ -43,7 +43,7 @@ export function SkillsScreen() {
 /** The form, filled once from the profile as it was loaded; the imported items below follow it as it changes. */
 function SkillsForm({ profile }: { profile: Profile }) {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [save, saving] = useMutation(UpdateTeacherProfileDocument)
   const [headline, setHeadline] = useState(profile?.headline ?? '')
   const [bio, setBio] = useState(profile?.bio ?? '')
@@ -82,10 +82,10 @@ function SkillsForm({ profile }: { profile: Profile }) {
           <TextInput accessibilityLabel="Detail (optional)" value={item.detail} onChangeText={(detail) => update(item.key, { detail })} placeholder="Detail (optional)" placeholderTextColor={muted} maxLength={500} className="border-border text-foreground rounded-xl border px-3 py-2" />
           <View className="flex-row justify-end gap-1">
             <Pressable accessibilityRole="button" accessibilityLabel="Move up" accessibilityState={{ disabled: i === 0 }} disabled={i === 0} onPress={() => move(i, -1)} className="p-2">
-              <ArrowUp size={18} color={i === 0 ? '#d1d5db' : muted} />
+              <ArrowUp size={18} color={i === 0 ? '#d5dde8' : muted} />
             </Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="Move down" accessibilityState={{ disabled: i === items.length - 1 }} disabled={i === items.length - 1} onPress={() => move(i, 1)} className="p-2">
-              <ArrowDown size={18} color={i === items.length - 1 ? '#d1d5db' : muted} />
+              <ArrowDown size={18} color={i === items.length - 1 ? '#d5dde8' : muted} />
             </Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${item.name || `item ${i + 1}`}`} onPress={() => setItems((list) => list.filter((x) => x.key !== item.key))} className="p-2">
               <Trash2 size={18} color={muted} />

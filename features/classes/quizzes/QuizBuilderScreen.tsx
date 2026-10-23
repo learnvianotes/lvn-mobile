@@ -69,7 +69,7 @@ function toCard(d: Draft, n: number): { content: object } | { problem: string } 
 
 export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const client = useApolloClient()
   const [runTask] = useMutation(RunAiTaskDocument)
   const [publish, publishing] = useMutation(PublishClassQuizDocument)

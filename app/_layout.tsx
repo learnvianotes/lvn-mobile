@@ -5,7 +5,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router'
 import { PortalHost } from '@rn-primitives/portal'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { View } from 'react-native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useCSSVariable, useUniwind } from 'uniwind'
@@ -19,6 +19,7 @@ import { PushSetup } from '@/features/push/push'
 import { LoadFailed, Loading } from '@/features/shell/LoadState'
 import { OfflineBanner } from '@/features/shell/OfflineBanner'
 import { REQUEST_DEADLINE_MS } from '@/lib/net/deadline'
+import { fontGateOpen, subscribeFontGate } from '@/lib/theme/loadFonts'
 import { ThemeRoot } from '@/lib/theme/ThemeRoot'
 
 // First, so a crash during start-up is reported too (when this build has a Sentry DSN).
@@ -69,17 +70,16 @@ export default function RootLayout() {
   useEffect(() => watchTimeZone(), [])
   const [attempt, setAttempt] = useState(0)
   const [gaveUp, setGaveUp] = useState(false)
+  const fontsReady = useSyncExternalStore(subscribeFontGate, fontGateOpen, fontGateOpen)
   useEffect(() => {
-    if (status !== 'restoring') {
-      void SplashScreen.hideAsync()
-      return
-    }
-    const timer = setTimeout(() => {
-      setGaveUp(true)
-      void SplashScreen.hideAsync()
-    }, REQUEST_DEADLINE_MS)
+    if (status !== 'restoring') return
+    const timer = setTimeout(() => setGaveUp(true), REQUEST_DEADLINE_MS)
     return () => clearTimeout(timer)
   }, [status, attempt])
+  useEffect(() => {
+    if (!fontsReady) return
+    if (status !== 'restoring' || gaveUp) void SplashScreen.hideAsync()
+  }, [fontsReady, status, gaveUp])
 
   const signedIn = status === 'signed-in'
   return (

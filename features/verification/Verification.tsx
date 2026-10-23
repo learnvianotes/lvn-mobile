@@ -71,7 +71,7 @@ export function VerifyCard({ restrictedMinor }: { restrictedMinor: boolean }) {
         </>
       ) : (
         <>
-          {last?.status === 'REJECTED' ? <Text className="rounded-xl bg-red-50 p-3 text-sm text-red-950">Your last request was not accepted: {last.reason}</Text> : null}
+          {last?.status === 'REJECTED' ? <Text className="rounded-xl bg-rose-soft p-3 text-sm text-destructive">Your last request was not accepted: {last.reason}</Text> : null}
           <Text className="text-muted-foreground text-sm">
             {documents
               ? 'No college email? Ask a teacher who knows you to vouch for you, or send proof that you study (an ID card or a fee receipt) for our team to check.'
@@ -91,7 +91,7 @@ export function VerifyCard({ restrictedMinor }: { restrictedMinor: boolean }) {
 }
 
 function AskTeacher({ onSent }: { onSent: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [query, setQuery] = useState('')
   const [settled, setSettled] = useState('')
   const [teacher, setTeacher] = useState<{ id: string; displayName: string; handle: string } | null>(null)
@@ -150,7 +150,7 @@ function AskTeacher({ onSent }: { onSent: () => void }) {
 
 function SendDocuments({ onSent }: { onSent: () => void }) {
   const client = useApolloClient()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [files, setFiles] = useState<Picked[]>([])
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
@@ -230,8 +230,8 @@ export function ReviewRequests({ admin }: { admin?: boolean }) {
 
 function RequestCard({ request: r, onDone }: { request: Request; onDone: () => void }) {
   const client = useApolloClient()
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [review, reviewing] = useMutation(ReviewVerificationRequestDocument)
   const [reason, setReason] = useState('')
   const [error, setError] = useState<string | null>(null)

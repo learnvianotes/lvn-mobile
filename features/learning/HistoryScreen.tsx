@@ -20,7 +20,7 @@ const dateLabel = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateStri
  */
 export function HistoryScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const days = useQuery(LearningHistoryDocument, { variables: { days: 14 }, fetchPolicy: 'cache-and-network' })
   const { fetchMore } = days
   const history = days.data?.learningHistory

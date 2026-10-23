@@ -42,7 +42,7 @@ const ROWS: Row[] = [
 export function ProfileTab() {
   const { data, loading } = useQuery(ViewerDocument)
   const viewer = data?.viewer
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   return (
     <SafeAreaView className="bg-background flex-1">
       <ScrollView contentContainerClassName="gap-5 px-5 pb-32 pt-4">
@@ -81,7 +81,7 @@ function Header({ viewer }: { viewer: ViewerFieldsFragment }) {
         <View className="flex-1 gap-0.5">
           <View className="flex-row items-center gap-1.5">
             <Text className="text-lg font-bold">{viewer.displayName}</Text>
-            {viewer.verified ? <ShieldCheck size={16} color="#16a34a" accessibilityLabel="Verified" /> : null}
+            {viewer.verified ? <ShieldCheck size={16} color="#0f6b45" accessibilityLabel="Verified" /> : null}
           </View>
           <Text className="text-muted-foreground text-sm">@{viewer.handle}</Text>
           {study ? <Text className="text-muted-foreground text-sm">{study}</Text> : null}
@@ -132,8 +132,8 @@ function Achievements() {
 
 /** The rows, then a teacher's Skills tab, the way to teach for students, and the queues of platform admins. */
 function Links({ viewer }: { viewer: ViewerFieldsFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const rows: Row[] = [
     ...ROWS.map((r) => (r.href === '/u/me' ? { ...r, href: `/u/${viewer.handle}` as Href } : r)),
     {

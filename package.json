@@ -4,6 +4,8 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@apollo/client": "^4.3.2",
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo/metro-runtime": "~57.0.16",
     "@hookform/resolvers": "^5.9.1",
     "@react-native-google-signin/google-signin": "^16.1.5",

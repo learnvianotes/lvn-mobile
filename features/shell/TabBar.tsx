@@ -31,7 +31,7 @@ function TabItem({ focused, name, onPress }: { focused: boolean; name: string; o
   const icon = useAnimatedStyle(() => ({ transform: [{ translateY: -2 * p.value }, { scale: 1 + 0.08 * p.value }] }))
   const dot = useAnimatedStyle(() => ({ opacity: p.value, transform: [{ scale: p.value }] }))
   const { icon: Icon, label } = ICONS[name] ?? { icon: House, label: name }
-  const color = String((focused ? primary : muted) ?? '#5f5f73')
+  const color = String((focused ? primary : muted) ?? '#3d4b63')
   return (
     <Pressable
       onPress={onPress}

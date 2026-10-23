@@ -46,7 +46,7 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
  * server counts the time between start and end, at most the plan; the timer here only shows it.
  */
 export function FocusCard() {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const { data } = useQuery(FocusSessionDocument, { fetchPolicy: 'cache-and-network' })
   const refresh = { refetchQueries: [FocusSessionDocument, RhythmDocument], awaitRefetchQueries: true }
   const [start, starting] = useMutation(StartFocusSessionDocument, refresh)
@@ -133,7 +133,7 @@ export function FocusCard() {
 
 /** Rhythm buddies on the phone (lvn-backend ADR-0072): the list follows the live channel. */
 export function BuddiesCard({ shared }: { shared: boolean }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const { data, refetch } = useQuery(RhythmBuddiesDocument, { fetchPolicy: 'cache-and-network' })
   useLive((signal) => {
     if (signal.kind === 'BUDDY_PRESENCE' || signal.kind === 'RECONNECTED') void refetch().catch(() => undefined)

@@ -23,11 +23,11 @@ const KIND: Record<string, string> = { NOTE: 'Note', BLOG: 'Blog', POST: 'Post',
  * Explore; a reaction is the person's own (others see milestones, ADR-0027).
  */
 export function PostCard({ note, topic, onChanged }: { note: PostCardFieldsFragment; topic?: { id: string; title: string } | null; onChanged: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const { palette, scheme } = useTheme()
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const { palette } = useTheme()
   const art = ART[note.kind] ?? ART.NOTE
   const Icon = art.icon
-  const glyph = scheme === 'dark' ? palette.inverse : '#ffffff'
+  const glyph = palette.brandForeground
   const chip = topic ?? note.topics[0] ?? null
   const comments = note.discussion?.commentCount ?? 0
   return (

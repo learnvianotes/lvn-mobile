@@ -15,8 +15,8 @@ import { SavedNotesDocument, SavedResourcesDocument } from '@/graphql/generated/
  */
 export function SavedScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const notes = useQuery(SavedNotesDocument, { variables: { first: 30 }, fetchPolicy: 'cache-and-network' })
   const resources = useQuery(SavedResourcesDocument, { variables: { first: 60 }, fetchPolicy: 'cache-and-network' })
   const noteList = notes.data?.savedNotes.edges.map((e) => e.node) ?? []
