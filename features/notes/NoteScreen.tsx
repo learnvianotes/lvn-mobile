@@ -91,7 +91,7 @@ function Header({ children, title }: { children?: React.ReactNode; title?: strin
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   return (
     <View className="bg-background border-border flex-row items-center gap-2 border-b px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/notes'))} className="rounded-full p-2">
+      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/notes'))} className="size-10 items-center justify-center rounded-full">
         <ArrowLeft size={22} color={fg} />
       </Pressable>
       <Text className="flex-1 text-base font-semibold" numberOfLines={1}>

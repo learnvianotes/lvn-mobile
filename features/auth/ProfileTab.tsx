@@ -9,6 +9,7 @@ import { AchievementBadges } from '@/features/achievements/AchievementBadges'
 import { AccountStanding } from '@/features/moderation/Standing'
 import { useLocal } from '@/features/notes/hooks'
 import * as db from '@/features/notes/store/db'
+import { AppearanceCard } from '@/features/settings/AppearanceCard'
 import { ReviewRequests, VerifyCard } from '@/features/verification/Verification'
 import { MyAchievementsDocument, ProfileTabDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { YEARS } from './AccountDetails'
@@ -49,10 +50,11 @@ export function ProfileTab() {
           <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">
             Profile
           </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Settings" hitSlop={8} onPress={() => router.push('/settings')} className="rounded-full p-2">
+          <Pressable accessibilityRole="button" accessibilityLabel="Settings" hitSlop={8} onPress={() => router.push('/settings')} className="size-10 items-center justify-center rounded-full">
             <Settings size={22} color={fg} />
           </Pressable>
         </View>
+        <AppearanceCard />
         {viewer ? <AccountStanding userId={viewer.id} /> : null}
         {viewer ? <Header viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}

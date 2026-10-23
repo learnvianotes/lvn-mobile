@@ -1,8 +1,8 @@
 import { router } from 'expo-router'
-import { LinearGradient } from 'expo-linear-gradient'
 import { BookOpen, FolderGit2, Megaphone, MessageSquare, PenLine } from 'lucide-react-native'
 import { Image, Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
+import { useTheme } from '@/lib/theme'
 import { Text } from '@/components/ui/text'
 import { ago } from '@/features/notifications/describe'
 import { ReactionBar } from '@/features/discussion/Reactions'
@@ -10,11 +10,11 @@ import { SaveNoteToggle } from '@/features/saved/SaveNoteToggle'
 import type { PostCardFieldsFragment } from '@/graphql/generated/graphql'
 
 const ART = {
-  NOTE: { icon: BookOpen, colors: ['#2563EB', '#0891B2'] },
-  BLOG: { icon: PenLine, colors: ['#EA580C', '#DB2777'] },
-  POST: { icon: Megaphone, colors: ['#0284C7', '#2563EB'] },
-  PROJECT: { icon: FolderGit2, colors: ['#059669', '#0284C7'] },
-} as const
+  NOTE: { icon: BookOpen, tone: 'brand' as const },
+  BLOG: { icon: PenLine, tone: 'warning' as const },
+  POST: { icon: Megaphone, tone: 'info' as const },
+  PROJECT: { icon: FolderGit2, tone: 'success' as const },
+}
 const KIND: Record<string, string> = { NOTE: 'Note', BLOG: 'Blog', POST: 'Post', PROJECT: 'Project' }
 
 /**
@@ -24,8 +24,10 @@ const KIND: Record<string, string> = { NOTE: 'Note', BLOG: 'Blog', POST: 'Post',
  */
 export function PostCard({ note, topic, onChanged }: { note: PostCardFieldsFragment; topic?: { id: string; title: string } | null; onChanged: () => void }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const { palette, scheme } = useTheme()
   const art = ART[note.kind] ?? ART.NOTE
   const Icon = art.icon
+  const glyph = scheme === 'dark' ? palette.inverse : '#ffffff'
   const chip = topic ?? note.topics[0] ?? null
   const comments = note.discussion?.commentCount ?? 0
   return (
@@ -34,9 +36,9 @@ export function PostCard({ note, topic, onChanged }: { note: PostCardFieldsFragm
         {note.previewPicture ? (
           <Image source={{ uri: note.previewPicture.mediumUrl ?? note.previewPicture.url }} style={{ height: 150, width: '100%' }} resizeMode="cover" accessibilityIgnoresInvertColors />
         ) : (
-          <LinearGradient colors={[...art.colors]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ height: 72, alignItems: 'center', justifyContent: 'center' }}>
-            <Icon size={26} color="#ffffff" />
-          </LinearGradient>
+          <View style={{ height: 72, alignItems: 'center', justifyContent: 'center', backgroundColor: palette[art.tone] }}>
+            <Icon size={26} color={glyph} />
+          </View>
         )}
         <View className="gap-1.5 px-4 pt-3">
           <Text className="text-muted-foreground text-xs">

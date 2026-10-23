@@ -127,7 +127,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={leave} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={leave} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={String(fg ?? '#111827')} />
         </Pressable>
         <Text className="flex-1 text-lg font-bold" accessibilityRole="header">

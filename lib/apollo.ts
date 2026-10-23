@@ -1,5 +1,6 @@
 import { ApolloClient, HttpLink, InMemoryCache } from '@apollo/client'
 import { env } from '@/lib/env'
+import { fetchWithDeadline } from '@/lib/net/deadline'
 import { getSession, refreshSession } from './auth/session'
 
 const isUnauthenticated = (body: { errors?: { extensions?: { code?: string } }[] }) => body.errors?.some((e) => e.extensions?.code === 'UNAUTHENTICATED') ?? false
@@ -14,7 +15,7 @@ export const authFetch: typeof fetch = async (input, init) => {
     const headers = new Headers(init?.headers)
     headers.set('x-lvn-client', 'mobile')
     if (token) headers.set('authorization', `Bearer ${token}`)
-    return fetch(input, { ...init, headers })
+    return fetchWithDeadline(input, { ...init, headers })
   }
   const token = getSession().accessToken
   const res = await send(token)

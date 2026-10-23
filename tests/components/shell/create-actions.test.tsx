@@ -42,9 +42,9 @@ const renderInApp = (ui: React.ReactElement) => render(<ApolloProvider client={c
 describe('Home', () => {
   it('the search bar opens Explore ready to type, and the avatar shows the person and opens the Profile tab', async () => {
     await renderInApp(<HomeHeader />)
-    await fireEvent.press(screen.getByRole('search', { name: 'Search notes, topics and people' }))
+    await fireEvent.press(screen.getByRole('search', { name: 'Search notes, topics, people, or ask AI…' }))
     expect(router.push).toHaveBeenCalledWith({ pathname: '/explore', params: { focus: expect.any(String) } })
-    const avatar = screen.getByRole('button', { name: 'Your profile' })
+    const avatar = screen.getByRole('button', { name: 'Your account' })
     expect(await screen.findByText('R')).toBeOnTheScreen()
     await fireEvent.press(avatar)
     expect(router.push).toHaveBeenCalledWith('/profile')

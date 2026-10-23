@@ -33,6 +33,8 @@ beforeEach(() => {
 it('shows who the person is, with their notes, followers and following; each count opens its list', async () => {
   await inApp(<ProfileTab />)
   expect(await screen.findByText('Asha Rao')).toBeOnTheScreen()
+  expect(screen.getByRole('header', { name: 'Appearance' })).toBeOnTheScreen()
+  expect(screen.getByRole('radio', { name: 'Navy' })).toBeOnTheScreen()
   expect(screen.getByText('@asharao')).toBeOnTheScreen()
   expect(await screen.findByText('CSE · 3rd year')).toBeOnTheScreen()
   // Notes are the person's own on this phone, not ones shared with them.

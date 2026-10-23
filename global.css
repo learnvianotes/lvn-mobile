@@ -1,8 +1,7 @@
 /*
- * LearnViaNotes design tokens for the mobile app (ADR-0029). Names follow shadcn/ui so lvn-web and lvn-mobile share
- * one vocabulary; values come from the LearnViaNotes UI board (lvn-backend docs/design/ui-reference.md).
- * Every text/background pair passes WCAG AA; the dark accent is #60A5FA because #2563EB fails on dark surfaces. No purple,
- * lavender, indigo or violet anywhere (lvn-backend ADR-0094).
+ * LearnViaNotes tokens (docs/ui-revamp/tokens.json). Navy light is the stylesheet default.
+ * lib/theme/persist.ts reads cnote:theme and cnote:accent and applies the accent before the first screen.
+ * No purple, violet, indigo, lavender or pink. --color-rose is danger, so older class names are not pink.
  */
 @import 'tailwindcss';
 @import 'uniwind';
@@ -10,70 +9,81 @@
 @layer theme {
   :root {
     @variant light {
-      --color-background: #f6f8fb;
-      --color-foreground: #111827;
+      --color-background: #f4f6f8;
+      --color-foreground: #152033;
       --color-card: #ffffff;
-      --color-card-foreground: #111827;
+      --color-card-foreground: #152033;
       --color-popover: #ffffff;
-      --color-popover-foreground: #111827;
-      --color-primary: #2563eb;
+      --color-popover-foreground: #152033;
+      --color-primary: #1e4d8c;
       --color-primary-foreground: #ffffff;
-      --color-secondary: #eff6ff;
-      --color-secondary-foreground: #1e40af;
-      --color-muted: #f1f4f8;
-      --color-muted-foreground: #5b6475;
-      --color-accent: #eff6ff;
-      --color-accent-foreground: #1e40af;
-      --color-destructive: #dc2626;
-      --color-border: #e3e8ef;
-      --color-input: #e3e8ef;
-      --color-ring: #2563eb;
-      /* brand extras */
-      --color-hero: #0b1220;
-      --color-hero-foreground: #f4f4f5;
-      --color-success: #15803d;
-      --color-success-soft: #dcfce7;
-      --color-warm: #c2410c;
-      --color-warm-soft: #ffedd5;
-      --color-rose: #be123c;
-      --color-rose-soft: #ffe4e6;
-      --color-sky: #0369a1;
-      --color-sky-soft: #e0f2fe;
+      --color-secondary: #e7f0fa;
+      --color-secondary-foreground: #1e4d8c;
+      --color-muted: #e8edf3;
+      --color-muted-foreground: #3d4b63;
+      --color-accent: #e7f0fa;
+      --color-accent-foreground: #1e4d8c;
+      --color-destructive: #9f1d1d;
+      --color-border: #d5dde8;
+      --color-input: #d5dde8;
+      --color-ring: #1e4d8c;
+      --color-hero: #152033;
+      --color-hero-foreground: #f4f7fb;
+      --color-hero-muted: #c5d4e8;
+      --color-success: #0f6b45;
+      --color-success-soft: #e7f6ee;
+      --color-warm: #8a4b08;
+      --color-warm-soft: #fbf3e4;
+      --color-rose: #9f1d1d;
+      --color-rose-soft: #fdecec;
+      --color-sky: #0f5f6b;
+      --color-sky-soft: #e6f4f6;
+      --color-info: #0f5f6b;
+      --color-warning: #8a4b08;
+      --color-highlight: #f5e6b8;
     }
     @variant dark {
-      --color-background: #0d1117;
-      --color-foreground: #f4f4f5;
-      --color-card: #161b22;
-      --color-card-foreground: #f4f4f5;
-      --color-popover: #161b22;
-      --color-popover-foreground: #f4f4f5;
-      --color-primary: #60a5fa;
-      --color-primary-foreground: #0d1117;
-      --color-secondary: #172554;
-      --color-secondary-foreground: #bfdbfe;
-      --color-muted: #1f2630;
-      --color-muted-foreground: #a1a1aa;
-      --color-accent: #172554;
-      --color-accent-foreground: #bfdbfe;
-      --color-destructive: #f87171;
-      --color-border: #2d3440;
-      --color-input: #2d3440;
-      --color-ring: #60a5fa;
-      --color-hero: #0b1220;
-      --color-hero-foreground: #f4f4f5;
-      --color-success: #4ade80;
-      --color-success-soft: #14532d;
-      --color-warm: #fdba74;
-      --color-warm-soft: #431407;
-      --color-rose: #fda4af;
-      --color-rose-soft: #4c0519;
-      --color-sky: #7dd3fc;
-      --color-sky-soft: #082f49;
+      --color-background: #0e1520;
+      --color-foreground: #f4f7fb;
+      --color-card: #171e28;
+      --color-card-foreground: #f4f7fb;
+      --color-popover: #171e28;
+      --color-popover-foreground: #f4f7fb;
+      --color-primary: #9dc0ea;
+      --color-primary-foreground: #0e1520;
+      --color-secondary: #1a2c44;
+      --color-secondary-foreground: #9dc0ea;
+      --color-muted: #212a36;
+      --color-muted-foreground: #b7c3d4;
+      --color-accent: #1a2c44;
+      --color-accent-foreground: #9dc0ea;
+      --color-destructive: #f0a0a0;
+      --color-border: #2e3a4a;
+      --color-input: #2e3a4a;
+      --color-ring: #9dc0ea;
+      --color-hero: #0a1018;
+      --color-hero-foreground: #f4f7fb;
+      --color-hero-muted: #c5d4e8;
+      --color-success: #6ee7a8;
+      --color-success-soft: #123226;
+      --color-warm: #f5c16c;
+      --color-warm-soft: #3a2a10;
+      --color-rose: #f0a0a0;
+      --color-rose-soft: #3a1717;
+      --color-sky: #7fd4d0;
+      --color-sky-soft: #123033;
+      --color-info: #7fd4d0;
+      --color-warning: #f5c16c;
+      --color-highlight: #5c4a1e;
     }
   }
 }
 
 @theme {
-  --radius: 0.75rem;
-  --radius-card: 1rem;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-2xl: 24px;
+  --radius-3xl: 24px;
 }
