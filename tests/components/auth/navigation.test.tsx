@@ -36,10 +36,10 @@ describe('signed out', () => {
   it('opens on the welcome screen, whatever link the app was opened with', async () => {
     mockApi({})
     await render('./app', { initialUrl: '/explore' })
-    expect(screen.getByText('Turn your notes into knowledge that sticks.')).toBeVisible()
+    expect(screen.getByRole('header', { name: /Your Learning Community for a Brighter Tomorrow/ })).toBeVisible()
     // Without Google in this build, email sign-up is the first action.
     expect(screen.queryByTestId('welcome-google')).toBeNull()
-    expect(screen.getByText('Sign up with email')).toBeVisible()
+    expect(screen.getByText('Get Started Free')).toBeVisible()
     expect(screen.queryByText('Explore')).toBeNull()
   })
 
@@ -51,7 +51,7 @@ describe('signed out', () => {
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
     await press(screen.getByRole('button', { name: 'Sign in' }))
     await settle()
-    expect(screen.getByLabelText('Search notes, topics and people')).toBeVisible()
+    expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
     expect(api.calls.find((c) => c.op === 'SignIn')!.variables).toEqual({ input: { email: 'asha@example.com', password: 'a long enough passphrase' } })
   })
 
@@ -173,7 +173,7 @@ describe('signed in', () => {
     await press(screen.getByText('Continue'))
     await press(screen.getByText('Yes, that’s right'))
     await settle()
-    expect(screen.getByLabelText('Search notes, topics and people')).toBeVisible()
+    expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
   })
 
   it('shows the account in Settings and signs out back to the welcome screen', async () => {
@@ -188,7 +188,7 @@ describe('signed in', () => {
     await press(screen.getByRole('button', { name: 'Settings' }))
     expect(screen.getByText('by a teacher')).toBeVisible()
     await press(screen.getByText('Sign out'))
-    expect(screen.getByText('Sign up with email')).toBeVisible()
+    expect(screen.getByText('Get Started Free')).toBeVisible()
     expect(api.calls.find((c) => c.op === 'SignOut')!.headers.get('authorization')).toMatch(/^Bearer /)
   })
 })

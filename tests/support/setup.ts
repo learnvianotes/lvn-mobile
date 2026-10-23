@@ -24,6 +24,21 @@ Object.assign(process.env, {
 // expo-secure-store has no Keychain/Keystore in Node: an in-memory store per test file (tests/support/secure-store.ts).
 jest.mock('expo-secure-store', () => require('./secure-store').secureStore)
 
+// Theme uses the web localStorage keys. Native installs them via expo-sqlite; tests keep an in-memory Storage.
+jest.mock('expo-sqlite/localStorage/install', () => ({}))
+const memory = new Map<string, string>()
+const memoryStorage = {
+  getItem: (key: string) => (memory.has(key) ? memory.get(key)! : null),
+  setItem: (key: string, value: string) => void memory.set(key, String(value)),
+  removeItem: (key: string) => void memory.delete(key),
+  clear: () => memory.clear(),
+  key: (index: number) => Array.from(memory.keys())[index] ?? null,
+  get length() {
+    return memory.size
+  },
+}
+Object.defineProperty(globalThis, 'localStorage', { configurable: true, writable: true, value: memoryStorage })
+
 // No native splash screen in Node (its JS warns that options need a development build).
 jest.mock('expo-splash-screen', () => ({ preventAutoHideAsync: jest.fn(async () => true), hideAsync: jest.fn(async () => undefined), setOptions: jest.fn() }))
 

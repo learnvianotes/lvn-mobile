@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { env } from '@/lib/env'
+import { fetchWithDeadline } from '@/lib/net/deadline'
 import { clearTokens, loadTokens, saveTokens } from './storage'
 
 /**
@@ -100,7 +101,7 @@ export function refreshSession(): Promise<boolean> {
       }
       let body: { data?: { refreshSession?: { session?: IssuedSession } } | null; errors?: { extensions?: { code?: string } }[] }
       try {
-        const res = await fetch(env.EXPO_PUBLIC_API_URL, {
+        const res = await fetchWithDeadline(env.EXPO_PUBLIC_API_URL, {
           method: 'POST',
           headers: { 'content-type': 'application/json', 'x-lvn-client': 'mobile' },
           body: JSON.stringify({ query: REFRESH, variables: { refreshToken: stored.refreshToken } }),
@@ -127,6 +128,12 @@ export function refreshSession(): Promise<boolean> {
     }
   })()
   return inFlight
+}
+
+/** Ask again after "LearnViaNotes did not answer". */
+export async function retryRestore(): Promise<void> {
+  set({ status: 'restoring' })
+  await restoreSession()
 }
 
 /** On launch: signed out without a stored refresh token; otherwise the session is renewed (or kept, offline). */

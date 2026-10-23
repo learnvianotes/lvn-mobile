@@ -19,8 +19,8 @@ describe('HeroCard', () => {
   it('greets the learner by first name with the day’s line (lvn-backend ADR-0087)', async () => {
     mockApi({ DailyLine: () => line('Biology, step by step', 'Twenty days to your mid-term: one topic today keeps you on track.') })
     await render(<ApolloProvider client={createApolloClient()}><HeroCard firstName="Asha" /></ApolloProvider>)
-    expect(screen.getByText('Keep learning, Asha')).toBeOnTheScreen()
-    expect(await screen.findByRole('header', { name: 'Biology, step by step' })).toBeOnTheScreen()
+    expect(screen.getByRole('header', { name: 'Keep learning, Asha' })).toBeOnTheScreen()
+    expect(await screen.findByText('Biology, step by step')).toBeOnTheScreen()
     expect(screen.getByText('Twenty days to your mid-term: one topic today keeps you on track.')).toBeOnTheScreen()
   })
 
@@ -28,8 +28,8 @@ describe('HeroCard', () => {
     let asked = 0
     mockApi({ DailyLine: () => (++asked === 1 ? line('Small steps count', 'Ten focused minutes today beat a perfect plan for someday.', true) : line('Your week, your way', 'Two of three days done: one more and the week is yours.')) })
     await render(<ApolloProvider client={createApolloClient()}><HeroCard firstName="Asha" /></ApolloProvider>)
-    expect(await screen.findByRole('header', { name: 'Small steps count' })).toBeOnTheScreen()
-    expect(await screen.findByRole('header', { name: 'Your week, your way' }, { timeout: 7000 })).toBeOnTheScreen()
+    expect(await screen.findByText('Small steps count')).toBeOnTheScreen()
+    expect(await screen.findByText('Your week, your way', {}, { timeout: 7000 })).toBeOnTheScreen()
   }, 10_000)
 })
 
@@ -42,8 +42,9 @@ describe('HomeHeader', () => {
       </ApolloProvider>,
     )
     expect(screen.getByLabelText('LearnViaNotes')).toBeOnTheScreen()
+    expect(screen.getByRole('button', { name: 'Appearance' })).toBeOnTheScreen()
     expect(await screen.findByRole('button', { name: 'Notifications, 2 unread' })).toBeOnTheScreen()
-    expect(screen.getByLabelText('Search notes, topics and people')).toBeOnTheScreen()
+    expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeOnTheScreen()
   })
 })
 

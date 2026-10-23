@@ -221,7 +221,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
   return (
     <View className="bg-background flex-1">
       <View className="bg-background border-border flex-row items-center gap-1 border-b px-2 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace(`/notes/${noteId}`))} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace(`/notes/${noteId}`))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <View className="flex-1">

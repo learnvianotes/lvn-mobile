@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from '@apollo/client/react'
-import { LinearGradient } from 'expo-linear-gradient'
 import { router } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { X } from 'lucide-react-native'
@@ -10,7 +9,7 @@ import Svg, { Circle } from 'react-native-svg'
 import { Text } from '@/components/ui/text'
 import { EndFocusSessionDocument, FocusSessionDocument, RhythmDocument, StartFocusSessionDocument } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
-import { cn } from '@/lib/utils'
+import { useTheme } from '@/lib/theme'
 import { phaseOf } from './FocusCard'
 import { coreName } from './recommendationHref'
 
@@ -31,6 +30,7 @@ type Preset = (typeof PRESETS)[number]['key']
  */
 export function FocusScreen() {
   const insets = useSafeAreaInsets()
+  const { palette } = useTheme()
   const { data } = useQuery(FocusSessionDocument, { fetchPolicy: 'cache-and-network' })
   const refresh = { refetchQueries: [FocusSessionDocument, RhythmDocument], awaitRefetchQueries: true }
   const [start, starting] = useMutation(StartFocusSessionDocument, refresh)
@@ -93,16 +93,15 @@ export function FocusScreen() {
   }
 
   return (
-    <View className="flex-1">
+    <View className="flex-1" style={{ backgroundColor: palette.inverse }}>
       <StatusBar style="light" />
-      <LinearGradient colors={['#0f0c29', '#172554', '#1e3a8a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
       <View className="flex-1 px-6" style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }}>
         <View className="flex-row items-center justify-between">
-          <Text className="flex-1 text-lg font-bold" style={{ color: '#ffffff' }} accessibilityRole="header">
+          <Text className="flex-1 text-lg font-bold" style={{ color: palette.inverseInk }} accessibilityRole="header">
             Focus mode
           </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Close focus mode" hitSlop={8} onPress={() => (router.canGoBack() ? router.back() : router.replace('/rhythm'))} className="rounded-full p-2">
-            <X size={24} color="#ffffff" />
+          <Pressable accessibilityRole="button" accessibilityLabel="Close focus mode" hitSlop={8} onPress={() => (router.canGoBack() ? router.back() : router.replace('/rhythm'))} className="size-10 items-center justify-center rounded-full">
+            <X size={24} color={palette.inverseInk} />
           </Pressable>
         </View>
 
@@ -110,8 +109,8 @@ export function FocusScreen() {
           {PRESETS.map((p) => {
             const on = p.key === preset
             return (
-              <Pressable key={p.key} accessibilityRole="tab" accessibilityState={{ selected: on }} disabled={!!session && p.key === 'POMODORO'} onPress={() => void choose(p.key)} className={cn('rounded-full px-4 py-2', on ? 'bg-white' : 'bg-white/10')}>
-                <Text className="text-sm font-semibold" style={{ color: on ? '#172554' : '#dbeafe' }}>
+              <Pressable key={p.key} accessibilityRole="tab" accessibilityState={{ selected: on }} disabled={!!session && p.key === 'POMODORO'} onPress={() => void choose(p.key)} className="min-h-10 justify-center rounded-full px-4" style={{ backgroundColor: on ? palette.inverseInk : 'transparent' }}>
+                <Text className="text-sm font-semibold" style={{ color: on ? palette.inverse : palette.inverseMuted }}>
                   {p.label}
                 </Text>
               </Pressable>
@@ -130,7 +129,7 @@ export function FocusScreen() {
               <Circle cx={130} cy={130} r={118} stroke="rgba(255,255,255,0.12)" strokeWidth={10} fill="none" />
               <Circle cx={130} cy={130} r={118} stroke="#93c5fd" strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 118 * share} ${2 * Math.PI * 118}`} />
             </Svg>
-            <Text className="text-6xl font-extrabold" style={{ color: '#ffffff', fontVariant: ['tabular-nums'] }} accessibilityLabel={`${clock(left)} left`}>
+            <Text className="text-6xl font-extrabold" style={{ color: palette.inverseInk, fontVariant: ['tabular-nums'] }} accessibilityLabel={`${clock(left)} left`}>
               {clock(left)}
             </Text>
             <Text className="mt-1 text-sm" style={{ color: '#bfdbfe' }}>
@@ -184,9 +183,10 @@ export function FocusScreen() {
 }
 
 function Big({ label, onPress, ghost, disabled }: { label: string; onPress: () => void; ghost?: boolean; disabled?: boolean }) {
+  const { palette } = useTheme()
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} className={cn('min-w-32 items-center rounded-full px-6 py-3.5', ghost ? 'border border-white/40' : 'bg-white')}>
-      <Text className="text-base font-bold" style={{ color: ghost ? '#ffffff' : '#172554' }}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} className="min-h-11 min-w-32 items-center justify-center rounded-full px-6" style={{ backgroundColor: ghost ? 'transparent' : palette.inverseInk, borderWidth: ghost ? 1 : 0, borderColor: palette.inverseMuted }}>
+      <Text className="text-base font-bold" style={{ color: ghost ? palette.inverseInk : palette.inverse }}>
         {label}
       </Text>
     </Pressable>

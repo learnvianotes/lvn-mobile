@@ -17,7 +17,7 @@ const LOOK: Record<AchievementKindName, { icon: LucideIcon; bg: string; fg: stri
   QUIZ_MASTER: { icon: Target, bg: '#fef3c7', fg: '#b45309' },
   EXAM_READY: { icon: ClipboardCheck, bg: '#e0f2fe', fg: '#0369a1' },
   RHYTHM_WEEKS: { icon: CalendarCheck, bg: '#ffedd5', fg: '#c2410c' },
-  SUBJECT_CONTRIBUTOR: { icon: HandHeart, bg: '#fce7f3', fg: '#be185d' },
+  SUBJECT_CONTRIBUTOR: { icon: HandHeart, bg: '#e6f4f6', fg: '#0f5f6b' },
 }
 
 /**

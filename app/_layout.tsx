@@ -1,3 +1,4 @@
+import 'expo-sqlite/localStorage/install'
 import '../global.css'
 import { ApolloProvider } from '@apollo/client/react'
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router'
@@ -11,11 +12,14 @@ import { useCSSVariable, useUniwind } from 'uniwind'
 import { NotesSync } from '@/features/notes/NotesSync'
 import { createApolloClient } from '@/lib/apollo'
 import { watchTimeZone } from '@/lib/learning'
-import { restoreSession, useSession } from '@/lib/auth/session'
+import { restoreSession, retryRestore, useSession } from '@/lib/auth/session'
 import { startErrorReporting } from '@/lib/observability'
 import { TermsGate } from '@/features/auth/TermsGate'
 import { PushSetup } from '@/features/push/push'
+import { LoadFailed, Loading } from '@/features/shell/LoadState'
 import { OfflineBanner } from '@/features/shell/OfflineBanner'
+import { REQUEST_DEADLINE_MS } from '@/lib/net/deadline'
+import { ThemeRoot } from '@/lib/theme/ThemeRoot'
 
 // First, so a crash during start-up is reported too (when this build has a Sentry DSN).
 startErrorReporting()
@@ -63,19 +67,38 @@ export default function RootLayout() {
   }, [])
   // Days and countdowns in the phone's zone from the first screen (lvn-backend ADR-0067, ADR-0070).
   useEffect(() => watchTimeZone(), [])
+  const [attempt, setAttempt] = useState(0)
+  const [gaveUp, setGaveUp] = useState(false)
   useEffect(() => {
-    if (status !== 'restoring') void SplashScreen.hideAsync()
-  }, [status])
+    if (status !== 'restoring') {
+      void SplashScreen.hideAsync()
+      return
+    }
+    const timer = setTimeout(() => {
+      setGaveUp(true)
+      void SplashScreen.hideAsync()
+    }, REQUEST_DEADLINE_MS)
+    return () => clearTimeout(timer)
+  }, [status, attempt])
 
-  if (status === 'restoring') return null
   const signedIn = status === 'signed-in'
   return (
     <ApolloProvider client={client}>
       <SafeAreaProvider>
+        <ThemeRoot>
         <ThemeProvider value={navTheme}>
           <View style={{ flex: 1, backgroundColor: navTheme.colors.background }}>
             <StatusBar style="auto" />
-            {/* Offline, a strip under the status bar pushes every signed-in screen down (P9e). */}
+            {status === 'restoring' ? (
+              <View className="flex-1 justify-center px-6">
+                {gaveUp ? (
+                  <LoadFailed message="LearnViaNotes did not answer. Check your connection and try again." onRetry={() => { setGaveUp(false); setAttempt((n) => n + 1); void retryRestore() }} />
+                ) : (
+                  <Loading />
+                )}
+              </View>
+            ) : (
+            /* Offline, a strip under the status bar pushes every signed-in screen down (P9e). */
             <OfflineBanner enabled={signedIn && registered}>
               {/* Who sees what (§7.1): signed out → sign-in screens; a provider account without its details → the
                   details form; everyone else → the app. Each guard names where a failed check goes: SDK 58 otherwise
@@ -125,6 +148,7 @@ export default function RootLayout() {
                 </Stack.Protected>
               </Stack>
             </OfflineBanner>
+            )}
             {/* Sheets and dialogs render here, above every screen (react-native-reusables convention). */}
             <PortalHost />
             {signedIn && registered ? <NotesSync /> : null}
@@ -132,6 +156,7 @@ export default function RootLayout() {
             {signedIn && registered ? <TermsGate /> : null}
           </View>
         </ThemeProvider>
+        </ThemeRoot>
       </SafeAreaProvider>
     </ApolloProvider>
   )

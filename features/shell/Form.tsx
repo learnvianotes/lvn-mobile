@@ -12,7 +12,7 @@ export function ScreenHeader({ title, right }: { title?: string; right?: ReactNo
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   return (
     <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
         <ArrowLeft size={22} color={fg} />
       </Pressable>
       {title ? (

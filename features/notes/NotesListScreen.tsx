@@ -15,7 +15,7 @@ import * as actions from './store/actions'
 import * as db from './store/db'
 import { syncNow } from './sync/engine'
 
-const ACCENTS = ['#3B82F6', '#0EA5E9', '#10B981', '#F59E0B', '#EC4899', '#06B6D4']
+const ACCENTS = ['#1e4d8c', '#0f5f6b', '#0f6b45', '#8a4b08', '#163e73', '#2c3a50']
 const accentOf = (id: string) => ACCENTS[parseInt(id.replace(/-/g, '').slice(-4), 16) % ACCENTS.length]!
 
 function ago(iso: string): string {
@@ -86,7 +86,7 @@ export function NotesListScreen() {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <View className="flex-1">

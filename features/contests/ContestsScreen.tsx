@@ -5,6 +5,7 @@ import { Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { resolvePalette, useTheme } from '@/lib/theme'
 import { LoadState } from '@/features/shell/LoadState'
 import { ContestsDocument, type ContestsQuery } from '@/graphql/generated/graphql'
 
@@ -26,7 +27,7 @@ export function ContestsScreen() {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-lg font-bold" accessibilityRole="header">
@@ -46,28 +47,33 @@ export function ContestsScreen() {
 /** The open contest, as board A draws its "Weekly Contest" card; Home shows it too. */
 export function ContestCard({ contest: c }: { contest: Item }) {
   const done = c.viewerAttempt?.finished
+  const { palette, accent } = useTheme()
+  const amber = resolvePalette('dark', accent).warning
   return (
-    <View className="gap-3 rounded-3xl p-5" style={{ backgroundColor: '#0B1220' }}>
+    <View className="gap-3 overflow-hidden rounded-3xl" style={{ backgroundColor: palette.inverse }}>
+      <View className="h-1" style={{ backgroundColor: palette.brand }} />
+      <View className="gap-3 p-5 pt-4">
       <View className="flex-row items-start gap-3">
         <View className="flex-1 gap-1">
-          <Text className="text-xs font-semibold uppercase" style={{ color: '#bfdbfe' }}>
-            Weekly contest
+          <Text className="text-xs font-semibold uppercase" style={{ color: palette.inverseMuted }}>
+            Weekly
           </Text>
-          <Text className="text-xl font-extrabold" style={{ color: '#ffffff' }}>
+          <Text className="text-xl font-bold" accessibilityRole="header" style={{ color: palette.inverseInk }}>
             {c.title}
           </Text>
-          <Text className="text-sm" style={{ color: '#dbeafe' }}>
+          <Text className="text-sm" style={{ color: palette.inverseMuted }}>
             {c.subjectTitle ? `Test yourself on ${c.subjectTitle}.` : 'Test yourself.'}
           </Text>
         </View>
-        <Trophy size={44} color="#fcd34d" />
+        <Trophy size={40} color={amber} />
       </View>
-      <Text className="text-sm" style={{ color: '#dbeafe' }}>
+      <Text className="text-sm" style={{ color: palette.inverseMuted }}>
         {[`${c.questionCount} questions`, `${c.minutes} minutes`, c.participantsMilestone ? `${c.participantsMilestone.toLocaleString('en-IN')}+ taking part` : null].filter(Boolean).join(' · ')}
       </Text>
-      <Pressable accessibilityRole="link" onPress={() => router.push(`/contests/${c.id}`)} className="bg-primary items-center rounded-xl py-3">
+      <Pressable accessibilityRole="link" onPress={() => router.push(`/contests/${c.id}`)} className="bg-primary min-h-11 items-center justify-center rounded-[14px]">
         <Text className="text-primary-foreground font-semibold">{done ? 'See your answers' : c.viewerAttempt ? 'Continue' : 'Join now'}</Text>
       </Pressable>
+      </View>
     </View>
   )
 }
