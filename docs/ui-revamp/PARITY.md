@@ -67,4 +67,4 @@ Every row is required. `docs/ui-revamp/tokens.json` is the web file from `lvn-we
 - Signed-out deep links open the landing rather than `/sign-in?next=`.
 - Home greeting is “Keep learning”, not a clock greeting, so the daily line stays the sentence under one stable heading.
 - Legal documents open on the web origin.
-- Store icon PNGs are rendered by `scripts/brand-assets.mjs` (needs `rsvg-convert`). The in-app mark uses the active brand from `tokens.json`. The raster files are regenerated when that tool is available.
+- Store icon PNGs were not regenerated: `scripts/brand-assets.mjs` needs `rsvg-convert`, which is not on this machine. `logo-paths.json` and the SVG sources use the navy token colours. The in-app mark uses the active brand from `tokens.json`.
