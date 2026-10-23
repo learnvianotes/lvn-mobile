@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { mimeOf, UploadError, uploadFile } from '@/features/notes/media/NoteMedia'
+import { useUploadsEnabled } from '@/features/notes/media/uploads'
 import { Field, ScreenHeader } from '@/features/shell/Form'
 import { LoadState } from '@/features/shell/LoadState'
 import { MyResourcesDocument, ResourceDocument, ResourcePreviewDocument, ResourceTopicOptionsDocument, SubmitResourceDocument, UpdateResourceDocument, type ResourceFieldsFragment, type ResourceType } from '@/graphql/generated/graphql'
@@ -45,6 +46,7 @@ export function ResourceFormScreen({ id }: { id?: string }) {
 }
 
 function Form({ resource }: { resource?: ResourceFieldsFragment }) {
+  const uploadsOn = useUploadsEnabled()
   const insets = useSafeAreaInsets()
   const client = useApolloClient()
   const [url, setUrl] = useState(resource?.url ?? '')
@@ -172,7 +174,8 @@ function Form({ resource }: { resource?: ResourceFieldsFragment }) {
               <Switch accessibilityLabel="Use the picture from the page" value={useFound} onValueChange={setUseFound} />
             </View>
           ) : null}
-          <SmallButton label="Choose a picture" onPress={() => void choosePicture()} />
+          {/* A picture from the phone is an upload (lvn-backend ADR-0097); one found at the link is not. */}
+          {uploadsOn ? <SmallButton label="Choose a picture" onPress={() => void choosePicture()} /> : null}
         </View>
         {error ? (
           <Text accessibilityRole="alert" className="text-destructive text-sm">

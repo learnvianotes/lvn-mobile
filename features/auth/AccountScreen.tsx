@@ -10,6 +10,7 @@ import { Text } from '@/components/ui/text'
 import { SignOutDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { signedOut } from '@/lib/auth/session'
 import { ImportCard } from '@/features/data/ImportCard'
+import { useUploadsEnabled } from '@/features/notes/media/uploads'
 import { YourDataCard } from '@/features/data/YourDataCard'
 import { DeleteAccountCard } from '@/features/data/DeleteAccountCard'
 import { InstitutionalEmailCard, LegacyDataCard, StudyDetailsCard } from './AccountDetails'
@@ -29,6 +30,7 @@ const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
 export function AccountScreen() {
   const { data, loading } = useQuery(ViewerDocument)
   const viewer = data?.viewer
+  const uploadsOn = useUploadsEnabled()
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
   return (
@@ -49,7 +51,8 @@ export function AccountScreen() {
         {viewer ? <AiAccountCard className={card} /> : null}
         {viewer ? <NotificationSettingsLink /> : null}
         {viewer ? <YourDataCard /> : null}
-        {viewer ? <ImportCard /> : null}
+        {/* Importing uploads the file: only while uploads are on (lvn-backend ADR-0097). */}
+        {viewer && uploadsOn ? <ImportCard /> : null}
         <SignOutButton />
         {viewer ? <DeleteAccountCard /> : null}
       </ScrollView>

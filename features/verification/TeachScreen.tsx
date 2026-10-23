@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { mimeOf, UploadError, uploadFile } from '@/features/notes/media/NoteMedia'
+import { useUploadsEnabled } from '@/features/notes/media/uploads'
 import { LoadState } from '@/features/shell/LoadState'
 import { ApplyToTeachDocument, MyTeacherApplicationDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
@@ -84,6 +85,7 @@ function Card({ title, lead }: { title: string; lead: string }) {
 }
 
 function ApplyForm({ onSent }: { onSent: () => void }) {
+  const uploadsOn = useUploadsEnabled()
   const client = useApolloClient()
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
   const [institution, setInstitution] = useState('')
@@ -122,7 +124,8 @@ function ApplyForm({ onSent }: { onSent: () => void }) {
       <TextInput accessibilityLabel="Where you teach" placeholder="Where you teach: college, school or organisation" placeholderTextColor={muted} maxLength={200} value={institution} onChangeText={setInstitution} className={field} />
       <TextInput accessibilityLabel="What you teach (optional)" placeholder="What you teach (optional)" placeholderTextColor={muted} maxLength={200} value={subjects} onChangeText={setSubjects} className={field} />
       <TextInput accessibilityLabel="Anything that helps us verify you (optional)" placeholder="Anything that helps us verify you (optional)" placeholderTextColor={muted} maxLength={500} multiline value={message} onChangeText={setMessage} className={cn(field, 'min-h-16')} style={{ textAlignVertical: 'top' }} />
-      <Text className="text-muted-foreground text-sm">Proof (optional): a staff ID, an appointment letter, or a page that lists you. Only our team sees it.</Text>
+      {/* Proof files are uploads and optional: only while uploads are on (lvn-backend ADR-0097). */}
+      {uploadsOn ? <Text className="text-muted-foreground text-sm">Proof (optional): a staff ID, an appointment letter, or a page that lists you. Only our team sees it.</Text> : null}
       {files.map((f, i) => (
         <View key={`${f.name}-${i}`} className="flex-row items-center gap-2">
           <Text className="flex-1 text-sm" numberOfLines={1}>
@@ -133,7 +136,7 @@ function ApplyForm({ onSent }: { onSent: () => void }) {
           </Pressable>
         </View>
       ))}
-      {files.length < MAX_PROOF ? (
+      {uploadsOn && files.length < MAX_PROOF ? (
         <Pressable accessibilityRole="button" onPress={() => void choose()} className="border-border self-start rounded-xl border px-3 py-2">
           <Text className="font-semibold">Add a file</Text>
         </Pressable>
