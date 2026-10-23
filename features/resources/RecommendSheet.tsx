@@ -22,7 +22,7 @@ const TAB: Record<Kind, string> = { person: 'A person', group: 'A group', class:
  */
 export function RecommendSheet({ resourceId, open, onClose }: { resourceId: string; open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [tab, setTab] = useState<Kind>('person')
   const [to, setTo] = useState<To | null>(null)
   const [reason, setReason] = useState('')

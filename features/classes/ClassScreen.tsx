@@ -54,8 +54,8 @@ type Member = NonNullable<NonNullable<ClassroomPeopleQuery['classroom']>['member
  */
 export function ClassScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const query = useQuery(ClassroomDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [tab, setTab] = useState<Tab>('posts')
@@ -182,7 +182,7 @@ function Action({ label, onPress, primary }: { label: string; onPress: () => voi
 }
 
 function Posts({ classroom }: { classroom: ClassroomDetailFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const query = useQuery(ClassroomPostsDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [create] = useMutation(CreateClassroomPostDocument)
@@ -248,7 +248,7 @@ function Posts({ classroom }: { classroom: ClassroomDetailFragment }) {
 }
 
 function Notes({ classroom }: { classroom: ClassroomDetailFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const query = useQuery(ClassroomNotesDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [share] = useMutation(ShareNoteToClassroomDocument)
@@ -311,7 +311,7 @@ function Notes({ classroom }: { classroom: ClassroomDetailFragment }) {
 }
 
 function People({ classroom, onChanged }: { classroom: ClassroomDetailFragment; onChanged: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const query = useQuery(ClassroomPeopleDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [invite] = useMutation(InviteToClassroomDocument)

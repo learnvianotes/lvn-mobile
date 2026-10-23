@@ -17,8 +17,8 @@ import { attempt, textToDoc } from './shared'
  */
 export function NewPostSheet({ groupId, open, onClose }: { groupId: string; open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [create, creating] = useMutation(CreateGroupPostDocument, { refetchQueries: [{ query: GroupPostsDocument, variables: { id: groupId } }], awaitRefetchQueries: true })

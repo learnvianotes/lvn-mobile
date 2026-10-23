@@ -26,6 +26,9 @@ jest.mock('expo-secure-store', () => require('./secure-store').secureStore)
 
 // Theme uses the web localStorage keys. Native installs them via expo-sqlite; tests keep an in-memory Storage.
 jest.mock('expo-sqlite/localStorage/install', () => ({}))
+
+// Font files are not opened under Jest. The app still selects Inter once expo-font reports them loaded.
+jest.mock('expo-font', () => ({ useFonts: () => [true, null], isLoaded: () => true, loadAsync: jest.fn(async () => undefined) }))
 const memory = new Map<string, string>()
 const memoryStorage = {
   getItem: (key: string) => (memory.has(key) ? memory.get(key)! : null),

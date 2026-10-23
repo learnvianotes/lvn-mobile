@@ -39,12 +39,12 @@ export function CardEditor({ card, onChange: save }: { card: LocalCard; onChange
   }
   const color = (name: string, fallback: string) => String(useCSSVariable(name) ?? fallback)
   const theme = {
-    fg: color('--color-foreground', '#111827'),
-    muted: color('--color-muted-foreground', '#6b7280'),
-    accent: color('--color-primary', '#2563eb'),
+    fg: color('--color-foreground', '#152033'),
+    muted: color('--color-muted-foreground', '#3d4b63'),
+    accent: color('--color-primary', '#1e4d8c'),
     bg: color('--color-background', '#ffffff'),
-    surface: color('--color-secondary', '#f3f4f6'),
-    border: color('--color-border', '#e5e7eb'),
+    surface: color('--color-secondary', '#e8edf3'),
+    border: color('--color-border', '#d5dde8'),
   }
   const field = 'text-foreground border-border bg-background rounded-xl border px-3 py-2.5 text-base'
 

@@ -18,7 +18,7 @@ const KIND = { CREATE_NOTE: 'Creating the note', UPDATE_NOTE: 'Saving changes', 
 export function AttentionScreen() {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const entries = useLocal(() => db.outbox('ATTENTION'), [])
   const titles = useLocal(() => db.listNotes(false).then((n) => new Map(n.map((x) => [x.id, x.title]))), [])
   return (

@@ -17,6 +17,7 @@ import { useLocal } from '@/features/notes/hooks'
 import { RichDoc } from '@/features/notes/render/RichText'
 import * as db from '@/features/notes/store/db'
 import { LoadState } from '@/features/shell/LoadState'
+import { useTheme } from '@/lib/theme'
 import {
   DeleteGroupPostDocument,
   GroupDocument,
@@ -54,8 +55,9 @@ const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Dou
  */
 export function GroupScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const onBrand = useTheme().palette.brandForeground
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const query = useQuery(GroupDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [tab, setTab] = useState<Tab>('posts')
@@ -229,8 +231,8 @@ export function GroupScreen({ id }: { id: string }) {
             onPress={removeChosen}
             className={`bg-destructive flex-row items-center gap-2 rounded-full px-5 py-2.5 ${!chosen || removing ? 'opacity-50' : ''}`}
           >
-            <Trash2 size={16} color="#ffffff" />
-            <Text className="font-semibold text-white">{selection.kind === 'posts' ? 'Delete' : 'Remove'}</Text>
+            <Trash2 size={16} color={onBrand} />
+            <Text className="text-primary-foreground font-semibold">{selection.kind === 'posts' ? 'Delete' : 'Remove'}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -238,7 +240,7 @@ export function GroupScreen({ id }: { id: string }) {
         <>
           <View className="absolute right-5" style={{ bottom: insets.bottom + 24 }}>
             <Pressable accessibilityRole="button" accessibilityLabel="New post" onPress={() => setWriting(true)} className="bg-primary size-14 items-center justify-center rounded-full shadow-lg">
-              <Plus size={26} color="#ffffff" />
+              <Plus size={26} color={onBrand} />
             </Pressable>
           </View>
           <NewPostSheet groupId={group.id} open={writing} onClose={() => setWriting(false)} />
@@ -257,7 +259,7 @@ function Action({ label, onPress, primary }: { label: string; onPress: () => voi
 }
 
 function Posts({ group, selection, onSelection }: { group: GroupDetailFragment } & Selecting) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const query = useQuery(GroupPostsDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [remove] = useMutation(DeleteGroupPostDocument)
@@ -323,7 +325,7 @@ function Posts({ group, selection, onSelection }: { group: GroupDetailFragment }
 }
 
 function Notes({ group, selection, onSelection }: { group: GroupDetailFragment } & Selecting) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const viewerId = useQuery(ViewerDocument).data?.viewer?.id
   const query = useQuery(GroupNotesDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
@@ -443,9 +445,10 @@ function ChooseBar({ label, choosing, all, selection, onSelection }: { label: st
 }
 
 function Tick({ on, label, onPress }: { on: boolean; label: string; onPress: () => void }) {
+  const onBrand = useTheme().palette.brandForeground
   return (
     <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={label} onPress={onPress} hitSlop={8} className={`size-6 items-center justify-center rounded-full border-2 ${on ? 'bg-destructive border-destructive' : 'border-muted-foreground'}`}>
-      {on ? <Check size={14} color="#ffffff" /> : null}
+      {on ? <Check size={14} color={onBrand} /> : null}
     </Pressable>
   )
 }

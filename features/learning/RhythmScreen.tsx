@@ -54,7 +54,7 @@ export function ringPercent(today: Pick<R['today'], 'learningSeconds' | 'reviews
  */
 export function RhythmScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const rhythm = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
   const r = rhythm.data?.rhythm
   return (

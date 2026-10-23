@@ -9,7 +9,7 @@ import { MyResourcesDocument } from '@/graphql/generated/graphql'
 import { cn } from '@/lib/utils'
 import { STATUS_LABEL, TYPE_LABEL } from './copy'
 
-const TONE = { PENDING: 'bg-secondary', APPROVED: 'bg-emerald-100', REJECTED: 'bg-red-100' } as const
+const TONE = { PENDING: 'bg-secondary', APPROVED: 'bg-success-soft', REJECTED: 'bg-rose-soft' } as const
 
 /** The resources a person sent (lvn-backend ADR-0074), newest first, each with its state and, if rejected, why. */
 export function MyResourcesScreen() {
@@ -39,7 +39,7 @@ export function MyResourcesScreen() {
             </View>
             <Text className="font-semibold">{r.title}</Text>
             <Text className="text-muted-foreground text-xs">{r.host}</Text>
-            {r.status === 'REJECTED' && r.reason ? <Text className="text-sm text-red-700">{r.reason}</Text> : null}
+            {r.status === 'REJECTED' && r.reason ? <Text className="text-sm text-destructive">{r.reason}</Text> : null}
           </Pressable>
         ))}
       </ScrollView>

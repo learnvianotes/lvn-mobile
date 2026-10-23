@@ -1,6 +1,6 @@
 /*
- * LearnViaNotes tokens (docs/ui-revamp/tokens.json). Navy light is the stylesheet default.
- * lib/theme/persist.ts reads cnote:theme and cnote:accent and applies the accent before the first screen.
+ * LearnViaNotes tokens (docs/ui-revamp/tokens.json, version 2). Navy is the stylesheet default:
+ * color.base plus color.themes.navy. lib/theme/persist.ts applies the saved accent before the first screen.
  * No purple, violet, indigo, lavender or pink. --color-rose is danger, so older class names are not pink.
  */
 @import 'tailwindcss';
@@ -80,6 +80,8 @@
 }
 
 @theme {
+  --font-sans: 'Inter_400Regular', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrainsMono_400Regular', ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;

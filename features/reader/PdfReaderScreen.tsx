@@ -22,6 +22,7 @@ import {
 import type { CardType } from '@/lib/contracts/domain/enums'
 import { cardAnchor, type CardAnchor } from '@/lib/contracts/validation'
 import { env } from '@/lib/env'
+import { useTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { useLocal } from '@/features/notes/hooks'
 import { CardView } from '@/features/notes/render/CardView'
@@ -34,11 +35,11 @@ import PdfDom, { type DomCommand, type DomMark, type DomSelection } from './PdfD
 
 
 const COLORS: { color: HighlightColor; swatch: string; label: string }[] = [
-  { color: 'YELLOW', swatch: 'bg-yellow-300', label: 'yellow' },
-  { color: 'GREEN', swatch: 'bg-green-400', label: 'green' },
-  { color: 'BLUE', swatch: 'bg-blue-400', label: 'blue' },
-  { color: 'PINK', swatch: 'bg-pink-400', label: 'pink' },
-  { color: 'PURPLE', swatch: 'bg-orange-400', label: 'orange' },
+  { color: 'YELLOW', swatch: 'bg-highlight', label: 'yellow' },
+  { color: 'GREEN', swatch: 'bg-success', label: 'green' },
+  { color: 'BLUE', swatch: 'bg-primary', label: 'blue' },
+  { color: 'PINK', swatch: 'bg-warm', label: 'pink' },
+  { color: 'PURPLE', swatch: 'bg-warm-soft', label: 'orange' },
 ]
 
 const pageKey = (fileId: string) => `reader.page.${fileId}`
@@ -59,9 +60,10 @@ type NewCommand = { [K in DomCommand['kind']]: Omit<Extract<DomCommand, { kind: 
 export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCard }: { noteId: string; fileId: string; page?: number; card?: string }) {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const background = String(useCSSVariable('--color-secondary') ?? '#f1f4f8')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const background = String(useCSSVariable('--color-secondary') ?? '#e7f0fa')
+  const onBrand = useTheme().palette.brandForeground
 
   const note = useLocal(() => db.getNote(noteId), [noteId])
   const localCards = useLocal(() => db.getCards(noteId), [noteId])
@@ -242,7 +244,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
           <ZoomIn size={20} color={fg} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Show notes" onPress={() => setSheet(true)} className="bg-primary flex-row items-center gap-1.5 rounded-full px-3 py-2">
-          <NotebookPen size={16} color="#ffffff" />
+          <NotebookPen size={16} color={onBrand} />
           <Text className="text-primary-foreground text-sm font-semibold">Notes</Text>
         </Pressable>
       </View>
@@ -359,7 +361,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
               }}
               className="bg-primary flex-row items-center justify-center gap-2 rounded-full py-3"
             >
-              <NotebookPen size={18} color="#ffffff" />
+              <NotebookPen size={18} color={onBrand} />
               <Text className="text-primary-foreground font-semibold">Add to notes</Text>
             </Pressable>
           ) : null}

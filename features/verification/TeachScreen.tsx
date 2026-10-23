@@ -26,7 +26,7 @@ const field = 'border-border bg-card text-foreground rounded-xl border px-3 py-2
  */
 export function TeachScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const client = useApolloClient()
   const me = useQuery(ViewerDocument)
   const viewer = me.data?.viewer
@@ -87,7 +87,7 @@ function Card({ title, lead }: { title: string; lead: string }) {
 function ApplyForm({ onSent }: { onSent: () => void }) {
   const uploadsOn = useUploadsEnabled()
   const client = useApolloClient()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [institution, setInstitution] = useState('')
   const [subjects, setSubjects] = useState('')
   const [message, setMessage] = useState('')

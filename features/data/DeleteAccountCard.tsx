@@ -21,7 +21,7 @@ export function DeleteAccountCard() {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const destructive = String(useCSSVariable('--color-destructive') ?? '#dc2626')
+  const destructive = String(useCSSVariable('--color-destructive') ?? '#9f1d1d')
   if (!viewer) return null
   const scheduled = viewer.deletionScheduledFor
   const ready = confirm.trim().toUpperCase() === 'DELETE'
@@ -88,7 +88,7 @@ export function DeletionBanner() {
     <View className="bg-destructive/10 border-destructive/40 flex-row items-center gap-3 border-t px-4 py-2" accessibilityRole="alert" testID="deletion-banner">
       <Text className="flex-1 text-sm">Your account will be deleted on {day(viewer.deletionScheduledFor)}.</Text>
       <Pressable accessibilityRole="button" disabled={cancelling.loading} onPress={() => void cancel().catch(() => null)} className="bg-destructive rounded-full px-3 py-1.5">
-        <Text className="text-sm font-semibold text-white">Keep my account</Text>
+        <Text className="text-primary-foreground text-sm font-semibold">Keep my account</Text>
       </Pressable>
     </View>
   )

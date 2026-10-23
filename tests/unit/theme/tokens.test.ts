@@ -2,6 +2,7 @@ import { contrastRatio, isDisallowedHue, meetsAA } from '@/lib/theme/contrast'
 import { cssVariables } from '@/lib/theme/css'
 import { ACCENT_KEY, loadThemePreference, persistTheme, readThemeSync, THEME_KEY } from '@/lib/theme/persist'
 import { getTheme } from '@/lib/theme/store'
+import file from '@/docs/ui-revamp/tokens.json'
 import { defaultAccentId, listAccents, resolvePalette, type Appearance, type TokensFile } from '@/lib/theme/tokens'
 
 const PAIRS: [string, string][] = [
@@ -15,14 +16,47 @@ const PAIRS: [string, string][] = [
   ['inverseMuted', 'inverse'],
 ]
 
+const BRAND: Record<string, Record<Appearance, { brand: string; brandHover: string; brandForeground: string; brandSoft: string }>> = {
+  navy: {
+    light: { brand: '#1e4d8c', brandHover: '#163e73', brandForeground: '#ffffff', brandSoft: '#e7f0fa' },
+    dark: { brand: '#9dc0ea', brandHover: '#c5d9f4', brandForeground: '#0e1520', brandSoft: '#1a2c44' },
+  },
+  teal: {
+    light: { brand: '#0c5c66', brandHover: '#094850', brandForeground: '#ffffff', brandSoft: '#e5f4f6' },
+    dark: { brand: '#7ecfcb', brandHover: '#b6ebe8', brandForeground: '#0e1520', brandSoft: '#123033' },
+  },
+  forest: {
+    light: { brand: '#0f6b45', brandHover: '#0b5235', brandForeground: '#ffffff', brandSoft: '#e7f6ee' },
+    dark: { brand: '#6ee7a8', brandHover: '#b6f5d4', brandForeground: '#0e1520', brandSoft: '#123226' },
+  },
+  slate: {
+    light: { brand: '#334155', brandHover: '#1e293b', brandForeground: '#ffffff', brandSoft: '#e8edf3' },
+    dark: { brand: '#cbd5e1', brandHover: '#e2e8f0', brandForeground: '#0e1520', brandSoft: '#1c2633' },
+  },
+  amber: {
+    light: { brand: '#8a4b08', brandHover: '#6b3a06', brandForeground: '#ffffff', brandSoft: '#fbf3e4' },
+    dark: { brand: '#f5c16c', brandHover: '#f8d7a0', brandForeground: '#0e1520', brandSoft: '#3a2a10' },
+  },
+}
+
 describe('tokens.json', () => {
   it('ships Navy, Teal, Forest, Slate and Amber, with Navy as the default and System-ready base', () => {
+    expect(file.version).toBe(2)
+    expect(file.appearance.storage).toEqual({ mode: 'cnote:theme', accent: 'cnote:accent' })
+    expect(file.font).toEqual({ sans: 'Inter, ui-sans-serif, system-ui, sans-serif', mono: 'JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace' })
     expect(defaultAccentId()).toBe('navy')
     expect(listAccents().map((a) => a.label)).toEqual(['Navy', 'Teal', 'Forest', 'Slate', 'Amber'])
-    expect(resolvePalette('light', 'navy').brand).toBe('#1e4d8c')
-    expect(resolvePalette('dark', 'navy').brand).toBe('#9dc0ea')
-    expect(resolvePalette('light', 'teal').brand).toBe('#0f5f6b')
     expect(resolvePalette('light', 'missing').brand).toBe('#1e4d8c')
+    for (const [id, schemes] of Object.entries(BRAND)) {
+      for (const appearance of ['light', 'dark'] as Appearance[]) {
+        const palette = resolvePalette(appearance, id)
+        expect(palette).toMatchObject({ ...schemes[appearance], codeTitle: schemes[appearance].brand })
+      }
+    }
+    // Info is the shared base slot, not the Teal accent.
+    expect(resolvePalette('light', 'teal').paper).toBe('#f4f6f8')
+    expect(resolvePalette('light', 'teal').info).toBe('#0f5f6b')
+    expect(resolvePalette('dark', 'teal').info).toBe('#7fd4d0')
   })
 
   it('keeps every accent on AA and out of the purple and pink hue band', () => {

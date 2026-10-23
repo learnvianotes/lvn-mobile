@@ -11,7 +11,7 @@ Mode is System (the default), Light, or Dark. System follows the operating syste
 
 `cnote:theme` stores JSON `"system"`, `"light"`, or `"dark"`. A missing key means System.
 
-Accent is Navy (the default), Teal, Forest, Slate, or Amber. `cnote:accent` stores the id as JSON (`"navy"`, `"teal"`, `"forest"`, `"slate"`, or `"amber"`). A missing key means Navy. Each accent's `light` and `dark` objects in `tokens.json` (`accent.themes`) override brand slots on the base `color.light` and `color.dark` palettes. Navy's overrides are empty, so it is the base. Text on brand, paper, brand-soft, and inverse meets 4.5:1.
+Accent is Navy (the default), Teal, Forest, Slate, or Amber. `cnote:accent` stores the id as JSON (`"navy"`, `"teal"`, `"forest"`, `"slate"`, or `"amber"`). A missing key means Navy. Shared paper, ink, and status live in `color.base`. Each accent's brand, brandHover, brandForeground, brandSoft, and codeTitle live in `color.themes`, for light and for dark. Navy's brand slots are filled, the same as the other accents. The pairs named in `appearance.contrast` meet 4.5:1.
 
 Both keys stay on the device. Nothing about appearance is sent to the server.
 

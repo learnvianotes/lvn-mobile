@@ -13,7 +13,7 @@ export function LandingArt() {
         <View className="mb-3 flex-row items-center justify-between">
           <View className="bg-muted h-2 w-16 rounded-full" />
           <View className="bg-success size-5 items-center justify-center rounded-full">
-            <Text className="text-[10px] font-bold text-white">✓</Text>
+            <Text className="text-primary-foreground text-[10px] font-bold">✓</Text>
           </View>
         </View>
         <View className="bg-muted mb-2 h-2 w-full rounded-full" />

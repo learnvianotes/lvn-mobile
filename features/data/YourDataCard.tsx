@@ -23,7 +23,7 @@ export function YourDataCard() {
   const [request, requesting] = useMutation(RequestDataExportDocument, { refetchQueries: [MyDataExportsDocument] })
   const [error, setError] = useState<string | null>(null)
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
 
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-5" accessibilityLabel="Your data">

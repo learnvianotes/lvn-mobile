@@ -12,7 +12,7 @@ None. The app loaded, signed in, and kept its API calls.
 
 | Issue | Where | What changed |
 | --- | --- | --- |
-| Palette was a different blue (`#2563eb` / `#60a5fa`), not the spec navy, ink, and paper | `global.css`, `lib/theme.ts` | Base colours are the file’s `color.light` and `color.dark`. Accent themes override brand slots only. |
+| Palette was a different blue (`#2563eb` / `#60a5fa`), not the spec navy, ink, and paper | `global.css`, `lib/theme.ts` | Base colours are `color.base`. Each accent's brand slots are `color.themes`. |
 | No appearance control and no accent themes. Uniwind followed the OS with no saved choice | top bar, Profile, settings | Mode is System (default), Light, or Dark. Accents are Navy, Teal, Forest, Slate, Amber, from `tokens.json`. Keys `cnote:theme` and `cnote:accent` (JSON), on device only, read before the first screen. |
 | Pink and rose in the product UI | recommendations, community cards, note stripes, the contributor badge, the notification dot, quick actions | Those surfaces use navy, teal, amber, or forest from the palette. `--color-rose` is danger, so old class names are not pink. |
 | Indigo focus gradient (`#0f0c29`) and a starry home hero | Focus, Home | Both are flat inverse panels with a brand strip. No glow on the create button. |

@@ -20,7 +20,7 @@ const TONE: Record<RecommendationKind, 'brand' | 'info' | 'warning'> = {
 
 /** Recommendations always say why (§14.3, lvn-backend ADR-0071). */
 export function Recommended({ items }: { items: Rec[] }) {
-  const { palette, scheme } = useTheme()
+  const { palette } = useTheme()
   if (!items.length) return <Text className="text-muted-foreground text-sm">Read a few notes, add an exam or take a quiz, and suggestions appear here.</Text>
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12, paddingHorizontal: 20 }} style={{ marginHorizontal: -20 }}>
@@ -28,7 +28,7 @@ export function Recommended({ items }: { items: Rec[] }) {
         const Icon = ICONS[r.kind]
         const title = r.resource?.title || r.noteTitle || r.topicTitle || (r.topicKey ? coreName(r.topicKey) : 'Untitled')
         const fill = palette[TONE[r.kind]]
-        const glyph = scheme === 'dark' ? palette.inverse : '#ffffff'
+        const glyph = palette.brandForeground
         return (
           <PressScale key={`${r.kind}:${r.resource?.id ?? r.note?.id ?? r.topicKey}`} accessibilityRole="button" accessibilityLabel={`${title}. ${r.reason}`} onPress={() => router.push(recommendationHref(r))}>
             <View className="bg-card border-border w-44 overflow-hidden rounded-2xl border">

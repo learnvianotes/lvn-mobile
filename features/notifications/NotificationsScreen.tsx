@@ -19,8 +19,8 @@ const ICONS: Partial<Record<NotificationFieldsFragment['category'], typeof Bell>
 /** The person's notifications, newest first (lvn-backend ADR-0042); opening one marks it read and goes where it points. */
 export function NotificationsScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const client = useApolloClient()
   const query = useQuery(NotificationsDocument, { variables: { first: PAGE }, fetchPolicy: 'cache-and-network' })
   const { data, refetch, fetchMore } = query

@@ -13,6 +13,7 @@ import { ReportSheet } from '@/features/moderation/ReportSheet'
 import { SOURCE } from '@/features/people/SkillsImport'
 import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
 import { LoadState } from '@/features/shell/LoadState'
+import { useTheme } from '@/lib/theme'
 import {
   BlockUserDocument,
   FollowUserDocument,
@@ -39,8 +40,9 @@ type Kind = keyof typeof KINDS
  */
 export function ProfileScreen({ handle }: { handle: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const onBrand = useTheme().palette.brandForeground
   const query = useQuery(ProfileDocument, { variables: { handle }, fetchPolicy: 'cache-and-network' })
   const { data } = query
   const [kind, setKind] = useState<Kind>('NOTE')
@@ -174,7 +176,7 @@ export function ProfileScreen({ handle }: { handle: string }) {
               ) : r.viewerCan.follow || (!data?.viewer?.verified && !r.blocked) ? (
                 // Unverified, Follow stays: pressing it says why it needs verification (ADR-0017).
                 <Pressable accessibilityRole="button" disabled={busy} onPress={() => void act(follow)} className="bg-primary flex-row items-center gap-2 rounded-full px-5 py-2.5">
-                  <UserPlus size={16} color="#ffffff" />
+                  <UserPlus size={16} color={onBrand} />
                   <Text className="text-primary-foreground font-semibold">Follow</Text>
                 </Pressable>
               ) : null}

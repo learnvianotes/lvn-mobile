@@ -111,8 +111,8 @@ export function ExploreScreen() {
   // The last results stay while the next load; a failed search shows what failed, not an earlier search's results.
   const found = ready ? (data ?? (error ? undefined : previousData))?.search : undefined
   const searching = loading && !data
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value])
   /** Opens a result, remembering what was searched for it. */
   const open = (path: string) => {

@@ -43,7 +43,7 @@ export function confirm(title: string, action: string, run: () => void, message?
  * over, moderators mute for a day; each from a sheet behind the member's "more" button.
  */
 export function GroupMembers({ group, onChanged }: { group: GroupDetailFragment; onChanged: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const { data, refetch } = useQuery(GroupMembersDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const [setRole] = useMutation(SetGroupRoleDocument)
   const [remove] = useMutation(RemoveGroupMemberDocument)

@@ -23,8 +23,8 @@ const SECTIONS: Record<Section, string> = { forYou: 'For You', trending: 'Trendi
  */
 export function CommunityScreen() {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const mine = useQuery(MyGroupsDocument, { fetchPolicy: 'cache-and-network' })
   const [query, setQuery] = useState('')
   const [settled, setSettled] = useState('')
@@ -82,8 +82,8 @@ export function CommunityScreen() {
 }
 
 function GroupRow({ group }: { group: GroupCardFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const Icon = group.privacy === 'PRIVATE' ? Lock : Globe
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={group.name} onPress={() => router.push(`/groups/${group.id}`)} className="bg-card border-border gap-1.5 rounded-2xl border p-4">

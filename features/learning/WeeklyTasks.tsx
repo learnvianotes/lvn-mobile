@@ -5,6 +5,7 @@ import { Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { LoadState } from '@/features/shell/LoadState'
+import { useTheme } from '@/lib/theme'
 import { AddWeeklyTaskDocument, ExamTopicOptionsDocument, RemoveWeeklyTaskDocument, TaskSuggestionsDocument, UpdateWeeklyTaskDocument, WeeklyTasksDocument, type WeeklyTaskFieldsFragment, type WeeklyTaskKind } from '@/graphql/generated/graphql'
 
 const KINDS: { kind: WeeklyTaskKind; label: string; start: number }[] = [
@@ -59,7 +60,8 @@ export function WeeklyTasks() {
 }
 
 function TaskRow({ task }: { task: WeeklyTaskFieldsFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const onBrand = useTheme().palette.brandForeground
   const [editing, setEditing] = useState(false)
   const [target, setTarget] = useState(String(task.target))
   const [plan, setPlan] = useState(task.plan ?? '')
@@ -73,7 +75,7 @@ function TaskRow({ task }: { task: WeeklyTaskFieldsFragment }) {
       <View className="flex-row items-center gap-2">
         {task.done ? (
           <View className="bg-primary size-6 items-center justify-center rounded-full" accessibilityLabel="Done">
-            <Check size={14} color="#ffffff" />
+            <Check size={14} color={onBrand} />
           </View>
         ) : null}
         <Text className="flex-1 font-semibold">{label}</Text>
@@ -126,7 +128,7 @@ function TaskRow({ task }: { task: WeeklyTaskFieldsFragment }) {
 }
 
 function AddTask({ onClose }: { onClose: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const suggestions = useQuery(TaskSuggestionsDocument, { fetchPolicy: 'cache-and-network' }).data?.taskSuggestions ?? []
   const [kind, setKind] = useState<WeeklyTaskKind>('REVIEWS')
   const [target, setTarget] = useState('50')

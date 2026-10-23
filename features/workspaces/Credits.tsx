@@ -11,7 +11,7 @@ import { NoteContributorsDocument } from '@/graphql/generated/graphql'
  * notes, or offline.
  */
 export function NoteCredits({ noteId }: { noteId: string }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const { data } = useQuery(NoteContributorsDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network', errorPolicy: 'ignore' })
   const credits = data?.note?.contributors ?? []
   if (!credits.length) return null

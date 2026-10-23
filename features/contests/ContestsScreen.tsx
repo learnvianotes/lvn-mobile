@@ -20,7 +20,7 @@ const when = (iso: string) => new Date(iso).toLocaleString('en-IN', { weekday: '
  */
 export function ContestsScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const query = useQuery(ContestsDocument, { fetchPolicy: 'cache-and-network' })
   const { data } = query
   const list = data?.contests ?? []

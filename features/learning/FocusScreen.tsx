@@ -9,7 +9,7 @@ import Svg, { Circle } from 'react-native-svg'
 import { Text } from '@/components/ui/text'
 import { EndFocusSessionDocument, FocusSessionDocument, RhythmDocument, StartFocusSessionDocument } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
-import { useTheme } from '@/lib/theme'
+import { resolvePalette, useTheme } from '@/lib/theme'
 import { phaseOf } from './FocusCard'
 import { coreName } from './recommendationHref'
 
@@ -30,7 +30,8 @@ type Preset = (typeof PRESETS)[number]['key']
  */
 export function FocusScreen() {
   const insets = useSafeAreaInsets()
-  const { palette } = useTheme()
+  const { palette, accent } = useTheme()
+  const onInverse = resolvePalette('dark', accent)
   const { data } = useQuery(FocusSessionDocument, { fetchPolicy: 'cache-and-network' })
   const refresh = { refetchQueries: [FocusSessionDocument, RhythmDocument], awaitRefetchQueries: true }
   const [start, starting] = useMutation(StartFocusSessionDocument, refresh)
@@ -120,29 +121,29 @@ export function FocusScreen() {
 
         <View className="flex-1 items-center justify-center gap-4">
           {topic ? (
-            <Text className="text-sm" style={{ color: '#bfdbfe' }}>
+            <Text className="text-sm" style={{ color: palette.inverseMuted }}>
               On {topic}
             </Text>
           ) : null}
           <View className="items-center justify-center" style={{ width: 260, height: 260 }}>
             <Svg width={260} height={260} viewBox="0 0 260 260" style={{ position: 'absolute', transform: [{ rotate: '-90deg' }] }}>
               <Circle cx={130} cy={130} r={118} stroke="rgba(255,255,255,0.12)" strokeWidth={10} fill="none" />
-              <Circle cx={130} cy={130} r={118} stroke="#93c5fd" strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 118 * share} ${2 * Math.PI * 118}`} />
+              <Circle cx={130} cy={130} r={118} stroke={onInverse.brand} strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 118 * share} ${2 * Math.PI * 118}`} />
             </Svg>
             <Text className="text-6xl font-extrabold" style={{ color: palette.inverseInk, fontVariant: ['tabular-nums'] }} accessibilityLabel={`${clock(left)} left`}>
               {clock(left)}
             </Text>
-            <Text className="mt-1 text-sm" style={{ color: '#bfdbfe' }}>
+            <Text className="mt-1 text-sm" style={{ color: palette.inverseMuted }}>
               {status}
             </Text>
           </View>
           {counted ? (
-            <Text className="text-sm" style={{ color: '#93c5fd' }}>
+            <Text className="text-sm" style={{ color: onInverse.brand }}>
               {Math.round(counted / 60) === 1 ? '1 minute counted.' : `${Math.round(counted / 60)} minutes counted.`}
             </Text>
           ) : null}
           {problem ? (
-            <Text accessibilityRole="alert" className="text-sm" style={{ color: '#fecaca' }}>
+            <Text accessibilityRole="alert" className="text-sm" style={{ color: onInverse.danger }}>
               {problem}
             </Text>
           ) : null}

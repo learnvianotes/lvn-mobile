@@ -127,7 +127,7 @@ const timeOf = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: 'nu
 
 export function AiScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const state = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
   const list = useQuery(NoteAiArtifactsDocument, { variables: { noteId: id }, fetchPolicy: 'cache-and-network' })
   const localCards = useLocal(() => db.getCards(id), [id])
@@ -180,7 +180,7 @@ export function AiScreen({ id }: { id: string }) {
           </Text>
         ) : null}
         {status && !status.available ? (
-          <Text accessibilityRole="alert" className="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <Text accessibilityRole="alert" className="rounded-2xl border border-warm bg-warm-soft p-3 text-sm">
             {UNAVAILABLE[status.reason ?? 'NOT_CONFIGURED']}
           </Text>
         ) : null}
@@ -267,7 +267,7 @@ export function Allowance({ used, limit, resetsAt }: { used: number; limit: numb
         {share >= 1 ? `You’ve used today’s AI allowance. It comes back at ${timeOf(resetsAt)}.` : `Today’s AI allowance: ${Math.round(share * 100)}% used · resets at ${timeOf(resetsAt)}`}
       </Text>
       <View accessible accessibilityRole="progressbar" accessibilityLabel="Today’s AI allowance" accessibilityValue={{ min: 0, max: limit, now: Math.min(used, limit) }} className="bg-secondary h-1.5 overflow-hidden rounded-full">
-        <View className={cn('h-full rounded-full', share >= 1 ? 'bg-destructive' : share >= 0.8 ? 'bg-amber-500' : 'bg-primary')} style={{ width: `${share * 100}%` }} />
+        <View className={cn('h-full rounded-full', share >= 1 ? 'bg-destructive' : share >= 0.8 ? 'bg-warm-soft0' : 'bg-primary')} style={{ width: `${share * 100}%` }} />
       </View>
     </View>
   )
@@ -280,8 +280,8 @@ function Poll({ id }: { id: string }) {
 }
 
 function Result({ noteId, artifact: a, canEdit, onRetry }: { noteId: string; artifact: Artifact; canEdit: boolean; onRetry: () => void }) {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const [remove, removing] = useMutation(DeleteAiArtifactDocument)
   const pending = a.status === 'QUEUED' || a.status === 'RUNNING'
   const label = a.task === 'TRANSLATE' ? `Translated into ${LANGUAGE[a.language]}` : TASK_LABEL[a.task]
@@ -426,7 +426,7 @@ function KeepCards({ artifact: a, canEdit }: { artifact: Artifact; canEdit: bool
  */
 function ApplyChanges({ artifact: a }: { artifact: Artifact }) {
   const client = useApolloClient()
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const changes = a.changes ?? []
   const open = changes.filter((c) => !c.applied)
   const [chosen, setChosen] = useState<ReadonlySet<string>>(() => new Set(open.map((c) => c.cardId)))
@@ -507,7 +507,7 @@ function ApplyChanges({ artifact: a }: { artifact: Artifact }) {
 
 /** The account screen's view of AI (P5b): whether it answers, and how much of today's allowance is used. */
 export function AiAccountCard({ className }: { className?: string }) {
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const { data } = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
   if (!data) return null
   const { aiStatus: status, myAiAllowance: allowance } = data

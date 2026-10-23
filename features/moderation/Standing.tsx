@@ -13,7 +13,7 @@ const when = (iso: string) => new Date(iso).toLocaleString(undefined, { day: 'nu
 
 /** The one appeal, inline: a suspended account's (USER) or a removed group's owner's (GROUP). */
 function AppealForm({ entityType, entityId, onDone }: { entityType: ReportEntityType; entityId: string; onDone: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [appeal, appealing] = useMutation(AppealModerationDocument)
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
@@ -53,24 +53,24 @@ export function AccountStanding({ userId }: { userId: string }) {
   return (
     <View className="gap-3">
       {s.suspendedUntil ? (
-        <View accessibilityRole="alert" className="flex-row gap-3 rounded-2xl border border-red-500/40 bg-red-50 p-4">
-          <Ban size={20} color="#b91c1c" />
+        <View accessibilityRole="alert" className="flex-row gap-3 rounded-2xl border border-destructive bg-rose-soft p-4">
+          <Ban size={20} color="#9f1d1d" />
           <View className="flex-1 gap-2">
-            <Text className="font-semibold text-red-950">Your account is suspended until {when(s.suspendedUntil)}.</Text>
-            {s.suspensionReason ? <Text className="text-red-950">{s.suspensionReason}</Text> : null}
-            <Text className="text-sm text-red-950/80">Until then nothing you do reaches other people: no publishing, sharing, comments, posts, joining or following. You can still read, keep and write your own notes, take a note back to private, block, report and download your data.</Text>
-            {s.canAppeal ? <AppealForm entityType="USER" entityId={userId} onDone={() => void refetch()} /> : <Text className="font-medium text-red-950">You have used your one appeal.</Text>}
+            <Text className="font-semibold text-destructive">Your account is suspended until {when(s.suspendedUntil)}.</Text>
+            {s.suspensionReason ? <Text className="text-destructive">{s.suspensionReason}</Text> : null}
+            <Text className="text-sm text-destructive">Until then nothing you do reaches other people: no publishing, sharing, comments, posts, joining or following. You can still read, keep and write your own notes, take a note back to private, block, report and download your data.</Text>
+            {s.canAppeal ? <AppealForm entityType="USER" entityId={userId} onDone={() => void refetch()} /> : <Text className="font-medium text-destructive">You have used your one appeal.</Text>}
           </View>
         </View>
       ) : null}
       {s.warnings.length ? (
-        <View className="flex-row gap-3 rounded-2xl border border-amber-500/40 bg-amber-50 p-4">
-          <MessageSquareWarning size={20} color="#b45309" />
+        <View className="flex-row gap-3 rounded-2xl border border-warm bg-warm-soft p-4">
+          <MessageSquareWarning size={20} color="#8a4b08" />
           <View className="flex-1 gap-1.5">
-            <Text className="font-semibold text-amber-950">{s.warnings.length === 1 ? 'A warning from the moderators' : `${s.warnings.length} warnings from the moderators`}</Text>
+            <Text className="font-semibold text-warm">{s.warnings.length === 1 ? 'A warning from the moderators' : `${s.warnings.length} warnings from the moderators`}</Text>
             {s.warnings.map((w, i) => (
-              <Text key={i} className="text-amber-950">
-                {w.reason} <Text className="text-xs text-amber-950/70">· {new Date(w.at).toLocaleDateString()}</Text>
+              <Text key={i} className="text-warm">
+                {w.reason} <Text className="text-xs text-warm">· {new Date(w.at).toLocaleDateString()}</Text>
               </Text>
             ))}
           </View>
@@ -88,15 +88,15 @@ export function RemovedGroupNotice({ id }: { id: string }) {
   if (!data) return <LoadState query={query} message="This group could not load." className="mx-4" />
   if (!g) return <Text className="text-muted-foreground px-6 py-16 text-center">This group is not available.</Text>
   return (
-    <View accessibilityRole="alert" className="m-4 flex-row gap-3 rounded-2xl border border-red-500/40 bg-red-50 p-4">
-      <ShieldAlert size={20} color="#b91c1c" />
+    <View accessibilityRole="alert" className="m-4 flex-row gap-3 rounded-2xl border border-destructive bg-rose-soft p-4">
+      <ShieldAlert size={20} color="#9f1d1d" />
       <View className="flex-1 gap-2">
-        <Text className="text-lg font-bold text-red-950" accessibilityRole="header">
+        <Text className="text-lg font-bold text-destructive" accessibilityRole="header">
           Moderators removed {g.name}
         </Text>
-        <Text className="text-red-950">{g.reason}</Text>
-        <Text className="text-sm text-red-950/80">Its members can no longer open it. If moderators put it back, everything in it returns as it was.</Text>
-        {g.canAppeal ? <AppealForm entityType="GROUP" entityId={g.id} onDone={() => void refetch()} /> : <Text className="font-medium text-red-950">You have used your one appeal.</Text>}
+        <Text className="text-destructive">{g.reason}</Text>
+        <Text className="text-sm text-destructive">Its members can no longer open it. If moderators put it back, everything in it returns as it was.</Text>
+        {g.canAppeal ? <AppealForm entityType="GROUP" entityId={g.id} onDone={() => void refetch()} /> : <Text className="font-medium text-destructive">You have used your one appeal.</Text>}
       </View>
     </View>
   )

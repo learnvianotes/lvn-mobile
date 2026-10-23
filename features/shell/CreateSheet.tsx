@@ -46,7 +46,7 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
     })
     return () => sub.remove()
   }, [open, onClose])
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const create = useCreate()
   const viewer = useQuery(ViewerDocument, { skip: !open })
   const teacher = viewer.data?.viewer?.globalRole === 'TEACHER'
