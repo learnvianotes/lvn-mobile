@@ -73,6 +73,12 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       'expo-router',
+      // SDK 58 registers these package plugins. With no options, font/asset/status-bar are no-ops and sqlite keeps its defaults.
+      'expo-asset',
+      'expo-font',
+      'expo-image',
+      'expo-sqlite',
+      'expo-status-bar',
       'expo-secure-store',
       'expo-web-browser',
       ...(googleServices ? [['./plugins/with-google-services-version', { version: '4.5.0' }] as [string, object]] : []),
@@ -92,6 +98,22 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // microphone the first time someone records.
       ['expo-video', { supportsPictureInPicture: false }],
       ['expo-audio', { microphonePermission: 'LearnViaNotes records your voice notes with the microphone.' }],
+      // Sentry RN 8: native init before JS (useNativeInit) with the same serializable options as Sentry.init.
+      // Source-map upload stays off until a Sentry org, project, and SENTRY_AUTH_TOKEN exist (the Gradle step needs the token).
+      [
+        '@sentry/react-native/expo',
+        {
+          useNativeInit: true,
+          disableAutoUpload: true,
+          options: {
+            dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+            environment: process.env.EXPO_PUBLIC_APP_ENV,
+            sendDefaultPii: false,
+            attachScreenshot: false,
+            attachViewHierarchy: false,
+          },
+        },
+      ],
       [
         'expo-splash-screen',
         {

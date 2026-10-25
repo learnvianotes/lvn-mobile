@@ -1,6 +1,10 @@
 // Jest only: Reanimated and its worklets runtime have no native module in Node, and Uniwind has no compiled
 // stylesheet here — components fall back to their default colours when a CSS variable is unknown.
 jest.mock('react-native-worklets', () => require('react-native-worklets/src/mock'))
+// Reanimated 4.7's native initializer calls setCSSEventHandler on the JS implementation Jest uses, which throws.
+// Skip that startup; the mock still provides the animation API the components call.
+jest.mock('react-native-reanimated/src/initializers', () => ({ initializeReanimatedModule: () => {} }))
+jest.mock('react-native-reanimated/src/initializers.native', () => ({ initializeReanimatedModule: () => {} }))
 // The mock module itself gains useReducedMotion, so expo-router/testing-library's own Reanimated mock (which
 // returns the same module) has it too.
 require('react-native-reanimated/mock').useReducedMotion = () => false

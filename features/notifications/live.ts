@@ -12,7 +12,9 @@ type Listener = (signal: LiveSignal) => void
 const listeners = new Set<Listener>()
 let client: Client | null = null
 let unsubscribe: (() => void) | null = null
-let appState: AppStateStatus = AppState.currentState
+const APP_STATES: readonly AppStateStatus[] = ['inactive', 'background', 'active', 'extension', 'unknown']
+const currentAppState = (): AppStateStatus => (APP_STATES.includes(AppState.currentState as AppStateStatus) ? (AppState.currentState as AppStateStatus) : 'unknown')
+let appState: AppStateStatus = currentAppState()
 let appListener: { remove(): void } | null = null
 let connectedBefore = false
 

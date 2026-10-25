@@ -85,7 +85,7 @@ it('a student reads announcements and notes, without staff tools or the code', a
 it('the teacher shares the join link, posts, invites a TA and lets a student in', async () => {
   let list: unknown[] = []
   let pending = true
-  const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' })
+  const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction', activityType: undefined })
   const api = mockApi({
     Classroom: () => ({ data: { classroom: asTeacher() } }),
     ClassroomPosts: () => posts(list),

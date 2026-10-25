@@ -40,6 +40,9 @@ yarn-error.*
 /ios
 /android
 
+# Written by the Sentry Expo plugin at prebuild (may contain the variant DSN).
+sentry.options.json
+
 # test output
 coverage/
 

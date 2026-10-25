@@ -142,7 +142,7 @@ it('sharing: who can read it, people with what they can do, copies, and the link
   let shares: unknown[] = []
   let forking = true
   const person = (id: string, displayName: string, role: string) => ({ __typename: 'NoteShare', role, source: 'DIRECT', createdAt: '2026-10-12T10:00:00.000Z', user: { __typename: 'User', id, displayName, handle: displayName.split(' ')[0]!.toLowerCase() } })
-  const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction' })
+  const share = jest.spyOn(Share, 'share').mockResolvedValue({ action: 'sharedAction', activityType: undefined })
   const api = mockApi({
     PhoneNoteMeta: () => ({ data: { note: meta({ visibility, forkingEnabled: forking, publishedVersion: version(2) }) } }),
     NoteShares: () => ({ data: { note: { __typename: 'Note', id: NOTE, visibility, sharedWithConnections: false, shares }, viewer: { __typename: 'User', id: ME, globalRole: 'STUDENT' } } }),

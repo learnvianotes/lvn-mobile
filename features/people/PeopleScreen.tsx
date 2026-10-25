@@ -105,7 +105,7 @@ export function PeopleScreen() {
         keyExtractor={(p) => p.id}
         contentContainerStyle={{ padding: 16, gap: 10, paddingBottom: insets.bottom + 24 }}
         ListEmptyComponent={data ? <Text className="text-muted-foreground py-12 text-center">{TABS[tab].empty}</Text> : <LoadState query={query} message="Your people could not load." />}
-        ListFooterComponent={hidden > 0 ? <Text className="text-muted-foreground text-xs">{hidden === 1 ? '1 more follower is' : `${hidden} more followers are`} not shown by name: young learners never appear in lists.</Text> : null}
+        ListFooterComponent={hidden > 0 ? <Text className="text-muted-foreground text-xs">{hidden === 1 ? '1 more follower is' : `${hidden} more followers are`} not shown by name: young learners never appear in lists.</Text> : undefined}
         renderItem={({ item }) => (
           <View className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">
             <Pressable accessibilityRole="link" onPress={() => router.push(`/u/${item.handle}`)} className="flex-1 flex-row items-center gap-3">
