@@ -10,12 +10,16 @@ import { env } from './env'
 export function startErrorReporting(): boolean {
   const dsn = env.EXPO_PUBLIC_SENTRY_DSN
   if (!dsn) return false
+  // Native crashes before JS load use the same serializable options via the Expo plugin (useNativeInit).
+  // beforeSend / beforeBreadcrumb stay here: they are not JSON and only run after Sentry.init.
+  // Do not set autoInitializeNativeSdk: false — v8 merges these options onto the native client.
   Sentry.init({
     dsn,
     environment: env.EXPO_PUBLIC_APP_ENV,
     sendDefaultPii: false,
     attachScreenshot: false,
     attachViewHierarchy: false,
+    enableNative: true,
     beforeSend: scrubEvent,
     beforeBreadcrumb: scrubBreadcrumb,
   })

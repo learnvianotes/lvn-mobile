@@ -17,9 +17,10 @@ type Props = ComponentProps<typeof TabBar>
 
 function setup(index = 0, defaultPrevented = false) {
   const routes = ['index', 'explore', 'community', 'profile'].map((name) => ({ key: `${name}-key`, name, params: undefined }))
-  const navigation = { emit: jest.fn(() => ({ defaultPrevented })), navigate: jest.fn() }
-  const props = { state: { index, routes }, navigation } as unknown as Props
-  return { props, navigation }
+  const emitter = { emit: jest.fn(() => ({ defaultPrevented })) }
+  const navigateToTab = jest.fn()
+  const props = { state: { index, routes }, emitter, navigateToTab } as unknown as Props
+  return { props, emitter, navigateToTab }
 }
 
 afterEach(() => jest.clearAllMocks())
@@ -35,20 +36,20 @@ describe('TabBar', () => {
   })
 
   it('navigates to another tab with a haptic tick', async () => {
-    const { props, navigation } = setup(0)
+    const { props, emitter, navigateToTab } = setup(0)
     await renderInApp(<TabBar {...props} />)
     await fireEvent.press(screen.getByRole('tab', { name: 'Community' }))
-    expect(navigation.emit).toHaveBeenCalledWith({ type: 'tabPress', target: 'community-key', canPreventDefault: true })
-    expect(navigation.navigate).toHaveBeenCalledWith('community', undefined)
+    expect(emitter.emit).toHaveBeenCalledWith({ type: 'tabPress', target: 'community-key', canPreventDefault: true })
+    expect(navigateToTab).toHaveBeenCalledWith('community-key')
     expect(haptic.tick).toHaveBeenCalledTimes(1)
   })
 
   it('does not navigate to the current tab or when the press is prevented', async () => {
-    const { props, navigation } = setup(1, true)
+    const { props, navigateToTab } = setup(1, true)
     await renderInApp(<TabBar {...props} />)
     await fireEvent.press(screen.getByRole('tab', { name: 'Explore' }))
     await fireEvent.press(screen.getByRole('tab', { name: 'Home' }))
-    expect(navigation.navigate).not.toHaveBeenCalled()
+    expect(navigateToTab).not.toHaveBeenCalled()
   })
 
   it('opens and closes the create sheet from the centre button', async () => {

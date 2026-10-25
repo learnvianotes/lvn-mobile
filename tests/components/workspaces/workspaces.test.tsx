@@ -28,7 +28,7 @@ const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client=
 beforeEach(() => jest.clearAllMocks())
 
 it('a workspace shows its repository, ideas ranked, and opens a doubt it asked', async () => {
-  const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(true)
+  const open = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined)
   const api = mockApi({
     Group: () => ({ data: { group: workspace() } }),
     GroupPosts: posts,
@@ -175,7 +175,7 @@ it('a showcase note credits the team, then the mentor; other notes show nothing'
 })
 
 it('with the GitHub App set up, an admin connects it in the browser, and members read the repository’s activity (ADR-0078)', async () => {
-  const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true)
+  const openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined)
   let linked: unknown = { ...repository, app: { __typename: 'RepositoryApp', connected: false, installUrl: 'https://github.com/apps/learnvianotes/installations/new?state=abc' }, events: [] }
   mockApi({
     Group: () => ({ data: { group: workspace({ viewerRole: 'ADMIN', viewerCan: can({ manage: true, post: true, askDoubt: true }) }) } }),

@@ -7,18 +7,27 @@ import type { BlockNode, Doc, Inline, Mark } from '@/lib/contracts/validation'
 /** Tiptap/ProseMirror JSON (validated by the API, @lvn/contracts rich-text) drawn with native text. */
 
 const markStyle = (marks: readonly Mark[] | undefined): TextStyle => {
-  const s: TextStyle = {}
+  // TextStyle fields are readonly in React Native 0.88, so the style is built and returned in one object.
+  let fontWeight: TextStyle['fontWeight']
+  let fontStyle: TextStyle['fontStyle']
+  let fontFamily: TextStyle['fontFamily']
+  let backgroundColor: TextStyle['backgroundColor']
   const lines: string[] = []
   for (const m of marks ?? []) {
-    if (m.type === 'bold') s.fontWeight = '700'
-    else if (m.type === 'italic') s.fontStyle = 'italic'
+    if (m.type === 'bold') fontWeight = '700'
+    else if (m.type === 'italic') fontStyle = 'italic'
     else if (m.type === 'underline') lines.push('underline')
     else if (m.type === 'strike') lines.push('line-through')
-    else if (m.type === 'code') s.fontFamily = 'monospace'
-    else if (m.type === 'highlight') s.backgroundColor = 'rgba(250, 204, 21, 0.35)'
+    else if (m.type === 'code') fontFamily = 'monospace'
+    else if (m.type === 'highlight') backgroundColor = 'rgba(250, 204, 21, 0.35)'
   }
-  if (lines.length) s.textDecorationLine = lines.join(' ') as TextStyle['textDecorationLine']
-  return s
+  return {
+    fontWeight,
+    fontStyle,
+    fontFamily,
+    backgroundColor,
+    textDecorationLine: lines.length ? (lines.join(' ') as TextStyle['textDecorationLine']) : undefined,
+  }
 }
 
 /** Comments and posts link `@handle` to the person's profile (lvn-backend ADR-0054); note content does not. */

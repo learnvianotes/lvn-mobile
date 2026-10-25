@@ -78,9 +78,10 @@ export default function RootLayout() {
             {/* Offline, a strip under the status bar pushes every signed-in screen down (P9e). */}
             <OfflineBanner enabled={signedIn && registered}>
               {/* Who sees what (§7.1): signed out → sign-in screens; a provider account without its details → the
-                  details form; everyone else → the app. Switching a guard moves to the first screen allowed. */}
+                  details form; everyone else → the app. Each guard names where a failed check goes: SDK 58 otherwise
+                  redirects to the first unguarded file, which is not one of these screens. */}
               <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: navTheme.colors.background } }}>
-                <Stack.Protected guard={signedIn && registered}>
+                <Stack.Protected guard={signedIn && registered} redirectTo={signedIn ? '/details' : '/welcome'}>
                   <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="notes" />
                   <Stack.Screen name="notifications" />
@@ -116,10 +117,10 @@ export default function RootLayout() {
                   <Stack.Screen name="classes/join/[code]" />
                   <Stack.Screen name="verify" options={{ presentation: 'modal' }} />
                 </Stack.Protected>
-                <Stack.Protected guard={signedIn && !registered}>
+                <Stack.Protected guard={signedIn && !registered} redirectTo={signedIn ? '/' : '/welcome'}>
                   <Stack.Screen name="details" />
                 </Stack.Protected>
-                <Stack.Protected guard={!signedIn}>
+                <Stack.Protected guard={!signedIn} redirectTo={registered ? '/' : '/details'}>
                   <Stack.Screen name="(auth)" />
                 </Stack.Protected>
               </Stack>

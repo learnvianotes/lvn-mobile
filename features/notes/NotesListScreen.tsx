@@ -140,7 +140,7 @@ export function NotesListScreen() {
               <Text className="text-lg font-semibold">{trash ? 'The trash is empty' : 'No notes yet'}</Text>
               <Text className="text-muted-foreground text-center text-sm">{trash ? 'Notes you delete stay here for 30 days.' : 'Write your first note — it works offline too.'}</Text>
             </View>
-          ) : null
+          ) : undefined
         }
         renderItem={({ item }) => (
           <PressScale accessibilityRole="button" accessibilityLabel={item.title || 'Untitled note'} onPress={() => router.push(`/notes/${item.id}`)}>

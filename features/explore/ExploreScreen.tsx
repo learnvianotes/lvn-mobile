@@ -2,7 +2,7 @@ import { useQuery } from '@apollo/client/react'
 import { router, useLocalSearchParams } from 'expo-router'
 import { BookMarked, Clock, FileText, GraduationCap, Library, Search, Trophy, Users, X } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { FlatList, Pressable, ScrollView, TextInput, View } from 'react-native'
+import { FlatList, Pressable, ScrollView, TextInput, View, type TextInputInstance } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
@@ -81,7 +81,7 @@ export function ExploreScreen() {
   const [loadingMore, setLoadingMore] = useState(false)
   // Home's search bar (focus), a recommendation's topic (topic, topicTitle) or its words (q) open Explore ready.
   const params = useLocalSearchParams<{ focus?: string; q?: string; topic?: string; topicTitle?: string }>()
-  const input = useRef<TextInput>(null)
+  const input = useRef<TextInputInstance>(null)
   useEffect(() => {
     if (params.focus) input.current?.focus()
   }, [params.focus])
@@ -354,7 +354,7 @@ export function ExploreScreen() {
           ListHeaderComponent={header}
           ListEmptyComponent={
             // Before any results, the header says loading or what failed.
-            !narrows || !found ? null : (
+            !narrows || !found ? undefined : (
               <Text className="text-muted-foreground py-8 text-center text-sm">{searching ? 'Searching…' : settled ? `Nothing found for “${settled}”.` : 'No notes match these filters.'}</Text>
             )
           }
@@ -363,7 +363,7 @@ export function ExploreScreen() {
               <Pressable accessibilityRole="button" accessibilityLabel={loadingMore ? 'Loading more results' : 'More results'} accessibilityState={{ disabled: loadingMore }} disabled={loadingMore} onPress={() => void more()} className="border-border self-center rounded-full border px-4 py-2">
                 <Text className="text-sm font-semibold">{loadingMore ? 'Loading…' : 'More results'}</Text>
               </Pressable>
-            ) : null
+            ) : undefined
           }
           renderItem={({ item }) => (
             <Pressable accessibilityRole="button" accessibilityLabel={item.note.title || 'Untitled note'} onPress={() => open(`/notes/${item.note.id}`)} className="bg-card border-border gap-1.5 rounded-2xl border p-4">

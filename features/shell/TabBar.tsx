@@ -50,7 +50,7 @@ function TabItem({ focused, name, onPress }: { focused: boolean; name: string; o
 }
 
 /** Bottom tabs of spec §13.1 — Home · Explore · ＋ · Community · Profile — with the raised centre button of the UI board. */
-export function TabBar({ state, navigation }: BottomTabBarProps) {
+export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets()
   const [open, setOpen] = useState(false)
   const reduced = useReducedMotion()
@@ -67,10 +67,10 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
       name={route.name}
       focused={state.index === index}
       onPress={() => {
-        const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true })
+        const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true })
         if (state.index !== index && !event.defaultPrevented) {
           haptic.tick()
-          navigation.navigate(route.name, route.params)
+          navigateToTab(route.key)
         }
       }}
     />

@@ -144,18 +144,16 @@ first frame is laid out.
 `app/` routes · `features/<domain>/` · `components/` · `db/` (WatermelonDB, outbox) · `lib/` · `state/` (MMKV) ·
 `assets/` · `tests/` (unit, components, e2e, support). Folders are created with their first file.
 
-## Known dependency advisories (2026-10-08)
+## Known dependency advisories (2026-10-25)
 
 `pnpm audit --prod --audit-level high` runs in CI. Two high advisories are ignored in `package.json`
 (`pnpm.auditConfig.ignoreGhsas`) because they sit in Expo's build tooling, never reach the app bundle, and have no
-patched release:
+release the CLI can take:
 
 | Advisory | Package | Path | Why ignored |
 | --- | --- | --- | --- |
 | GHSA-86w9-cpqp-85rv (high) | node-forge | `expo › @expo/cli` | CLI only; no fix published |
-| GHSA-vfj7-8cjw-p6xm (high) | braces | `expo › @expo/metro › … › micromatch` | Bundler only; no fix published |
+| GHSA-mrhx-c7xc-m3w5 (high) | zod 3.25.76 | `expo › @expo/cli` | CLI only. The app depends on zod 4.6.7, which is patched. The CLI requires zod 3, and the fix is zod ≥4.6.6 |
 
-Moderate, not ignored, tracked for the next SDK upgrade: `decode-uri-component` 0.2.2 via `expo-router › query-string`
-(runtime; the fix, 0.5.0, is ESM-only and breaks query-string 7), `uuid` via `@expo/config-plugins › xcode` (build
-time), `sprintf-js` via jest (test only). Remove ignores as soon as Expo ships fixed versions — Dependabot will open
-the PR.
+SDK 58 cleared the braces advisory (GHSA-vfj7-8cjw-p6xm) and the moderates previously tracked here
+(`decode-uri-component`, `uuid` via xcode, `sprintf-js`). Remove an ignore as soon as Expo ships a fixed version.

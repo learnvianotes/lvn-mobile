@@ -2,7 +2,7 @@ import { useMutation } from '@apollo/client/react'
 import { Portal } from '@rn-primitives/portal'
 import { X } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { BackHandler, Pressable, TextInput, View } from 'react-native'
+import { BackHandler, Pressable, TextInput, View, type TextInputInstance } from 'react-native'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
@@ -22,7 +22,7 @@ export function NewPostSheet({ groupId, open, onClose }: { groupId: string; open
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [create, creating] = useMutation(CreateGroupPostDocument, { refetchQueries: [{ query: GroupPostsDocument, variables: { id: groupId } }], awaitRefetchQueries: true })
-  const input = useRef<TextInput>(null)
+  const input = useRef<TextInputInstance>(null)
   useEffect(() => {
     if (!open) return
     const timer = setTimeout(() => input.current?.focus(), 250)
