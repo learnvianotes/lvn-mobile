@@ -1,7 +1,7 @@
 import { Link, router } from 'expo-router'
 import { BookOpen, CalendarCheck, GraduationCap, MessagesSquare, NotebookPen, Users, type LucideIcon } from 'lucide-react-native'
 import { useRef } from 'react'
-import { Linking, Pressable, ScrollView, View } from 'react-native'
+import { Linking, Pressable, ScrollView, View, type ScrollViewInstance } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { LandingArt } from '@/features/marketing/LandingArt'
@@ -38,7 +38,7 @@ export function Welcome() {
   const google = useGoogleSignIn()
   const refused = useAgeRefused()
   const { scheme } = useTheme()
-  const scroll = useRef<ScrollView>(null)
+  const scroll = useRef<ScrollViewInstance>(null)
   const featuresY = useRef(0)
   const brand = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const open = (path: string) => void Linking.openURL(`${env.EXPO_PUBLIC_WEB_URL}${path}`)

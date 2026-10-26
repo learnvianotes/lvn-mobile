@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { useColorScheme } from 'react-native'
+import { useTheme } from './index'
 import { watchTheme } from './apply'
 import { useBrandFonts } from './loadFonts'
 import { readThemeSync } from './persist'
@@ -18,10 +19,15 @@ export function ThemeRoot({ children }: { children: ReactNode }) {
     readThemeSync()
     ready.current = true
   }
+  // Read after the stored preference, so the first snapshot is not the Navy default.
+  const mode = useTheme().mode
   useEffect(() => {
+    // A Light or Dark choice locks Appearance. Only System should copy the device scheme,
+    // otherwise that lock overwrites the scheme System needs when the person switches back.
+    if (mode !== 'system') return
     if (scheme !== 'light' && scheme !== 'dark') return
     setSystemScheme(scheme)
-  }, [scheme])
+  }, [mode, scheme])
   useEffect(() => watchTheme(), [])
   if (!fontsReady) return null
   return children

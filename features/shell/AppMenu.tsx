@@ -1,7 +1,7 @@
 import { router, type Href } from 'expo-router'
 import { X } from 'lucide-react-native'
 import { useEffect, useRef } from 'react'
-import { Modal, Pressable, ScrollView, View, type View as RNView } from 'react-native'
+import { Modal, Pressable, ScrollView, View, type PressableInstance } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Wordmark } from '@/components/brand/Logo'
@@ -17,7 +17,7 @@ export function AppMenu({ open, onClose }: { open: boolean; onClose: () => void 
 function AppMenuOpen({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const closeRef = useRef<RNView>(null)
+  const closeRef = useRef<PressableInstance>(null)
   useEffect(() => {
     const node = closeRef.current as { focus?: () => void } | null
     node?.focus?.()

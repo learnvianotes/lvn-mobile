@@ -19,9 +19,8 @@ const markStyle = (marks: readonly Mark[] | undefined): TextStyle => {
     else if (m.type === 'italic') fontStyle = 'italic'
     else if (m.type === 'underline') lines.push('underline')
     else if (m.type === 'strike') lines.push('line-through')
-<<<<<<< HEAD
     else if (m.type === 'code') fontFamily = 'monospace'
-    else if (m.type === 'highlight') backgroundColor = 'rgba(250, 204, 21, 0.35)'
+    else if (m.type === 'highlight') backgroundColor = getTheme().palette.highlight
   }
   return {
     fontWeight,
@@ -29,10 +28,6 @@ const markStyle = (marks: readonly Mark[] | undefined): TextStyle => {
     fontFamily,
     backgroundColor,
     textDecorationLine: lines.length ? (lines.join(' ') as TextStyle['textDecorationLine']) : undefined,
-=======
-    else if (m.type === 'code') s.fontFamily = 'monospace'
-    else if (m.type === 'highlight') s.backgroundColor = getTheme().palette.highlight
->>>>>>> 3bd8263 (Use the exact web tokens and load Inter and JetBrains Mono.)
   }
 }
 

@@ -1,6 +1,6 @@
 import { X } from 'lucide-react-native'
 import { useEffect, useRef, useState } from 'react'
-import { Modal, Pressable, ScrollView, View, type View as RNView } from 'react-native'
+import { Modal, Pressable, ScrollView, View, type PressableInstance } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { AppearanceCard } from '@/features/settings/AppearanceCard'
@@ -23,7 +23,7 @@ export function AppearanceButton() {
 function AppearanceSheet({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets()
   const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const closeRef = useRef<RNView>(null)
+  const closeRef = useRef<PressableInstance>(null)
   useEffect(() => {
     const node = closeRef.current as { focus?: () => void } | null
     node?.focus?.()
