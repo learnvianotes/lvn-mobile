@@ -1,6 +1,7 @@
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library'
+import { copy } from '@/features/auth/copy'
 import { signedIn, signedOut } from '@/lib/auth/session'
-import { mockApi, ok, session, signInOptions, viewer } from '../../support/api'
+import { mockApi, ok, problem, session, signInOptions, viewer } from '../../support/api'
 
 /**
  * The real app directory under expo-router's test renderer: which screens a session may see (app/_layout.tsx) and
@@ -150,6 +151,32 @@ describe('signed out', () => {
     expect(screen.getByText(/If an account uses that email/)).toBeVisible()
     expect(api.calls.at(-1)!.variables).toEqual({ email: 'asha@example.com' })
   })
+
+  it('says the same thing when the reset is refused for an unknown email', async () => {
+    mockApi({
+      RequestPasswordReset: () => ({ data: { requestPasswordReset: { __typename: 'OkPayload', ok: false, userErrors: [problem(['input', 'email'], 'No account uses that email.', 'NOT_FOUND')] } } }),
+    })
+    await render('./app', { initialUrl: '/reset' })
+    await fireEvent.changeText(screen.getByLabelText('Email'), 'nobody@example.com')
+    await press(screen.getByText('Send link'))
+    expect(screen.getByText(/If an account uses that email/)).toBeVisible()
+    expect(screen.queryByText('No account uses that email.')).toBeNull()
+  })
+
+  it('rewrites an invite-only sign-in and clears it when the email changes', async () => {
+    mockApi({
+      SignInOptions: () => signInOptions,
+      SignIn: () => ({ data: { signIn: { __typename: 'AuthPayload', session: null, userErrors: [problem(null, 'Registration is invite-only.', 'FORBIDDEN')] } } }),
+    })
+    await render('./app', { initialUrl: '/sign-in' })
+    await fireEvent.changeText(screen.getByLabelText('Email'), 'asha@example.com')
+    await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
+    await press(screen.getByRole('button', { name: 'Sign in' }))
+    expect(screen.getByText(copy.errors.inviteOnly)).toBeVisible()
+    expect(screen.queryByText('Registration is invite-only.')).toBeNull()
+    await fireEvent.changeText(screen.getByLabelText('Email'), 'asha@example.com ')
+    expect(screen.queryByText(copy.errors.inviteOnly)).toBeNull()
+  })
 })
 
 describe('signed in', () => {
@@ -190,5 +217,23 @@ describe('signed in', () => {
     await press(screen.getByText('Sign out'))
     expect(screen.getByText('Get Started Free')).toBeVisible()
     expect(api.calls.find((c) => c.op === 'SignOut')!.headers.get('authorization')).toMatch(/^Bearer /)
+  })
+
+  it('reloads the account after a college code, so verified does not stay as it was at sign-in', async () => {
+    let confirmed = false
+    const user = () => viewer({ institutionalEmail: 'asha@iitb.ac.in', institutionalEmailStatus: confirmed ? 'CONFIRMED' : 'CODE_SENT', verified: confirmed })
+    mockApi({
+      Viewer: () => ({ data: { viewer: user() } }),
+      VerifyInstitutionalEmail: () => {
+        confirmed = true
+        return { data: { verifyInstitutionalEmail: ok } }
+      },
+    })
+    await signIn(user())
+    await render('./app', { initialUrl: '/verify' })
+    await fireEvent.changeText(screen.getByLabelText('Code'), '123456')
+    await press(screen.getByText('Verify'))
+    await settle()
+    expect(screen.getByText('You are verified.')).toBeVisible()
   })
 })

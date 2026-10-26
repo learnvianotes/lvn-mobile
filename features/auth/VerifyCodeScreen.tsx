@@ -5,6 +5,7 @@ import { ActivityIndicator, View } from 'react-native'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
 import { ResendInstitutionalEmailCodeDocument, SetInstitutionalEmailDocument, VerifyInstitutionalEmailDocument, ViewerDocument } from '@/graphql/generated/graphql'
+import { refreshViewer } from '@/lib/auth/viewer'
 import { AuthScreen } from './AuthScreen'
 import { TextField } from './Controls'
 import { copy } from './copy'
@@ -62,7 +63,11 @@ export function VerifyCodeScreen() {
     setNote(null)
     try {
       const { data: res } = await verify({ variables: { code } })
-      if (res?.verifyInstitutionalEmail.ok) return void (await client.refetchQueries({ include: [ViewerDocument] }))
+      // The mutation does not return the account. Reload it, or `verified` stays as it was at sign-in.
+      if (res?.verifyInstitutionalEmail.ok) {
+        await refreshViewer(client)
+        return
+      }
       // A wrong code is cleared so the next one is typed fresh rather than edited digit by digit.
       setCode('')
       setProblem(res?.verifyInstitutionalEmail.userErrors[0]?.message ?? copy.errors.generic)

@@ -16,6 +16,7 @@ import { DeleteAccountCard } from '@/features/data/DeleteAccountCard'
 import { InstitutionalEmailCard, LegacyDataCard, StudyDetailsCard } from './AccountDetails'
 import { copy } from './copy'
 import { Notice } from './Notice'
+import { VerifyEmailBanner } from './VerifyEmailBanner'
 import { forgetPushToken } from '@/features/push/push'
 import { AiAccountCard } from '@/features/ai/AiScreen'
 import { AppearanceCard } from '@/features/settings/AppearanceCard'
@@ -98,7 +99,7 @@ function Account({ viewer }: { viewer: ViewerFieldsFragment }) {
           </Text>
         </View>
         {!viewer.verified ? <Text className="text-muted-foreground text-sm">{t.verifyLead}</Text> : null}
-        {!viewer.emailVerified ? <Notice tone="info">{t.emailUnverified}</Notice> : null}
+        <VerifyEmailBanner />
         {viewer.restrictedMinor ? <Notice tone="info">{t.minor}</Notice> : null}
       </View>
 

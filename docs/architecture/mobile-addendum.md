@@ -77,26 +77,34 @@ screen navigates after sign-in or sign-out itself.
 - **Requests.** `lib/apollo.ts` retries once after a refresh when the API answers `UNAUTHENTICATED`. Operations live in
   `graphql/operations/*.graphql`; `pnpm graphql:sync && pnpm codegen` regenerates `graphql/generated` from lvn-backend's
   schema (a sibling checkout until `@lvn/contracts` is published).
-- **Google (ADR-0007) — the sign-in shown at launch.** Native Google Sign-In
-  (`@react-native-google-signin/google-signin`) picks the account and returns a Google ID token; Firebase
-  (`signInWithCredential`, in-memory only) turns it into the Firebase ID token the API's `signInWithGoogle` accepts;
-  both are signed out straight after (`lib/auth/google.ts`). The button shows when the API offers Google and the build
-  has `EXPO_PUBLIC_FIREBASE_*` and `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. Setup, once per Firebase project:
-  1. Authentication → Sign-in method → enable **Google**. Its "Web SDK configuration" shows the **Web client ID** →
-     `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` (the audience of the token Firebase accepts).
-  2. Project settings → add an **Android app** for each variant (`com.learnvianotes.dev`, `.sandbox`, `com.learnvianotes`)
-     with the **SHA-1** of the key the APK is signed with — that creates the Android OAuth client Google matches by
-     package and key. Local release builds are signed with `android/app/debug.keystore`:
+- **Google (ADR-0007).** Native Google Sign-In (`@react-native-google-signin/google-signin`) picks the account and
+  returns a Google ID token with the `openid`, `email` and `profile` scopes. Firebase (`signInWithCredential`,
+  in-memory only) turns it into the Firebase ID token `signInWithGoogle` verifies. The API links that verified email
+  to an existing account; the app does not open a second one. Both are signed out straight after (`lib/auth/google.ts`).
+  The button shows when the API offers Google and the build has `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`,
+  `EXPO_PUBLIC_FIREBASE_API_KEY`, `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN` and `EXPO_PUBLIC_FIREBASE_PROJECT_ID`. The Firebase
+  app id is optional. Sandbox and production leave these empty, so those builds, including the CI APK, offer email and
+  password only until the values are set. Do not commit client ids or API keys; put them in `env/<variant>.env` or the
+  git-ignored `env/<variant>.local.env`.
+  1. Authentication → Sign-in method → enable **Google**. Copy the **Web client ID** from "Web SDK configuration" into
+     `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID`. It must be an OAuth client of type **Web**. An Android client id does not
+     produce an ID token.
+  2. An **Android** OAuth client for the variant's package (`com.learnvianotes.dev`, `com.learnvianotes.sandbox`,
+     `com.learnvianotes`) whose **SHA-1** is the keystore that signed the installed APK. A mismatch is Google's
+     `DEVELOPER_ERROR` (status 10) or a null ID token. Local and CI release builds sign with the debug keystore
+     prebuild writes at `android/app/debug.keystore` (alias `androiddebugkey`, store and key password `android`):
      `keytool -list -v -keystore android/app/debug.keystore -alias androiddebugkey -storepass android -keypass android`.
-     Download that app's `google-services.json` **after** adding the SHA-1 (it then lists an Android OAuth client,
-     `client_type: 1`) and save it as `firebase/<variant>/google-services.json` (git-ignored; `GOOGLE_SERVICES_JSON`
-     in `env/<variant>.env` points at it). `app.config.ts` hands it to Expo, which copies it into `android/app` on
-     every prebuild and applies the Google Services Gradle plugin, pinned to 4.5.0 by
-     `plugins/with-google-services-version.js` — never edit `android/` by hand, prebuild regenerates it. Sign-in
-     itself does not need the file (it uses the web client id); FCM will (ADR-0021).
-  3. Project settings → the **web app's** config → `EXPO_PUBLIC_FIREBASE_API_KEY`, `…_AUTH_DOMAIN`, `…_PROJECT_ID`,
-     `…_APP_ID`; the API gets `FIREBASE_PROJECT_ID`.
-  4. iOS (later, needs a Mac): an iOS app → `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`; `app.config.ts` then adds the URL scheme.
+     That file is not in git. A fresh prebuild creates a new keystore, so the SHA-1 changes and must be registered
+     again, or the build must reuse one stable keystore. `google-services.json` (`GOOGLE_SERVICES_JSON`, git-ignored)
+     is not what makes sign-in succeed; `app.config.ts` still copies it in on prebuild when the file exists, and
+     `plugins/with-google-services-version.js` pins the Gradle plugin to 4.5.0. Never edit `android/` by hand.
+  3. The web app's Firebase config: `EXPO_PUBLIC_FIREBASE_API_KEY`, `EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN`,
+     `EXPO_PUBLIC_FIREBASE_PROJECT_ID`. `EXPO_PUBLIC_FIREBASE_APP_ID` is optional. The API key must allow Identity
+     Toolkit from the app. A key restricted to the website's HTTP referrers rejects the phone, while email and
+     password, which never call Firebase, still work.
+  4. iOS: `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID` is the iOS client id ending in `.apps.googleusercontent.com`, not the
+     reversed form. Set it before prebuild. `app.config.ts` adds the URL scheme
+     `com.googleusercontent.apps.<id with that suffix removed>`.
 - **GitHub — kept for later.** Authorization Code + PKCE in the system auth browser (expo-auth-session), redirect
   `<scheme>://oauth/callback`, exchanged by `oauthExchange`. Not configured at launch; when it is, register that URI
   with the GitHub OAuth app and add it to the API's `OAUTH_REDIRECT_URIS`. `app/+native-intent.ts` keeps the router
@@ -108,7 +116,18 @@ screen navigates after sign-in or sign-out itself.
   until app links exist; the app asks for the reset link and the web page sets the new password.
 - **Forms.** Date of birth is three number fields (day, month, year — GOV.UK's pattern for a date people know, not a
   picker). Emails are trimmed (keyboards add a trailing space). A wrong code or password is cleared for a fresh try.
-  The API's `userErrors` land on their fields; anything else shows above the form.
+  The API's `userErrors` land on their fields; anything else shows above the form. An invite-only refusal is one
+  sentence, and it clears when the email changes. A password reset always shows the same sentence, including when the
+  API names an unknown address.
+- **Email after sign-in.** `VerifyEmailBanner` (Home, Profile, Settings) shows while `emailVerified` is false. Resend
+  calls `resendVerification` with no arguments and reads `OkPayload`. That field is not in the schema checked in here;
+  the document lives in `features/auth/resendVerification.ts`, outside `graphql/operations`, so codegen still matches
+  this schema. "I've verified", returning to the app, and a successful college-code check run `refreshViewer`
+  (`Viewer` with `network-only`), because those mutations do not return the account.
+- **What an unverified account can do.** The app explains only the verified-account gates the schema names: publishing
+  a note, choosing who can read it, and sharing it with someone. The sentence shows when `viewer.verified` is false and
+  the matching `viewerCan` flag is false. Notes, study, classes, comments, follows and new groups stay on screen; a
+  refusal is the API's own message.
 
 Tests live in `tests/`, never in `app/`: Expo Router turns every file in `app/` into a route, so a test there
 would be bundled into the app. `tests/unit` covers `lib/`, `tests/components` every exported component with props

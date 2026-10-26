@@ -10,7 +10,7 @@ import { VersionsScreen } from '@/features/notes/publishing/VersionsScreen'
 import type { LocalNote } from '@/features/notes/model/types'
 import { syncNow } from '@/features/notes/sync/engine'
 import { createApolloClient } from '@/lib/apollo'
-import { mockApi } from '../../support/api'
+import { mockApi, viewer } from '../../support/api'
 import { renderInApp } from '../../support/render'
 
 /**
@@ -156,6 +156,7 @@ it('sharing: who can read it, people with what they can do, copies, and the link
   })
   await inApollo(<ShareScreen id={NOTE} />)
   expect(await screen.findByText('Private notes have no link to share.')).toBeOnTheScreen()
+  expect(screen.queryByText(/not verified yet/)).toBeNull()
   // Teachers alone share with all their connections.
   expect(screen.queryByLabelText('Share with all my connections')).toBeNull()
 
@@ -181,6 +182,25 @@ it('sharing: who can read it, people with what they can do, copies, and the link
   await waitFor(() => expect(api.calls.find((c) => c.op === 'SetNoteForking')?.variables).toEqual({ noteId: NOTE, enabled: false }))
   await fireEvent.press(screen.getByRole('button', { name: 'Remove Ravi Kumar' }))
   expect(await screen.findByText('Not shared with anyone yet.')).toBeOnTheScreen()
+})
+
+it('explains publish, and who can read a note, only when this account is unverified and the API refuses them', async () => {
+  const blocked = { __typename: 'NoteActions', edit: true, publish: false, changeVisibility: false, delete: true, share: false, fork: false }
+  mockApi({
+    PhoneNoteMeta: () => ({ data: { note: meta({ viewerCan: blocked }) } }),
+    NoteShares: () => ({ data: { note: { __typename: 'Note', id: NOTE, visibility: 'PRIVATE', sharedWithConnections: false, shares: [] }, viewer: { __typename: 'User', id: ME, globalRole: 'STUDENT' } } }),
+    Viewer: () => ({ data: { viewer: viewer({ verified: false }) } }),
+  })
+  await inApollo(<NoteScreen id={NOTE} />)
+  expect(await screen.findByText('Verify your account to publish notes.')).toBeOnTheScreen()
+
+  mockApi({
+    PhoneNoteMeta: () => ({ data: { note: meta({ viewerCan: blocked }) } }),
+    NoteShares: () => ({ data: { note: { __typename: 'Note', id: NOTE, visibility: 'PRIVATE', sharedWithConnections: false, shares: [] }, viewer: { __typename: 'User', id: ME, globalRole: 'STUDENT' } } }),
+    Viewer: () => ({ data: { viewer: viewer({ verified: false }) } }),
+  })
+  await inApollo(<ShareScreen id={NOTE} />)
+  expect(await screen.findByText('This account is not verified yet, so choosing who can read it and sharing it with someone waits. You can keep writing the note.')).toBeOnTheScreen()
 })
 
 it('a note never published cannot go public yet', async () => {

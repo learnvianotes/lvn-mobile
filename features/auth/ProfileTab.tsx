@@ -15,6 +15,7 @@ import { MyAchievementsDocument, ProfileTabDocument, ViewerDocument, type Viewer
 import { YEARS } from './AccountDetails'
 import { copy } from './copy'
 import { Notice } from './Notice'
+import { VerifyEmailBanner } from './VerifyEmailBanner'
 
 type Row = { label: string; icon: LucideIcon; href: Href; show?: (v: ViewerFieldsFragment) => boolean }
 
@@ -56,6 +57,7 @@ export function ProfileTab() {
         </View>
         <AppearanceCard />
         {viewer ? <AccountStanding userId={viewer.id} /> : null}
+        <VerifyEmailBanner />
         {viewer ? <Header viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
         {viewer && !viewer.verified ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}

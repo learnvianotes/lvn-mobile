@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { SignInOptionsDocument, SignInWithGoogleDocument } from '@/graphql/generated/graphql'
 import { googleAvailable, googleIdToken } from '@/lib/auth/google'
 import { copy } from './copy'
+import { authErrorMessage } from './errors'
 import { useFinishSignIn } from './useFinishSignIn'
 
 /**
@@ -27,7 +28,7 @@ export function useGoogleSignIn() {
       if (!payload?.session) throw new Error(payload?.userErrors[0]?.message ?? copy.providers.failed)
       await finish(payload.session)
     } catch (e) {
-      setError(e instanceof Error && e.message ? e.message : copy.providers.failed)
+      setError(authErrorMessage(e, copy.providers.failed))
     } finally {
       setBusy(false)
     }

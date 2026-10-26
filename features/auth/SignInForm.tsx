@@ -8,7 +8,7 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
 import { SignInDocument } from '@/graphql/generated/graphql'
-import { applyProblems } from '@/lib/auth/forms'
+import { presentProblems } from './errors'
 import { AuthScreen } from './AuthScreen'
 import { TextField } from './Controls'
 import { copy } from './copy'
@@ -37,7 +37,7 @@ export function SignInForm() {
       if (payload.session) return await finish(payload.session)
       // The email stays; a refused password is cleared to be typed again.
       form.setValue('password', '')
-      setGeneral(applyProblems(payload.userErrors, form.setError, ['email', 'password']))
+      setGeneral(presentProblems(payload.userErrors, form.setError, ['email', 'password']))
     } catch {
       setGeneral(copy.errors.generic)
     }
@@ -53,7 +53,7 @@ export function SignInForm() {
           name="email"
           render={({ field }) => (
             <FormField label={t.email} error={errors.email ? copy.errors.email : undefined}>
-              <TextField testID="sign-in-email" accessibilityLabel={t.email} value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} invalid={!!errors.email} keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress" />
+              <TextField testID="sign-in-email" accessibilityLabel={t.email} value={field.value} onChangeText={(value) => { field.onChange(value); setGeneral(null); form.clearErrors('email') }} onBlur={field.onBlur} invalid={!!errors.email} keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress" />
             </FormField>
           )}
         />

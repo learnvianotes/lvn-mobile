@@ -10,6 +10,7 @@ import { ExamReadiness } from './ExamReadiness'
 import { HeroCard } from './HeroCard'
 import { LoadState } from '@/features/shell/LoadState'
 import { ContestsDocument, DailyLineDocument, ExamsDocument, RecommendationsDocument, RhythmDocument, UnreadNotificationCountDocument, ViewerDocument } from '@/graphql/generated/graphql'
+import { VerifyEmailBanner } from '@/features/auth/VerifyEmailBanner'
 import { HomeHeader } from './HomeHeader'
 import { QuickActions } from './QuickActions'
 import { Recommended } from './Recommended'
@@ -72,6 +73,7 @@ export function HomeScreen() {
         <Section index={0}>
           <HomeHeader />
         </Section>
+        <VerifyEmailBanner />
         <Section index={1}>
           <HeroCard firstName={firstName} />
         </Section>

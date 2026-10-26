@@ -7,6 +7,7 @@ import { Text } from '@/components/ui/text'
 import { OAuthExchangeDocument, SignInOptionsDocument } from '@/graphql/generated/graphql'
 import { authorize, oauthAvailable } from '@/lib/auth/oauth'
 import { copy } from './copy'
+import { authErrorMessage } from './errors'
 import { GoogleButton } from './GoogleButton'
 import { Notice } from './Notice'
 import { useFinishSignIn } from './useFinishSignIn'
@@ -39,7 +40,7 @@ export function ProviderButtons() {
       if (!payload?.session) throw new Error(payload?.userErrors[0]?.message ?? copy.providers.failed)
       await finish(payload.session)
     } catch (e) {
-      setGithubError(e instanceof Error && e.message ? e.message : copy.providers.failed)
+      setGithubError(authErrorMessage(e, copy.providers.failed))
     } finally {
       setGithubBusy(false)
     }

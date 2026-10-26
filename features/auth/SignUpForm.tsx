@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
 import { SignInOptionsDocument, SignUpDocument } from '@/graphql/generated/graphql'
 import { markAgeRefused } from '@/lib/auth/age'
-import { applyProblems, dateOfBirth } from '@/lib/auth/forms'
+import { dateOfBirth } from '@/lib/auth/forms'
+import { presentProblems } from './errors'
 import { AgeRefused, birthDateHint, ConfirmBirthDate, useAgeRefused } from './AgeCheck'
 import { AuthScreen } from './AuthScreen'
 import { CheckRow, TextField } from './Controls'
@@ -89,7 +90,7 @@ export function SignUpForm() {
       if (payload.userErrors.some((p) => p.code === 'UNDER_MINIMUM_AGE')) return await markAgeRefused()
       // The API names `dateOfBirth`; the form's field is `dob`.
       const problems = payload.userErrors.map((p) => (p.field?.at(-1) === 'dateOfBirth' ? { ...p, field: ['input', 'dob'] } : p))
-      setGeneral(applyProblems(problems, form.setError, FIELDS))
+      setGeneral(presentProblems(problems, form.setError, FIELDS))
     } catch {
       setGeneral(copy.errors.generic)
     } finally {
@@ -157,7 +158,7 @@ export function SignUpForm() {
           name="email"
           render={({ field }) => (
             <FormField label={t.email} error={message('email', copy.errors.email)}>
-              <TextField testID="sign-up-email" accessibilityLabel={t.email} value={field.value} onChangeText={field.onChange} onBlur={field.onBlur} invalid={!!errors.email} keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress" />
+              <TextField testID="sign-up-email" accessibilityLabel={t.email} value={field.value} onChangeText={(value) => { field.onChange(value); setGeneral(null); form.clearErrors('email') }} onBlur={field.onBlur} invalid={!!errors.email} keyboardType="email-address" autoCapitalize="none" autoComplete="email" textContentType="emailAddress" />
             </FormField>
           )}
         />

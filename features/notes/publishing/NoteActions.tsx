@@ -7,7 +7,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
-import { ForkNoteDocument, PhoneNoteMetaDocument, PublishNoteDocument } from '@/graphql/generated/graphql'
+import { ForkNoteDocument, PhoneNoteMetaDocument, PublishNoteDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { useLocal } from '../hooks'
 import type { LocalNote } from '../model/types'
 import * as db from '../store/db'
@@ -35,6 +35,7 @@ export function useNoteActions(note: LocalNote, onTrash: () => void) {
     if (wasUnsent.current && !unsent && !note.localOnly && note.access === 'OWNER') void refetch().catch(() => undefined)
     wasUnsent.current = unsent
   }, [unsent, note.localOnly, note.access, refetch])
+  const viewer = useQuery(ViewerDocument).data?.viewer
   const m = meta.data?.note
   const online = (go: () => void) => () => {
     if (note.localOnly || !m) return Alert.alert('This needs a connection', note.localOnly ? 'The note is still only on this phone. It is sent as soon as you are online.' : 'Connect to the internet and try again.')
@@ -69,7 +70,8 @@ export function useNoteActions(note: LocalNote, onTrash: () => void) {
     button: <MoreButton onPress={() => setOpen(true)} />,
     sheet: <ActionSheet name="note-actions" title={note.title || 'Untitled note'} actions={actions} open={open} onClose={() => setOpen(false)} />,
     status,
-    verifyToPublish: m && !m.viewerCan.publish,
+    // The API allows publish for a verified owner. Say so only then — a verified owner who cannot publish has some other reason.
+    verifyToPublish: !!(m && !m.viewerCan.publish && viewer && !viewer.verified),
     publishing: publishing.loading,
     message,
   }

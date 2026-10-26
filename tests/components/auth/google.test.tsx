@@ -1,4 +1,6 @@
 import { act, fireEvent, renderRouter, screen } from 'expo-router/testing-library'
+import { copy } from '@/features/auth/copy'
+import { GOOGLE_SETUP_ERROR } from '@/lib/auth/google'
 import { signedOut } from '@/lib/auth/session'
 import { mockApi, session, signInOptions, viewer } from '../../support/api'
 
@@ -56,7 +58,7 @@ it('signs in with Google through Firebase, sends the Firebase token, and signs b
   await settle()
   await fireEvent.press(screen.getByText('Continue with Google'))
   await settle()
-  expect(mockGoogle.configure).toHaveBeenCalledWith({ webClientId: '123-web.apps.googleusercontent.com', iosClientId: undefined })
+  expect(mockGoogle.configure).toHaveBeenCalledWith({ webClientId: '123-web.apps.googleusercontent.com', scopes: ['openid', 'email', 'profile'] })
   expect(mockFirebase.credential).toHaveBeenCalledWith('google-id-token')
   expect(api.calls.find((c) => c.op === 'SignInWithGoogle')!.variables).toEqual({ idToken: 'firebase-id-token' })
   expect(mockFirebase.signOut).toHaveBeenCalled()
@@ -130,6 +132,39 @@ it('keeps the welcome screen usable when Google sign-in fails', async () => {
   expect(screen.getByText('That sign-in did not work. Try again.')).toBeVisible()
   expect(screen.getByText('Continue with Google')).toBeVisible()
   expect(screen.getByText('Get Started Free')).toBeVisible()
+})
+
+it('says the build is not set up when Android rejects the client or the ID token is missing', async () => {
+  mockApi({ SignInOptions: () => withGoogle })
+  await renderRouter('./app', { initialUrl: '/sign-in' })
+  await settle()
+  mockGoogle.signIn.mockRejectedValueOnce(Object.assign(new Error('DEVELOPER_ERROR'), { code: '10' }))
+  await fireEvent.press(screen.getByText('Continue with Google'))
+  await settle()
+  expect(screen.getByText(GOOGLE_SETUP_ERROR)).toBeVisible()
+  expect(mockFirebase.signInWithCredential).not.toHaveBeenCalled()
+  expect(mockGoogle.signOut).toHaveBeenCalled()
+
+  mockGoogle.signIn.mockResolvedValueOnce({ type: 'success', data: { idToken: null } })
+  await fireEvent.press(screen.getByText('Continue with Google'))
+  await settle()
+  expect(screen.getByText(GOOGLE_SETUP_ERROR)).toBeVisible()
+  expect(mockFirebase.signInWithCredential).not.toHaveBeenCalled()
+})
+
+it('rewrites an invite-only refusal so Google is how an existing account is joined', async () => {
+  mockApi({
+    SignInOptions: () => withGoogle,
+    SignInWithGoogle: () => ({ data: { signInWithGoogle: { __typename: 'AuthPayload', session: null, userErrors: [{ __typename: 'UserError', field: null, message: 'This beta is invite-only.', code: 'FORBIDDEN' }] } } }),
+  })
+  mockGoogle.signIn.mockResolvedValue({ type: 'success', data: { idToken: 'google-id-token' } })
+  mockFirebase.signInWithCredential.mockResolvedValue({ user: { getIdToken: async () => 'firebase-id-token' } })
+  await renderRouter('./app', { initialUrl: '/sign-in' })
+  await settle()
+  await fireEvent.press(screen.getByText('Continue with Google'))
+  await settle()
+  expect(screen.getByText(copy.errors.inviteOnly)).toBeVisible()
+  expect(screen.queryByText('This beta is invite-only.')).toBeNull()
 })
 
 it('has no Google button when the API does not offer it', async () => {
