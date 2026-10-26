@@ -18,6 +18,7 @@ import { copy } from './copy'
 import { Notice } from './Notice'
 import { forgetPushToken } from '@/features/push/push'
 import { AiAccountCard } from '@/features/ai/AiScreen'
+import { AppearanceCard } from '@/features/settings/AppearanceCard'
 import { InterestsCard } from './Interests'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
@@ -32,11 +33,11 @@ export function AccountScreen() {
   const viewer = data?.viewer
   const uploadsOn = useUploadsEnabled()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-lg font-bold" accessibilityRole="header">
@@ -44,6 +45,7 @@ export function AccountScreen() {
         </Text>
       </View>
       <ScrollView contentContainerClassName="gap-5 px-5 pt-2" contentContainerStyle={{ paddingBottom: insets.bottom + 48 }}>
+        <AppearanceCard />
         {viewer ? <Account viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {viewer ? <StudyDetailsCard /> : null}
         {viewer ? <InterestsCard /> : null}
@@ -61,8 +63,8 @@ export function AccountScreen() {
 }
 
 function NotificationSettingsLink() {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   return (
     <Pressable accessibilityRole="link" onPress={() => router.push('/notification-settings')} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border px-5 py-4">
       <Bell size={20} color={primary} />
@@ -74,7 +76,7 @@ function NotificationSettingsLink() {
 
 function Account({ viewer }: { viewer: ViewerFieldsFragment }) {
   const t = copy.account
-  const success = String(useCSSVariable('--color-success') ?? '#15803d')
+  const success = String(useCSSVariable('--color-success') ?? '#0f6b45')
   return (
     <>
       <View className="flex-row items-center gap-4">

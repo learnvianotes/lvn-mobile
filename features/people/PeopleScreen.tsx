@@ -32,7 +32,7 @@ const TABS: Record<Tab, { label: string; undo: string; empty: string }> = {
 /** The person's people (lvn-backend ADR-0043): followers (young learners counted, not named), following, blocked, restricted. */
 export function PeopleScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const [tab, setTab] = useState<Tab>('followers')
   const query = useQuery(MyPeopleDocument, { variables: { first: 100 }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
@@ -82,7 +82,7 @@ export function PeopleScreen() {
   return (
     <View className="bg-background flex-1" style={{ paddingTop: insets.top + 6 }}>
       <View className="flex-row items-center gap-2 px-3 pb-2">
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="flex-1 text-xl font-extrabold" accessibilityRole="header">

@@ -1,115 +1,112 @@
-import { LinearGradient } from 'expo-linear-gradient'
-import { Link } from 'expo-router'
-import { StatusBar } from 'expo-status-bar'
-import { CalendarCheck, Mail, NotebookPen, Users, type LucideIcon } from 'lucide-react-native'
-import { useWindowDimensions, View } from 'react-native'
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useUniwind } from 'uniwind'
-import { Logo } from '@/components/brand/Logo'
+import { Link, router } from 'expo-router'
+import { BookOpen, CalendarCheck, GraduationCap, MessagesSquare, NotebookPen, Users, type LucideIcon } from 'lucide-react-native'
+import { useRef } from 'react'
+import { Linking, Pressable, ScrollView, View, type ScrollViewInstance } from 'react-native'
+import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
-import { PressScale } from '@/features/shell/PressScale'
-import { copy } from './copy'
+import { LandingArt } from '@/features/marketing/LandingArt'
+import { PublicHeader } from '@/features/shell/PublicHeader'
+import { env } from '@/lib/env'
+import { useTheme } from '@/lib/theme'
 import { useAgeRefused } from './AgeCheck'
+import { copy } from './copy'
 import { GoogleButton } from './GoogleButton'
 import { Notice } from './Notice'
 import { useGoogleSignIn } from './useGoogleSignIn'
 
-const FEATURES: { icon: LucideIcon; text: string }[] = [
-  { icon: NotebookPen, text: copy.welcome.features[0] },
-  { icon: CalendarCheck, text: copy.welcome.features[1] },
-  { icon: Users, text: copy.welcome.features[2] },
+const TILES: { title: string; body: string; icon: LucideIcon }[] = [
+  { title: 'Smart Notes', body: 'Cards, code and pictures', icon: NotebookPen },
+  { title: 'AI Learning', body: 'Ask about your notes', icon: MessagesSquare },
+  { title: 'Study Groups', body: 'Learn with peers', icon: Users },
+  { title: 'Exam Prep', body: 'A plan for the day', icon: CalendarCheck },
+  { title: 'Quizzes & Flashcards', body: 'Remember what you read', icon: BookOpen },
+  { title: 'Community', body: 'Share and discuss', icon: GraduationCap },
+]
+
+const LEGAL = [
+  { label: 'Terms of Service', path: '/legal/terms' },
+  { label: 'Privacy Policy', path: '/legal/privacy' },
+  { label: 'Content licence', path: '/legal/content-licence' },
+  { label: 'Grievance Redressal', path: '/legal/grievance' },
 ]
 
 /**
- * First screen for someone signed out: the night-sky brand hero (ui-reference: dark hero cards for the moments that
- * matter) above a sheet whose first action is one tap — Continue with Google. Email sign-up and sign-in sit right
- * below it. A returning Google account lands on Home; a new one gives its details once.
+ * Signed-out home. The same column as the web landing on a phone: public header, one heading,
+ * the note illustration, six equal tiles. Google stays available here when the API offers it.
  */
 export function Welcome() {
-  const insets = useSafeAreaInsets()
-  const { height } = useWindowDimensions()
-  const { theme } = useUniwind()
   const google = useGoogleSignIn()
-  // A device refused an account in the last day (lvn-backend ADR-0091): no email sign-up; signing in still works.
   const refused = useAgeRefused()
-  const t = copy.welcome
-
+  const { scheme } = useTheme()
+  const scroll = useRef<ScrollViewInstance>(null)
+  const featuresY = useRef(0)
+  const brand = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const open = (path: string) => void Linking.openURL(`${env.EXPO_PUBLIC_WEB_URL}${path}`)
   return (
-    <View className="flex-1" style={{ backgroundColor: '#0B1220' }}>
-      <StatusBar style="light" />
-      <LinearGradient colors={['#0B1220', '#1E3A8A', '#2563EB']} locations={[0, 0.55, 1]} start={{ x: 0.1, y: 0 }} end={{ x: 0.9, y: 1 }} style={{ position: 'absolute', inset: 0 }} />
-      {/* Soft light behind the logo: depth without an image. */}
-      <View pointerEvents="none" className="absolute -right-24 -top-16 size-72 rounded-full" style={{ backgroundColor: 'rgba(96,165,250,0.18)' }} />
-      <View pointerEvents="none" className="absolute -left-20 top-64 size-56 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.05)' }} />
-
-      <View className="flex-1 justify-center gap-7 px-7" style={{ paddingTop: insets.top + 12 }}>
-        <Animated.View entering={FadeInDown.duration(500)} className="flex-row items-center gap-3" accessible accessibilityRole="header" accessibilityLabel="LearnViaNotes">
-          <Logo size={52} />
-          <Text className="text-2xl font-extrabold tracking-tight text-white">
-            LearnVia<Text className="text-2xl font-extrabold tracking-tight" style={{ color: '#93C5FD' }}>Notes</Text>
-          </Text>
-        </Animated.View>
-
-        <Animated.View entering={FadeInDown.delay(80).duration(500)} className="gap-3">
-          <Text className="text-[34px] font-extrabold leading-[40px] tracking-tight text-white">{t.headline}</Text>
-          <Text className="text-base leading-6" style={{ color: 'rgba(255,255,255,0.78)' }}>{t.lead}</Text>
-        </Animated.View>
-
-        {/* On short screens the sheet keeps its room and the highlights give way. */}
-        {height >= 720 ? (
-          <View className="gap-2.5">
-            {FEATURES.map(({ icon: Icon, text }, i) => (
-              <Animated.View
-                key={text}
-                entering={FadeInDown.delay(180 + i * 110).duration(500)}
-                className="flex-row items-center gap-3 self-start rounded-2xl border px-3.5 py-2.5"
-                style={{ backgroundColor: 'rgba(255,255,255,0.08)', borderColor: 'rgba(255,255,255,0.14)' }}
-              >
-                <View className="size-8 items-center justify-center rounded-xl" style={{ backgroundColor: 'rgba(147,197,253,0.18)' }}>
-                  <Icon size={18} color="#BFDBFE" />
-                </View>
-                <Text className="text-[15px] font-medium text-white">{text}</Text>
-              </Animated.View>
-            ))}
-          </View>
-        ) : null}
-      </View>
-
-      <Animated.View entering={FadeInUp.delay(250).duration(550)} className="bg-card gap-3 rounded-t-[32px] px-6 pt-7" style={{ paddingBottom: insets.bottom + 20 }}>
-        <View className="mb-1 gap-1">
-          <Text className="text-xl font-bold tracking-tight" accessibilityRole="header">{t.sheetTitle}</Text>
-          <Text className="text-muted-foreground text-sm">{t.sheetLead}</Text>
+    <View className="bg-background flex-1">
+      <PublicHeader onFeatures={() => scroll.current?.scrollTo({ y: featuresY.current, animated: true })} />
+      <ScrollView ref={scroll} contentContainerClassName="gap-6 px-4 pb-12 pt-6">
+        <View className="bg-secondary self-start rounded-full px-3 py-1">
+          <Text className="text-primary text-xs font-semibold">Built by students, learn together</Text>
         </View>
-
+        <View className="gap-3">
+          <Text className="text-4xl font-extrabold leading-[40px] tracking-tight" accessibilityRole="header">
+            Your Learning Community for a <Text className="text-primary text-4xl font-extrabold leading-[40px] tracking-tight">Brighter Tomorrow</Text>
+          </Text>
+          <Text className="text-muted-foreground text-base leading-6">Create notes, share knowledge, prepare for exams, learn with AI and grow together.</Text>
+        </View>
         {refused ? <Notice tone="info">{`${copy.age.refusedTitle}. ${copy.age.refusedLead}`}</Notice> : null}
         {google.error ? <Notice>{google.error}</Notice> : null}
-        {google.available ? (
-          <GoogleButton testID="welcome-google" tone={theme === 'dark' ? 'light' : 'dark'} busy={google.busy} onPress={() => void google.signIn()} />
-        ) : null}
-
-        {refused ? null : (
-          <Link href="/sign-up" asChild>
-            <PressScale testID="welcome-email" accessibilityRole="button" accessibilityLabel={t.email} disabled={google.busy}>
-              <View className={google.available ? 'border-border bg-muted/40 h-14 flex-row items-center justify-center gap-2.5 rounded-full border' : 'bg-primary h-14 flex-row items-center justify-center gap-2.5 rounded-full'}>
-                <Mail size={18} color={google.available ? (theme === 'dark' ? '#F4F4F5' : '#111827') : '#FFFFFF'} />
-                <Text className={google.available ? 'text-base font-semibold' : 'text-primary-foreground text-base font-semibold'}>{t.email}</Text>
-              </View>
-            </PressScale>
-          </Link>
-        )}
-
-        <View className="flex-row items-center justify-center gap-1 pt-1">
-          <Text className="text-muted-foreground text-sm">{t.haveAccount}</Text>
-          <Link href="/sign-in" asChild>
-            <PressScale testID="welcome-sign-in" feedback="none" accessibilityRole="link" hitSlop={12}>
-              <Text className="text-primary text-sm font-semibold">{t.signIn}</Text>
-            </PressScale>
-          </Link>
+        <View className="gap-3">
+          {refused ? null : (
+            <Link href="/sign-up" asChild>
+              <Pressable testID="welcome-email" accessibilityRole="button" accessibilityLabel="Get Started Free" className="bg-primary h-12 items-center justify-center rounded-full">
+                <Text className="text-primary-foreground text-base font-semibold">Get Started Free</Text>
+              </Pressable>
+            </Link>
+          )}
+          <View className="flex-row flex-wrap items-center gap-1">
+            <Text className="text-muted-foreground text-sm">Already have an account?</Text>
+            <Link href="/sign-in" asChild>
+              <Pressable testID="welcome-sign-in" accessibilityRole="link" className="min-h-10 justify-center">
+                <Text className="text-primary text-sm font-semibold">Sign in</Text>
+              </Pressable>
+            </Link>
+          </View>
+          <Pressable accessibilityRole="link" accessibilityLabel="Browse subjects" onPress={() => router.push('/sign-in')} className="min-h-10 flex-row items-center">
+            <Text className="text-primary text-sm font-semibold">Browse subjects →</Text>
+          </Pressable>
+          {google.available ? <GoogleButton testID="welcome-google" tone={scheme === 'dark' ? 'light' : 'dark'} busy={google.busy} onPress={() => void google.signIn()} /> : null}
         </View>
-
-        <Text className="text-muted-foreground px-4 text-center text-xs leading-5">{t.legal}</Text>
-      </Animated.View>
+        <LandingArt />
+        <View accessibilityLabel="What you can do" onLayout={(e) => { featuresY.current = e.nativeEvent.layout.y }} className="gap-3">
+          <Text className="text-lg font-bold" accessibilityRole="header">
+            What you can do
+          </Text>
+          <View className="flex-row flex-wrap gap-3">
+            {TILES.map(({ title, body, icon: Icon }) => (
+              <Pressable key={title} accessibilityRole="link" accessibilityLabel={title} onPress={() => router.push('/sign-in')} className="bg-card border-border w-[47%] gap-2 rounded-2xl border p-4">
+                <View className="bg-secondary size-10 items-center justify-center rounded-xl">
+                  <Icon size={20} color={brand} />
+                </View>
+                <Text className="font-semibold">{title}</Text>
+                <Text className="text-muted-foreground text-xs">{body}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+        <View className="border-border gap-2 border-t pt-6">
+          <Text className="font-bold">LearnViaNotes</Text>
+          <Text className="text-muted-foreground text-sm">Notes are free to read. Your own notes, groups and classrooms are on the way.</Text>
+          <View className="flex-row flex-wrap gap-x-4 gap-y-2">
+            {LEGAL.map((item) => (
+              <Pressable key={item.path} accessibilityRole="link" accessibilityLabel={item.label} onPress={() => open(item.path)} className="min-h-10 justify-center">
+                <Text className="text-muted-foreground text-sm">{item.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </ScrollView>
     </View>
   )
 }

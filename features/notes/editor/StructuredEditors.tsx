@@ -108,7 +108,7 @@ export function QuizEditor({ content, onChange, theme }: { content: Quiz; onChan
         const right = content.correct.includes(choice.id)
         return (
           <View key={choice.id} className="flex-row items-center gap-2">
-            <Pressable accessibilityRole={content.multiple ? 'checkbox' : 'radio'} accessibilityState={{ checked: right }} accessibilityLabel={`Choice ${i + 1} is right`} onPress={() => toggle(choice.id)} className={cn('size-7 items-center justify-center rounded-full border', right ? 'border-emerald-500 bg-emerald-500' : 'border-border')}>
+            <Pressable accessibilityRole={content.multiple ? 'checkbox' : 'radio'} accessibilityState={{ checked: right }} accessibilityLabel={`Choice ${i + 1} is right`} onPress={() => toggle(choice.id)} className={cn('size-7 items-center justify-center rounded-full border', right ? 'border-success bg-success' : 'border-border')}>
               {right ? <Check size={14} color="white" /> : null}
             </Pressable>
             <TextInput accessibilityLabel={`Choice ${i + 1}`} placeholder={`Choice ${i + 1}`} placeholderTextColor={theme.muted} className={cn(field, 'flex-1 py-2')} defaultValue={inlineText(choice.content)} onChangeText={(t) => set({ choices: content.choices.map((c) => (c.id === choice.id ? { ...c, content: toInline(t) } : c)) })} />

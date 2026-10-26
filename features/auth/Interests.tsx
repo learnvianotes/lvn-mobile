@@ -14,8 +14,8 @@ const field = 'text-foreground border-border bg-background rounded-xl border px-
  * their exams' topics and what they read lately. Private; each change is saved at once.
  */
 export function InterestsCard() {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const { data } = useQuery(MyInterestsDocument, { fetchPolicy: 'cache-and-network' })
   // The profile comes back without the viewer around it: the list is asked for again.
   const [save, saving] = useMutation(SetInterestsDocument, { refetchQueries: [MyInterestsDocument], awaitRefetchQueries: true })

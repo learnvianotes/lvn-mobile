@@ -26,7 +26,7 @@ const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60))
 export function RecordScreen({ id, transcribe }: { id: string; transcribe?: boolean }) {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
   const [runTask] = useMutation(RunAiTaskDocument)
   const [state, setState] = useState<'idle' | 'recording' | 'recorded' | 'saving'>('idle')
@@ -96,7 +96,7 @@ export function RecordScreen({ id, transcribe }: { id: string; transcribe?: bool
           {clock(seconds)}
         </Text>
         {state === 'idle' ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Start recording" onPress={() => void start()} className="size-20 items-center justify-center rounded-full bg-red-500">
+          <Pressable accessibilityRole="button" accessibilityLabel="Start recording" onPress={() => void start()} className="size-20 items-center justify-center rounded-full bg-rose-soft0">
             <Mic size={34} color="white" />
           </Pressable>
         ) : null}

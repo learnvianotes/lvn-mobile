@@ -16,8 +16,8 @@ import { cleanCode } from './shared'
  */
 export function JoinClassScreen({ code: raw, via }: { code: string; via: 'CODE' | 'LINK' }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const code = cleanCode(raw)
   const { data, loading, error: lookup, refetch } = useQuery(ClassroomByCodeDocument, { variables: { code }, fetchPolicy: 'network-only' })
   const [request] = useMutation(RequestToJoinClassroomDocument)
@@ -31,7 +31,7 @@ export function JoinClassScreen({ code: raw, via }: { code: string; via: 'CODE' 
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-lg font-bold" accessibilityRole="header">

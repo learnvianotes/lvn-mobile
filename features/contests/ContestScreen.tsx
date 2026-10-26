@@ -19,7 +19,7 @@ const BAND = { TOP_10: 'You’re in the top 10% of adults who took it.', TOP_25:
 export function ContestScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const query = useQuery(ContestDocument, { variables: { id: String(id) }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [start, starting] = useMutation(StartContestDocument)
@@ -29,7 +29,7 @@ export function ContestScreen() {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/contests'))} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/contests'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="flex-1 text-lg font-bold" accessibilityRole="header" numberOfLines={1}>
@@ -173,7 +173,7 @@ function Results({ attempt: a, subject, settings }: { attempt: ContestAttemptFie
             const mine = choice.id === q.myChoiceId
             return (
               <View key={choice.id} accessibilityLabel={`${choice.text}${right ? ', right answer' : ''}${mine ? ', your answer' : ''}`} className={`flex-row items-center gap-2 rounded-xl px-3 py-2 ${right ? 'bg-secondary' : mine ? 'bg-muted' : ''}`}>
-                {right ? <Check size={16} color="#16a34a" /> : mine ? <X size={16} color="#dc2626" /> : <View className="size-4" />}
+                {right ? <Check size={16} color="#0f6b45" /> : mine ? <X size={16} color="#9f1d1d" /> : <View className="size-4" />}
                 <Text className="flex-1">{choice.text}</Text>
                 {mine ? <Text className="text-xs font-semibold">Your answer</Text> : null}
               </View>

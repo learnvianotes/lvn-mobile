@@ -68,9 +68,9 @@ export function ImportCard() {
         </Text>
       ) : null}
       {latest?.status === 'NEEDS_CONFIRMATION' ? (
-        <View className="flex-row items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-50 p-3">
-          <AlertTriangle size={18} color="#b45309" />
-          <Text className="flex-1 text-sm text-amber-950">You imported {latest.fileName} before. Import it again?</Text>
+        <View className="flex-row items-center gap-3 rounded-xl border border-warm bg-warm-soft p-3">
+          <AlertTriangle size={18} color="#8a4b08" />
+          <Text className="flex-1 text-sm text-warm">You imported {latest.fileName} before. Import it again?</Text>
           <Pill label="Import again" primary disabled={confirming.loading} onPress={() => void confirm({ variables: { id: latest.id } })} />
         </View>
       ) : null}

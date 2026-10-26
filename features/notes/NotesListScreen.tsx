@@ -6,6 +6,7 @@ import { FlatList, Pressable, RefreshControl, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { listAccents, resolvePalette, useTheme, type Appearance } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { PressScale } from '@/features/shell/PressScale'
 import { useLocal, useSyncStatus } from './hooks'
@@ -15,8 +16,13 @@ import * as actions from './store/actions'
 import * as db from './store/db'
 import { syncNow } from './sync/engine'
 
-const ACCENTS = ['#3B82F6', '#0EA5E9', '#10B981', '#F59E0B', '#EC4899', '#06B6D4']
-const accentOf = (id: string) => ACCENTS[parseInt(id.replace(/-/g, '').slice(-4), 16) % ACCENTS.length]!
+/** Stripe colour from the accent themes in tokens.json, not a fixed list of hexes. */
+function accentOf(id: string, scheme: Appearance) {
+  const accents = listAccents()
+  const parsed = Number.parseInt(id.replace(/-/g, '').slice(-4), 16)
+  const index = Number.isFinite(parsed) ? parsed % accents.length : 0
+  return resolvePalette(scheme, accents[index]!.id)
+}
 
 function ago(iso: string): string {
   const s = Math.max(0, (Date.now() - Date.parse(iso)) / 1000)
@@ -74,8 +80,9 @@ export function NotesListScreen() {
   const unsent = useLocal(() => db.unsentNoteIds(), [])
   const attention = useLocal(() => db.outbox('ATTENTION'), [])
   const status = useSyncStatus()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const { scheme, palette } = useTheme()
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
 
   const create = async () => {
@@ -86,7 +93,7 @@ export function NotesListScreen() {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <View className="flex-1">
@@ -103,8 +110,8 @@ export function NotesListScreen() {
         </Pressable>
       </View>
       {attention?.length ? (
-        <Pressable accessibilityRole="button" onPress={() => router.push('/notes/attention')} className="mx-4 mb-2 flex-row items-center gap-2 rounded-2xl bg-amber-500/15 p-3">
-          <AlertTriangle size={18} color="#b45309" />
+        <Pressable accessibilityRole="button" onPress={() => router.push('/notes/attention')} className="mx-4 mb-2 flex-row items-center gap-2 rounded-2xl bg-warm-soft p-3">
+          <AlertTriangle size={18} color={palette.warning} />
           <Text className="flex-1 text-sm font-medium">{attention.length === 1 ? 'One change could not be saved' : `${attention.length} changes could not be saved`} — tap to see</Text>
         </Pressable>
       ) : null}
@@ -145,8 +152,8 @@ export function NotesListScreen() {
         renderItem={({ item }) => (
           <PressScale accessibilityRole="button" accessibilityLabel={item.title || 'Untitled note'} onPress={() => router.push(`/notes/${item.id}`)}>
             <View className="bg-card border-border flex-row gap-3 overflow-hidden rounded-3xl border p-4">
-              <View className="size-11 items-center justify-center rounded-2xl" style={{ backgroundColor: accentOf(item.id) }}>
-                <Text className="text-lg font-extrabold text-white">{(item.title || 'U').trim().charAt(0).toUpperCase()}</Text>
+              <View className="size-11 items-center justify-center rounded-2xl" style={{ backgroundColor: accentOf(item.id, scheme).brand }}>
+                <Text className="text-lg font-extrabold" style={{ color: accentOf(item.id, scheme).brandForeground }}>{(item.title || 'U').trim().charAt(0).toUpperCase()}</Text>
               </View>
               <View className="flex-1 gap-1">
                 <Text className="font-semibold" numberOfLines={2}>

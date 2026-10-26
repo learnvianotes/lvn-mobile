@@ -54,13 +54,13 @@ export function ringPercent(today: Pick<R['today'], 'learningSeconds' | 'reviews
  */
 export function RhythmScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const rhythm = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
   const r = rhythm.data?.rhythm
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-lg font-bold" accessibilityRole="header">

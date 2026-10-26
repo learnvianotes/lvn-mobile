@@ -15,8 +15,8 @@ import { SavedNotesDocument, SavedResourcesDocument } from '@/graphql/generated/
  */
 export function SavedScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const notes = useQuery(SavedNotesDocument, { variables: { first: 30 }, fetchPolicy: 'cache-and-network' })
   const resources = useQuery(SavedResourcesDocument, { variables: { first: 60 }, fetchPolicy: 'cache-and-network' })
   const noteList = notes.data?.savedNotes.edges.map((e) => e.node) ?? []
@@ -28,7 +28,7 @@ export function SavedScreen() {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-lg font-bold" accessibilityRole="header">

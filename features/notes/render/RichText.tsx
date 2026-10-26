@@ -2,6 +2,7 @@ import { router } from 'expo-router'
 import type { ReactNode } from 'react'
 import { Linking, View, type TextStyle } from 'react-native'
 import { Text } from '@/components/ui/text'
+import { getTheme } from '@/lib/theme/store'
 import type { BlockNode, Doc, Inline, Mark } from '@/lib/contracts/validation'
 
 /** Tiptap/ProseMirror JSON (validated by the API, @lvn/contracts rich-text) drawn with native text. */
@@ -19,7 +20,7 @@ const markStyle = (marks: readonly Mark[] | undefined): TextStyle => {
     else if (m.type === 'underline') lines.push('underline')
     else if (m.type === 'strike') lines.push('line-through')
     else if (m.type === 'code') fontFamily = 'monospace'
-    else if (m.type === 'highlight') backgroundColor = 'rgba(250, 204, 21, 0.35)'
+    else if (m.type === 'highlight') backgroundColor = getTheme().palette.highlight
   }
   return {
     fontWeight,

@@ -10,6 +10,7 @@ import { LoadState } from '@/features/shell/LoadState'
 import { CreateExamDocument, DeleteExamDocument, ExamDocument, ExamsDocument, ExamTopicOptionsDocument, SearchDocument, UpdateExamDocument, WeakTopicsDocument, type ExamFieldsFragment } from '@/graphql/generated/graphql'
 import { EXAM_LIMITS } from '@/lib/contracts/validation'
 import { haptic } from '@/lib/haptics'
+import { useTheme } from '@/lib/theme'
 import { coreName } from './recommendationHref'
 import { cn } from '@/lib/utils'
 
@@ -28,10 +29,10 @@ const field = 'border-border bg-card text-foreground rounded-xl border px-3 py-2
 
 function Header({ title }: { title: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   return (
     <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
         <ArrowLeft size={22} color={fg} />
       </Pressable>
       <Text className="text-lg font-bold" accessibilityRole="header">
@@ -149,6 +150,7 @@ export function ExamsScreen() {
  * line shows whether it is and leads to its topics; Continue plan opens the first topic still to study today.
  */
 function StudyPlan({ exams }: { exams: Exam[] }) {
+  const onBrand = useTheme().palette.brandForeground
   const today = exams.flatMap((e) => e.tasks.filter((x) => x.today).map((task) => ({ exam: e, task })))
   const next = today.find((x) => !x.task.done && x.task.topics.length)
   return (
@@ -168,7 +170,7 @@ function StudyPlan({ exams }: { exams: Exam[] }) {
         {today.map(({ exam, task }) => (
           <View key={task.id} className={cn('flex-row items-start gap-3 rounded-xl px-3 py-2', task.done ? 'bg-primary/10' : 'bg-muted')}>
             <View accessible accessibilityLabel={task.done ? 'done' : 'to do'} className={cn('mt-0.5 size-5 items-center justify-center rounded-full', task.done ? 'bg-primary' : 'border-border border')}>
-              {task.done ? <Check size={12} color="#ffffff" /> : null}
+              {task.done ? <Check size={12} color={onBrand} /> : null}
             </View>
             <View className="flex-1 gap-1">
               <Text className="font-medium">{exam.name}</Text>
@@ -380,7 +382,7 @@ function ExamForm({ exam, onDone }: { exam?: Exam; onDone: () => void }) {
   const [problem, setProblem] = useState<string | null>(null)
   const [create, creating] = useMutation(CreateExamDocument, { refetchQueries: [ExamsDocument, WeakTopicsDocument] })
   const [update, updating] = useMutation(UpdateExamDocument, { refetchQueries: [ExamsDocument, WeakTopicsDocument] })
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const move = (n: number) => setDate((d) => (addDays(d, n) < localToday() ? localToday() : addDays(d, n)))
   return (
     <View className="gap-3">
@@ -427,7 +429,7 @@ function ExamForm({ exam, onDone }: { exam?: Exam; onDone: () => void }) {
 }
 
 function TopicPicker({ picked, onChange }: { picked: PickedTopic[]; onChange: (topics: PickedTopic[]) => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [query, setQuery] = useState('')
   const [find, found] = useLazyQuery(ExamTopicOptionsDocument)
   useEffect(() => {

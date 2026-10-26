@@ -31,10 +31,10 @@ import type { Doc } from '@/lib/contracts/validation'
 export const STATUS: Record<DoubtStatus, string> = { OPEN: 'Open', ANSWERED: 'Answered', RESOLVED: 'Resolved' }
 
 export function StatusChip({ status }: { status: DoubtStatus }) {
-  const tone = status === 'RESOLVED' ? 'bg-emerald-100' : status === 'ANSWERED' ? 'bg-secondary' : 'bg-amber-100'
+  const tone = status === 'RESOLVED' ? 'bg-success-soft' : status === 'ANSWERED' ? 'bg-secondary' : 'bg-warm-soft'
   return (
     <View className={`rounded-full px-2 py-0.5 ${tone}`}>
-      <Text className="text-xs font-semibold text-black">{STATUS[status]}</Text>
+      <Text className="text-foreground text-xs font-semibold">{STATUS[status]}</Text>
     </View>
   )
 }
@@ -44,8 +44,8 @@ export function StatusChip({ status }: { status: DoubtStatus }) {
  * (opened in the browser; admins link, change or unlink it) and the showcase (chosen in Settings).
  */
 export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragment; onChanged: () => void }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const workspace = useQuery(WorkspaceDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = workspace
   const [answer] = useMutation(AnswerMentorInviteDocument)
@@ -159,7 +159,7 @@ function RepositoryEditor({ groupId, url, onChanged }: { groupId: string; url: s
 
 /** The ideas board (ADR-0048): ranked by the team's reactions; react and discuss under each. */
 export function Ideas({ group }: { group: GroupDetailFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const query = useQuery(WorkspaceIdeasDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [create] = useMutation(CreateIdeaDocument)
@@ -203,7 +203,7 @@ export function Ideas({ group }: { group: GroupDetailFragment }) {
               <Text accessibilityLabel={`Rank ${i + 1}`} className="text-primary font-bold">
                 {i + 1}
               </Text>
-              <Lightbulb size={14} color="#f59e0b" />
+              <Lightbulb size={14} color="#8a4b08" />
               <Text className="font-semibold">{idea.author.displayName}</Text>
               <Text className="text-muted-foreground flex-1 text-xs">{ago(idea.createdAt)}</Text>
               <ReportLink icon entityType="GROUP_POST" entityId={idea.id} authorId={idea.author.id} />
@@ -224,7 +224,7 @@ export function Ideas({ group }: { group: GroupDetailFragment }) {
 
 /** Doubts (ADR-0048): ask one, filter by status, open one to answer. */
 export function Doubts({ group }: { group: GroupDetailFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [status, setStatus] = useState<DoubtStatus | null>(null)
   const query = useQuery(WorkspaceDoubtsDocument, { variables: { id: group.id, status }, fetchPolicy: 'cache-and-network' })
   const { data } = query
@@ -286,7 +286,7 @@ export function Doubts({ group }: { group: GroupDetailFragment }) {
             <View className="flex-row flex-wrap items-center gap-2">
               <Text className="flex-1 font-semibold">{d.title}</Text>
               <StatusChip status={d.status} />
-              {d.moderation !== 'OK' ? <Text className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900">{STATE[d.moderation]}</Text> : null}
+              {d.moderation !== 'OK' ? <Text className="rounded-full bg-warm-soft px-2 py-0.5 text-xs font-semibold text-warm">{STATE[d.moderation]}</Text> : null}
             </View>
             <View className="flex-row flex-wrap items-center gap-2">
               <Text className="text-muted-foreground text-xs">

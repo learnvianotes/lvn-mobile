@@ -18,7 +18,7 @@ import { SHEET_IN, SHEET_OUT } from '@/features/shell/sheet-motion'
  * the author. `icon` is a flag for a row of small buttons.
  */
 export function ReportLink({ entityType, entityId, authorId, icon }: { entityType: ReportEntityType; entityId: string; authorId: string; icon?: boolean }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const viewer = useQuery(ViewerDocument)
   const [open, setOpen] = useState(false)
   if (!viewer.data?.viewer || viewer.data.viewer.id === authorId) return null
@@ -35,7 +35,7 @@ export function ReportLink({ entityType, entityId, authorId, icon }: { entityTyp
 /** The report form in a sheet over the screen, for a trigger of one's own (a profile's actions). */
 export function ReportSheet({ entityType, entityId, open, onClose }: { entityType: ReportEntityType; entityId: string; open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [reason, setReason] = useState<ReportReason | null>(null)
   const [details, setDetails] = useState('')
   const [sent, setSent] = useState(false)
@@ -74,8 +74,8 @@ export function ReportSheet({ entityType, entityId, open, onClose }: { entityTyp
             <View className="bg-border mb-3 h-1.5 w-10 self-center rounded-full" />
             {sent ? (
               <View accessibilityRole="summary" className="items-center gap-3 py-6">
-                <View className="size-12 items-center justify-center rounded-full bg-emerald-500/15">
-                  <Check size={24} color="#059669" />
+                <View className="size-12 items-center justify-center rounded-full bg-success-soft">
+                  <Check size={24} color="#0f6b45" />
                 </View>
                 <Text className="text-lg font-bold">Thank you for telling us</Text>
                 <Text className="text-muted-foreground text-center">A moderator will look at it.</Text>
@@ -97,7 +97,7 @@ export function ReportSheet({ entityType, entityId, open, onClose }: { entityTyp
                     </Pressable>
                   ))}
                 </View>
-                {reason === 'SELF_HARM' ? <Text className="rounded-xl bg-amber-100 px-3 py-2 text-sm text-amber-900">If you or someone you know is in danger, please talk to someone you trust or a local helpline now.</Text> : null}
+                {reason === 'SELF_HARM' ? <Text className="rounded-xl bg-warm-soft px-3 py-2 text-sm text-warm">If you or someone you know is in danger, please talk to someone you trust or a local helpline now.</Text> : null}
                 <TextInput accessibilityLabel="Anything moderators should know (optional)" placeholder={entityType === 'NOTE' ? 'Where in the note, and why' : 'What is wrong, in a few words'} placeholderTextColor={muted} value={details} onChangeText={setDetails} maxLength={1000} multiline className="border-border text-foreground min-h-16 rounded-xl border px-3 py-2" />
                 {error ? (
                   <Text accessibilityRole="alert" className="text-destructive text-sm">

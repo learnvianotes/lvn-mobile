@@ -13,11 +13,20 @@ export interface StoredTokens {
 }
 
 export async function loadTokens(): Promise<StoredTokens | null> {
-  const [accessToken, accessTokenExpiresAt, refreshToken] = await Promise.all([
-    SecureStore.getItemAsync(KEYS.access),
-    SecureStore.getItemAsync(KEYS.expires),
-    SecureStore.getItemAsync(KEYS.refresh),
-  ])
+  let accessToken: string | null
+  let accessTokenExpiresAt: string | null
+  let refreshToken: string | null
+  try {
+    ;[accessToken, accessTokenExpiresAt, refreshToken] = await Promise.all([
+      SecureStore.getItemAsync(KEYS.access),
+      SecureStore.getItemAsync(KEYS.expires),
+      SecureStore.getItemAsync(KEYS.refresh),
+    ])
+  } catch (err) {
+    // Web has no Keychain. A missing store is an empty session, not a hung restore.
+    if (err instanceof TypeError) return null
+    throw err
+  }
   if (!refreshToken) return null
   return { accessToken: accessToken ?? '', accessTokenExpiresAt: accessTokenExpiresAt ?? new Date(0).toISOString(), refreshToken }
 }

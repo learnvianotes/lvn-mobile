@@ -18,13 +18,13 @@ const KIND = { CREATE_NOTE: 'Creating the note', UPDATE_NOTE: 'Saving changes', 
 export function AttentionScreen() {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const entries = useLocal(() => db.outbox('ATTENTION'), [])
   const titles = useLocal(() => db.listNotes(false).then((n) => new Map(n.map((x) => [x.id, x.title]))), [])
   return (
     <View className="bg-background flex-1" style={{ paddingTop: insets.top + 6 }}>
       <View className="flex-row items-center gap-2 px-3 pb-2">
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-xl font-extrabold" accessibilityRole="header">

@@ -27,9 +27,9 @@ export function TodayRing({ done, dayBar, full, size = 112, label, centre }: Pro
   const c = 2 * Math.PI * r
   const reduced = useReducedMotion()
   const progress = useSharedValue(0)
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
-  const track = String(useCSSVariable('--color-secondary') ?? '#eff6ff')
-  const success = String(useCSSVariable('--color-success') ?? '#15803d')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const track = String(useCSSVariable('--color-secondary') ?? '#e7f0fa')
+  const success = String(useCSSVariable('--color-success') ?? '#0f6b45')
 
   useEffect(() => {
     const target = Math.min(done / full, 1)

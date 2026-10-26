@@ -6,6 +6,7 @@ import { Linking, Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import type { Inline } from '@/lib/contracts/validation'
+import { useTheme } from '@/lib/theme'
 import { useMediaFile } from '../media/NoteMedia'
 import { InlineText } from './RichText'
 
@@ -44,7 +45,7 @@ export function MediaView({ type, content }: { type: 'image' | 'video' | 'audio'
 }
 
 function Placeholder({ type }: { type: keyof typeof LABEL }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   return (
     <View className="border-border flex-row items-center gap-2 rounded-2xl border border-dashed p-4">
       <ImageIcon size={18} color={muted} />
@@ -61,7 +62,8 @@ function Video({ uri }: { uri: string }) {
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
 function Audio({ uri, name }: { uri: string; name: string }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const onBrand = useTheme().palette.brandForeground
   const player = useAudioPlayer(uri)
   const status = useAudioPlayerStatus(player)
   const playing = status.playing
@@ -79,7 +81,7 @@ function Audio({ uri, name }: { uri: string; name: string }) {
         }}
         className="bg-primary size-11 items-center justify-center rounded-full"
       >
-        {playing ? <Pause size={20} color="#fff" /> : <Play size={20} color="#fff" />}
+        {playing ? <Pause size={20} color={onBrand} /> : <Play size={20} color={onBrand} />}
       </Pressable>
       <View className="flex-1">
         <Text className="font-semibold" numberOfLines={1}>
@@ -96,7 +98,7 @@ function Audio({ uri, name }: { uri: string; name: string }) {
 }
 
 function FileLink({ url, name }: { url: string | null; name: string }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={`Open ${name}`} disabled={!url} onPress={() => url && void Linking.openURL(url)} className="border-border flex-row items-center gap-3 rounded-2xl border p-3">
       <FileText size={20} color={accent} />

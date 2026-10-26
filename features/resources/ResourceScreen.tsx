@@ -63,7 +63,7 @@ export function ResourceScreen({ id }: { id: string }) {
       <ScreenHeader />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 32 }}>
         {r.status !== 'APPROVED' ? (
-          <View accessibilityRole="summary" className={cn('gap-1 rounded-2xl border p-4', r.status === 'REJECTED' ? 'border-red-300 bg-red-50' : 'border-border bg-secondary')}>
+          <View accessibilityRole="summary" className={cn('gap-1 rounded-2xl border p-4', r.status === 'REJECTED' ? 'border-destructive bg-rose-soft' : 'border-border bg-secondary')}>
             <Text className="font-semibold">{STATUS_LABEL[r.status]}</Text>
             {r.status === 'PENDING' ? <Text className="text-muted-foreground text-sm">Waiting for moderators: only you can see it until they approve it.</Text> : null}
             {r.status === 'REJECTED' && r.reason ? <Text className="text-sm">Why moderators did not approve it: {r.reason}</Text> : null}

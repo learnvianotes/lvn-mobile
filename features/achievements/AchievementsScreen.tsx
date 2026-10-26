@@ -25,8 +25,8 @@ const RULE: Record<string, [earned: string, back: string]> = {
  */
 export function AchievementsScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const mine = useQuery(MyAchievementsDocument, { fetchPolicy: 'cache-and-network' })
   const points = useQuery(MyPointsDocument, { variables: { first: 30 }, fetchPolicy: 'cache-and-network' })
   const viewer = mine.data?.viewer
@@ -37,7 +37,7 @@ export function AchievementsScreen() {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-lg font-bold" accessibilityRole="header">
@@ -110,7 +110,7 @@ export function AchievementsScreen() {
                 onPress={() => router.push(e.sourceType === 'NOTE' ? `/notes/${e.sourceId}` : `/resources/${e.sourceId}`)}
                 className={`flex-row items-center gap-3 px-4 py-3 ${i ? 'border-border border-t' : ''}`}
               >
-                <Text className={`w-10 font-bold ${e.delta > 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>{e.delta > 0 ? `+${e.delta}` : String(e.delta)}</Text>
+                <Text className={`w-10 font-bold ${e.delta > 0 ? 'text-success' : 'text-muted-foreground'}`}>{e.delta > 0 ? `+${e.delta}` : String(e.delta)}</Text>
                 <Text className="flex-1 text-sm" numberOfLines={2}>
                   {RULE[e.rule]?.[e.delta < 0 ? 1 : 0] ?? e.rule}
                   {e.subjectTitle ? <Text className="text-muted-foreground"> · {e.subjectTitle}</Text> : null}

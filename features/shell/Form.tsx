@@ -9,10 +9,10 @@ import { Text } from '@/components/ui/text'
 /** The back arrow and title above a screen that is not a tab. */
 export function ScreenHeader({ title, right }: { title?: string; right?: ReactNode }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   return (
     <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+      <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
         <ArrowLeft size={22} color={fg} />
       </Pressable>
       {title ? (
@@ -29,7 +29,7 @@ export function ScreenHeader({ title, right }: { title?: string; right?: ReactNo
 
 /** A labelled text field; the label is also what a screen reader announces. */
 export function Field({ label, hint, ...input }: { label: string; hint?: string } & TextInputProps) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   return (
     <View className="gap-1.5">
       <Text className="text-sm font-semibold">{label}</Text>

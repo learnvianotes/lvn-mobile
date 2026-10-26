@@ -10,12 +10,12 @@
   "check": "M580 556 L 626 602 L 720 494",
   "spark": "M660 222 C 665 252 672 258 700 262 C 672 266 665 272 660 302 C 655 272 648 266 620 262 C 648 258 655 252 660 222 Z",
   "colors": {
-    "gradient": ["#3B82F6", "#2563EB", "#1E40AF"],
+    "gradient": ["#1e4d8c", "#1e4d8c", "#163e73"],
     "page": "#FFFFFF",
-    "pageShade": "#DBEAFE",
-    "line": "#BFDBFE",
-    "check": "#2563EB",
-    "spark": "#FDE68A"
+    "pageShade": "#e7f0fa",
+    "line": "#1e4d8c",
+    "check": "#1e4d8c",
+    "spark": "#f5e6b8"
   },
   "tileRadius": 236
 }

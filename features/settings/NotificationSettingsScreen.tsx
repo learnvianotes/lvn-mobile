@@ -17,8 +17,8 @@ const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
 /** Notification settings on the phone (lvn-backend ADR-0050): the same choices as the web, saved as they change. */
 export function NotificationSettingsScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const query = useQuery(NotificationSettingsDocument, { fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [update] = useMutation(UpdateNotificationSettingsDocument)
@@ -31,7 +31,7 @@ export function NotificationSettingsScreen() {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-lg font-bold" accessibilityRole="header">

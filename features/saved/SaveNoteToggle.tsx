@@ -8,8 +8,8 @@ import { haptic } from '@/lib/haptics'
 /** Save on a note (lvn-backend ADR-0076): to the person's Saved list, private to them. Online: hidden until known. */
 /** `saved`: already known (a feed's card), so nothing more is asked. */
 export function SaveNoteToggle({ noteId, saved: known }: { noteId: string; saved?: boolean }) {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const { data } = useQuery(NoteSavedDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network', skip: known !== undefined })
   const [save, saving] = useMutation(SaveNoteDocument)
   const [unsave, unsaving] = useMutation(UnsaveNoteDocument)

@@ -26,7 +26,7 @@ const field = 'border-border bg-card text-foreground rounded-xl border px-3 py-2
  */
 export function TeachScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   const client = useApolloClient()
   const me = useQuery(ViewerDocument)
   const viewer = me.data?.viewer
@@ -36,7 +36,7 @@ export function TeachScreen() {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <Text className="text-lg font-bold" accessibilityRole="header">
@@ -87,7 +87,7 @@ function Card({ title, lead }: { title: string; lead: string }) {
 function ApplyForm({ onSent }: { onSent: () => void }) {
   const uploadsOn = useUploadsEnabled()
   const client = useApolloClient()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const [institution, setInstitution] = useState('')
   const [subjects, setSubjects] = useState('')
   const [message, setMessage] = useState('')

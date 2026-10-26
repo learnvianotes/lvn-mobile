@@ -109,7 +109,7 @@ it('puts Google first on the welcome screen: one tap, and a returning account is
   })
   await renderRouter('./app', { initialUrl: '/' })
   await settle()
-  expect(screen.getByText('Start learning in seconds')).toBeVisible()
+  expect(screen.getByRole('header', { name: /Your Learning Community for a Brighter Tomorrow/ })).toBeVisible()
   await fireEvent.press(screen.getByTestId('welcome-google'))
   // While Google's account chooser is open the button says so and cannot be pressed twice.
   expect(screen.getByText('Signing in…')).toBeVisible()
@@ -117,7 +117,7 @@ it('puts Google first on the welcome screen: one tap, and a returning account is
   await act(async () => choose({ type: 'success', data: { idToken: 'google-id-token' } }))
   await settle()
   expect(api.calls.find((c) => c.op === 'SignInWithGoogle')!.variables).toEqual({ idToken: 'firebase-id-token' })
-  expect(screen.getByLabelText('Search notes, topics and people')).toBeVisible()
+  expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
 })
 
 it('keeps the welcome screen usable when Google sign-in fails', async () => {
@@ -129,7 +129,7 @@ it('keeps the welcome screen usable when Google sign-in fails', async () => {
   await settle()
   expect(screen.getByText('That sign-in did not work. Try again.')).toBeVisible()
   expect(screen.getByText('Continue with Google')).toBeVisible()
-  expect(screen.getByText('Sign up with email')).toBeVisible()
+  expect(screen.getByText('Get Started Free')).toBeVisible()
 })
 
 it('has no Google button when the API does not offer it', async () => {
@@ -140,5 +140,5 @@ it('has no Google button when the API does not offer it', async () => {
   await renderRouter('./app', { initialUrl: '/' })
   await settle()
   expect(screen.queryByTestId('welcome-google')).toBeNull()
-  expect(screen.getByText('Sign up with email')).toBeVisible()
+  expect(screen.getByText('Get Started Free')).toBeVisible()
 })

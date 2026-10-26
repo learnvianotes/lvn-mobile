@@ -34,7 +34,7 @@ export function useOffline(): boolean {
 export function OfflineBanner({ enabled = true, children }: { enabled?: boolean; children?: ReactNode }) {
   const offline = useOffline() && enabled
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-secondary-foreground') ?? '#1e40af')
+  const fg = String(useCSSVariable('--color-secondary-foreground') ?? '#1e4d8c')
   const below = useMemo(() => (offline ? { ...insets, top: 0 } : insets), [offline, insets])
   return (
     <>

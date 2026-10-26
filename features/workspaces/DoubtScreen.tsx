@@ -24,9 +24,9 @@ import { StatusChip } from './WorkspaceParts'
  */
 export function DoubtScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
-  const accent = String(useCSSVariable('--color-primary') ?? '#2563eb')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const query = useQuery(DoubtDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [answer] = useMutation(AnswerDoubtDocument)
@@ -43,7 +43,7 @@ export function DoubtScreen({ id }: { id: string }) {
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="rounded-full p-2">
+        <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
       </View>

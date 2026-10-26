@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text'
 import type { CardType } from '@/lib/contracts/domain/enums'
 import { cardAnchor, type CardAnchor, type Doc, type Inline } from '@/lib/contracts/validation'
 import { track } from '@/lib/learning'
+import { useTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { Markdown } from './Markdown'
 import { MediaView } from './MediaView'
@@ -16,7 +17,7 @@ import { InlineText, RichDoc } from './RichText'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- card content is checked per type by the API
 type Any = any
 
-const CALLOUT: Record<string, string> = { note: 'bg-secondary', info: 'bg-sky-500/10', tip: 'bg-emerald-500/10', warning: 'bg-amber-500/15', danger: 'bg-red-500/10' }
+const CALLOUT: Record<string, string> = { note: 'bg-secondary', info: 'bg-sky-soft', tip: 'bg-success-soft', warning: 'bg-warm-soft', danger: 'bg-rose-soft' }
 
 /**
  * `onOpenFile` makes a file card (a PDF) open in the reader; `onAnchor` makes the page chip of a card made from a PDF
@@ -132,9 +133,10 @@ function AnchorChip({ anchor, onPress }: { anchor: CardAnchor; onPress?: (anchor
 }
 
 function ReadFile({ onPress }: { onPress: () => void }) {
+  const onBrand = useTheme().palette.brandForeground
   return (
     <Pressable accessibilityRole="button" accessibilityLabel="Read and make notes" onPress={onPress} className="bg-primary flex-row items-center gap-3 rounded-2xl px-4 py-3">
-      <FileText size={20} color="#ffffff" />
+      <FileText size={20} color={onBrand} />
       <View className="flex-1">
         <Text className="text-primary-foreground font-semibold">Read & make notes</Text>
         <Text className="text-primary-foreground/80 text-xs">Open the PDF: highlight and add passages to this note</Text>
@@ -149,7 +151,7 @@ function Question({ content }: { content: { prompt: Doc; answer: Doc; hint?: Doc
     <View className="border-border gap-2 rounded-2xl border p-3">
       <RichDoc doc={content.prompt} />
       {shown === 'answer' ? <View className="bg-secondary rounded-xl p-3"><RichDoc doc={content.answer} /></View> : null}
-      {shown === 'hint' && content.hint ? <View className="bg-amber-500/10 rounded-xl p-3"><RichDoc doc={content.hint} /></View> : null}
+      {shown === 'hint' && content.hint ? <View className="bg-warm-soft rounded-xl p-3"><RichDoc doc={content.hint} /></View> : null}
       <View className="flex-row gap-2">
         {content.hint && shown === 'none' ? <Chip label="Show a hint" onPress={() => setShown('hint')} /> : null}
         {shown !== 'answer' ? <Chip label="Show the answer" onPress={() => setShown('answer')} /> : null}
@@ -160,6 +162,7 @@ function Question({ content }: { content: { prompt: Doc; answer: Doc; hint?: Doc
 
 function Quiz({ id, content }: { id?: string; content: { question: Doc; choices: { id: string; content: Inline }[]; correct: string[]; multiple: boolean } }) {
   const topicKeys = useContext(QuizTopics)
+  const { palette } = useTheme()
   const [picked, setPicked] = useState<string[]>([])
   const [checked, setChecked] = useState(false)
   const right = checked && picked.length === content.correct.length && picked.every((p) => content.correct.includes(p))
@@ -178,10 +181,10 @@ function Quiz({ id, content }: { id?: string; content: { question: Doc; choices:
               setChecked(false)
               setPicked((p) => (content.multiple ? (on ? p.filter((x) => x !== choice.id) : [...p, choice.id]) : [choice.id]))
             }}
-            className={cn('flex-row items-center gap-2 rounded-xl border px-3 py-2.5', on ? 'border-primary bg-primary/10' : 'border-border', mark === 'right' && 'border-emerald-500 bg-emerald-500/10', mark === 'wrong' && 'border-red-500 bg-red-500/10')}
+            className={cn('flex-row items-center gap-2 rounded-xl border px-3 py-2.5', on ? 'border-primary bg-primary/10' : 'border-border', mark === 'right' && 'border-success bg-success-soft', mark === 'wrong' && 'border-destructive bg-rose-soft')}
           >
             <InlineText content={choice.content} className="flex-1 text-base" />
-            {mark === 'right' ? <Check size={16} color="#10b981" /> : mark === 'wrong' ? <X size={16} color="#ef4444" /> : null}
+            {mark === 'right' ? <Check size={16} color={palette.success} /> : mark === 'wrong' ? <X size={16} color={palette.danger} /> : null}
           </Pressable>
         )
       })}
@@ -195,7 +198,7 @@ function Quiz({ id, content }: { id?: string; content: { question: Doc; choices:
           }}
           disabled={!picked.length}
         />
-        {checked ? <Text className={cn('font-semibold', right ? 'text-emerald-600' : 'text-red-600')}>{right ? 'Correct!' : 'Not quite.'}</Text> : null}
+        {checked ? <Text className={cn('font-semibold', right ? 'text-success' : 'text-destructive')}>{right ? 'Correct!' : 'Not quite.'}</Text> : null}
       </View>
     </View>
   )

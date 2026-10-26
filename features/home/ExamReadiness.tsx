@@ -12,7 +12,7 @@ const inDays = (n: number) => (n === 0 ? 'today' : n === 1 ? 'tomorrow' : `in ${
 
 /** The next exam's Readiness (ADR-0030, lvn-backend ADR-0070) against today's target line; or a way to add one. */
 export function ExamReadiness() {
-  const warm = String(useCSSVariable('--color-warm') ?? '#c2410c')
+  const warm = String(useCSSVariable('--color-warm') ?? '#8a4b08')
   const { data, error, refetch } = useQuery(ExamsDocument, { fetchPolicy: 'cache-and-network' })
   const exam = data?.exams.find((e) => !e.past)
   if (!data) {

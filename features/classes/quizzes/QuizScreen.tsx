@@ -189,18 +189,18 @@ function Review({ quiz, answers }: { quiz: Quiz; answers: Answers }) {
               <View className="flex-1">
                 <RichDoc doc={q.question as Doc} />
               </View>
-              <Text className={cn('text-xs font-semibold', right ? 'text-emerald-600' : 'text-destructive')}>{right ? 'Right' : 'Wrong'}</Text>
+              <Text className={cn('text-xs font-semibold', right ? 'text-success' : 'text-destructive')}>{right ? 'Right' : 'Wrong'}</Text>
             </View>
             {q.choices.map((c) => {
               const isCorrect = !!q.correct?.includes(c.id)
               const isChosen = chosen.includes(c.id)
               return (
-                <View key={c.id} className={cn('flex-row items-center gap-2 rounded-xl border px-3 py-2.5', isCorrect ? 'border-emerald-500 bg-emerald-500/10' : isChosen ? 'border-destructive bg-destructive/10' : 'border-border opacity-70')}>
+                <View key={c.id} className={cn('flex-row items-center gap-2 rounded-xl border px-3 py-2.5', isCorrect ? 'border-success bg-success-soft' : isChosen ? 'border-destructive bg-destructive/10' : 'border-border opacity-70')}>
                   <View className="flex-1">
                     <InlineText content={c.content as Inline} />
                   </View>
                   {isChosen ? <Text className="text-xs font-semibold">Your answer</Text> : null}
-                  {isCorrect ? <Text className="text-xs font-semibold text-emerald-600">Correct</Text> : null}
+                  {isCorrect ? <Text className="text-xs font-semibold text-success">Correct</Text> : null}
                 </View>
               )
             })}

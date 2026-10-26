@@ -9,6 +9,7 @@ import { AchievementBadges } from '@/features/achievements/AchievementBadges'
 import { AccountStanding } from '@/features/moderation/Standing'
 import { useLocal } from '@/features/notes/hooks'
 import * as db from '@/features/notes/store/db'
+import { AppearanceCard } from '@/features/settings/AppearanceCard'
 import { ReviewRequests, VerifyCard } from '@/features/verification/Verification'
 import { MyAchievementsDocument, ProfileTabDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { YEARS } from './AccountDetails'
@@ -41,7 +42,7 @@ const ROWS: Row[] = [
 export function ProfileTab() {
   const { data, loading } = useQuery(ViewerDocument)
   const viewer = data?.viewer
-  const fg = String(useCSSVariable('--color-foreground') ?? '#111827')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
   return (
     <SafeAreaView className="bg-background flex-1">
       <ScrollView contentContainerClassName="gap-5 px-5 pb-32 pt-4">
@@ -49,10 +50,11 @@ export function ProfileTab() {
           <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">
             Profile
           </Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Settings" hitSlop={8} onPress={() => router.push('/settings')} className="rounded-full p-2">
+          <Pressable accessibilityRole="button" accessibilityLabel="Settings" hitSlop={8} onPress={() => router.push('/settings')} className="size-10 items-center justify-center rounded-full">
             <Settings size={22} color={fg} />
           </Pressable>
         </View>
+        <AppearanceCard />
         {viewer ? <AccountStanding userId={viewer.id} /> : null}
         {viewer ? <Header viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
@@ -79,7 +81,7 @@ function Header({ viewer }: { viewer: ViewerFieldsFragment }) {
         <View className="flex-1 gap-0.5">
           <View className="flex-row items-center gap-1.5">
             <Text className="text-lg font-bold">{viewer.displayName}</Text>
-            {viewer.verified ? <ShieldCheck size={16} color="#16a34a" accessibilityLabel="Verified" /> : null}
+            {viewer.verified ? <ShieldCheck size={16} color="#0f6b45" accessibilityLabel="Verified" /> : null}
           </View>
           <Text className="text-muted-foreground text-sm">@{viewer.handle}</Text>
           {study ? <Text className="text-muted-foreground text-sm">{study}</Text> : null}
@@ -130,8 +132,8 @@ function Achievements() {
 
 /** The rows, then a teacher's Skills tab, the way to teach for students, and the queues of platform admins. */
 function Links({ viewer }: { viewer: ViewerFieldsFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#6b7280')
-  const primary = String(useCSSVariable('--color-primary') ?? '#2563eb')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   const rows: Row[] = [
     ...ROWS.map((r) => (r.href === '/u/me' ? { ...r, href: `/u/${viewer.handle}` as Href } : r)),
     {
