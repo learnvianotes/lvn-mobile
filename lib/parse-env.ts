@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
 const optional = z.string().min(1).optional()
+/** A web address. `javascript:` and `intent:` are URLs to Zod, and they are not configuration. */
+const httpAddress = z.url().refine((u) => /^https?:\/\//.test(u), 'must be an http(s) URL')
 
 /**
  * Schema for the public app configuration (spec §16.1), validated once at start-up. Mirrors `mobileConfigSchema` in
@@ -9,15 +11,15 @@ const optional = z.string().min(1).optional()
 const schema = z.object({
   EXPO_PUBLIC_APP_ENV: z.enum(['development', 'sandbox', 'production']),
   /** lvn-web origin, for links into the site (e.g. the study notes at /core). */
-  EXPO_PUBLIC_WEB_URL: z.url(),
+  EXPO_PUBLIC_WEB_URL: httpAddress,
   /** The GraphQL endpoint of lvn-backend (its gateway, `/graphql`). */
-  EXPO_PUBLIC_API_URL: z.url(),
+  EXPO_PUBLIC_API_URL: httpAddress,
   /** Live updates while the app is open, lvn-backend's graphql-ws endpoint (ADR-0042); see `liveUrlFrom`. */
   EXPO_PUBLIC_LIVE_URL: z.url().refine((u) => /^wss?:\/\//.test(u), 'must be a ws(s) URL').optional(),
   // GitHub sign-in (Authorization Code + PKCE, §7.1): the public client id and GitHub's consent page. LinkedIn does
   // not redirect to app schemes, so it waits for app links (docs/architecture/mobile-addendum.md → Sign-in).
   EXPO_PUBLIC_GITHUB_CLIENT_ID: optional,
-  EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: z.url().optional(),
+  EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: httpAddress.optional(),
   // Google sign-in (ADR-0007): the Firebase web app's config and the OAuth client ids of that Firebase project's
   // Google provider. Public identifiers, not secrets.
   EXPO_PUBLIC_FIREBASE_API_KEY: optional,
@@ -38,6 +40,15 @@ export function parseEnv(raw: Record<string, string | undefined>): AppEnv {
   if (!result.success) {
     const names = result.error.issues.map((i) => i.path.join('.')).join(', ')
     throw new Error(`Invalid app configuration: ${names}`)
+  }
+  // Development talks to a machine on the LAN over http. Sandbox and production do not.
+  if (result.data.EXPO_PUBLIC_APP_ENV !== 'development') {
+    const cleartext = [
+      result.data.EXPO_PUBLIC_WEB_URL.startsWith('https://') ? null : 'EXPO_PUBLIC_WEB_URL',
+      result.data.EXPO_PUBLIC_API_URL.startsWith('https://') ? null : 'EXPO_PUBLIC_API_URL',
+      !result.data.EXPO_PUBLIC_LIVE_URL || result.data.EXPO_PUBLIC_LIVE_URL.startsWith('wss://') ? null : 'EXPO_PUBLIC_LIVE_URL',
+    ].filter((name) => name != null)
+    if (cleartext.length) throw new Error(`Invalid app configuration: ${cleartext.join(', ')}`)
   }
   return result.data
 }

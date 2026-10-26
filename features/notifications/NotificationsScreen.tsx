@@ -47,7 +47,8 @@ export function NotificationsScreen() {
 
   const open = (n: NotificationFieldsFragment) => {
     if (!n.readAt) void markRead({ ids: [n.id] })
-    router.push(phonePath(n.path, n.category) as Href)
+    const next = phonePath(n.path, n.category)
+    if (next) router.push(next as Href)
   }
 
   return (

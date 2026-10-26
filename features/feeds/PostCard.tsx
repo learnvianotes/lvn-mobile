@@ -2,6 +2,7 @@ import { router } from 'expo-router'
 import { BookOpen, FolderGit2, Megaphone, MessageSquare, PenLine } from 'lucide-react-native'
 import { Image, Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
+import { httpUrl } from '@/lib/safe-url'
 import { useTheme } from '@/lib/theme'
 import { Text } from '@/components/ui/text'
 import { ago } from '@/features/notifications/describe'
@@ -29,12 +30,13 @@ export function PostCard({ note, topic, onChanged }: { note: PostCardFieldsFragm
   const Icon = art.icon
   const glyph = palette.brandForeground
   const chip = topic ?? note.topics[0] ?? null
+  const picture = note.previewPicture ? httpUrl(note.previewPicture.mediumUrl ?? note.previewPicture.url) : null
   const comments = note.discussion?.commentCount ?? 0
   return (
     <View className="bg-card border-border overflow-hidden rounded-2xl border">
       <Pressable accessibilityRole="link" accessibilityLabel={note.title || 'Untitled note'} onPress={() => router.push(`/notes/${note.id}`)}>
-        {note.previewPicture ? (
-          <Image source={{ uri: note.previewPicture.mediumUrl ?? note.previewPicture.url }} style={{ height: 150, width: '100%' }} resizeMode="cover" accessibilityIgnoresInvertColors />
+        {picture ? (
+          <Image source={{ uri: picture }} style={{ height: 150, width: '100%' }} resizeMode="cover" accessibilityIgnoresInvertColors />
         ) : (
           <View style={{ height: 72, alignItems: 'center', justifyContent: 'center', backgroundColor: palette[art.tone] }}>
             <Icon size={26} color={glyph} />

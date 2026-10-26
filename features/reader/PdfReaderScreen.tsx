@@ -22,6 +22,8 @@ import {
 import type { CardType } from '@/lib/contracts/domain/enums'
 import { cardAnchor, type CardAnchor } from '@/lib/contracts/validation'
 import { env } from '@/lib/env'
+import { openExternal } from '@/lib/open-external'
+import { allowPdfWebViewRequest, httpUrl } from '@/lib/safe-url'
 import { useTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 import { useLocal } from '@/features/notes/hooks'
@@ -216,7 +218,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
     router.replace(readerPath(id, fileId))
   }
 
-  const url = file.data?.noteFile?.url
+  const url = httpUrl(file.data?.noteFile?.url)
   const fileName = file.data?.noteFile?.fileName ?? ''
   const assets = env.EXPO_PUBLIC_WEB_URL ? `${env.EXPO_PUBLIC_WEB_URL.replace(/\/$/, '')}/pdfjs/${PDFJS_VERSION}/` : null
 
@@ -295,7 +297,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
         {url ? (
           <PdfDom
             url={url}
-            refreshUrl={async () => (await file.refetch().catch(() => null))?.data?.noteFile?.url ?? null}
+            refreshUrl={async () => httpUrl((await file.refetch().catch(() => null))?.data?.noteFile?.url)}
             assets={assets}
             marks={marks}
             command={command}
@@ -316,7 +318,17 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
             }}
             onFind={async (r) => setFound(r)}
             onError={async (kind) => setState(kind === 'password' ? 'password' : 'failed')}
-            dom={{ style: { flex: 1 }, scrollEnabled: false, matchContents: false }}
+            onOpenLink={async (link) => {
+              openExternal(link)
+            }}
+            dom={{
+              style: { flex: 1 },
+              scrollEnabled: false,
+              matchContents: false,
+              originWhitelist: ['file://*', 'https://*', 'http://*'],
+              onShouldStartLoadWithRequest: (request: { url: string; navigationType?: string }) => allowPdfWebViewRequest(request.url, request.navigationType),
+              unstable_useExpoModulesBridge: false,
+            }}
           />
         ) : null}
         {state !== 'ready' || !url ? (

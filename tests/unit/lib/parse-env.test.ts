@@ -14,6 +14,14 @@ describe('parseEnv', () => {
     expect(() => parseEnv({ ...base, EXPO_PUBLIC_API_URL: undefined })).toThrow('EXPO_PUBLIC_API_URL')
   })
 
+  it('refuses a scheme that is not http(s), and cleartext outside development', () => {
+    expect(() => parseEnv({ ...base, EXPO_PUBLIC_WEB_URL: 'javascript:alert(1)' })).toThrow('EXPO_PUBLIC_WEB_URL')
+    expect(() => parseEnv({ ...base, EXPO_PUBLIC_API_URL: 'http://api.example.in/graphql' })).toThrow('EXPO_PUBLIC_API_URL')
+    expect(() => parseEnv({ ...base, EXPO_PUBLIC_LIVE_URL: 'ws://api.example.in/graphql/live' })).toThrow('EXPO_PUBLIC_LIVE_URL')
+    const dev = parseEnv({ ...base, EXPO_PUBLIC_APP_ENV: 'development', EXPO_PUBLIC_WEB_URL: 'http://100.70.234.41:3000', EXPO_PUBLIC_API_URL: 'http://100.70.234.41:4000/graphql' })
+    expect(dev.EXPO_PUBLIC_WEB_URL).toBe('http://100.70.234.41:3000')
+  })
+
   it('treats an empty provider value as not configured', () => {
     const env = parseEnv({ ...base, EXPO_PUBLIC_GITHUB_CLIENT_ID: '', EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: 'https://github.com/login/oauth/authorize' })
     expect(env.EXPO_PUBLIC_GITHUB_CLIENT_ID).toBeUndefined()

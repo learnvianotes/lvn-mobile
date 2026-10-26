@@ -17,6 +17,7 @@ import { useLocal } from '@/features/notes/hooks'
 import { RichDoc } from '@/features/notes/render/RichText'
 import * as db from '@/features/notes/store/db'
 import { LoadState } from '@/features/shell/LoadState'
+import { httpUrl } from '@/lib/safe-url'
 import { useTheme } from '@/lib/theme'
 import {
   DeleteGroupPostDocument,
@@ -133,13 +134,14 @@ export function GroupScreen({ id }: { id: string }) {
   }
   // A new post starts from the floating ＋ on the Posts tab (lvn-backend ADR-0076).
   const posting = member && tab === 'posts' && group.viewerCan.post
+  const picture = httpUrl(group.pictureUrl)
   return (
     <View className="bg-background flex-1">
       {back}
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + (posting || selection ? 104 : 32) }} keyboardShouldPersistTaps="handled">
         <View className="bg-card border-border gap-2 overflow-hidden rounded-3xl border p-5">
-          {group.pictureUrl ? (
-            <Image source={{ uri: group.pictureUrl }} accessibilityLabel={`The picture of ${group.name}`} accessibilityIgnoresInvertColors resizeMode="cover" style={{ marginTop: -20, marginHorizontal: -20, marginBottom: 4, height: 150 }} />
+          {picture ? (
+            <Image source={{ uri: picture }} accessibilityLabel={`The picture of ${group.name}`} accessibilityIgnoresInvertColors resizeMode="cover" style={{ marginTop: -20, marginHorizontal: -20, marginBottom: 4, height: 150 }} />
           ) : null}
           <View className="flex-row items-center gap-1.5">
             <Icon size={14} color={accent} />

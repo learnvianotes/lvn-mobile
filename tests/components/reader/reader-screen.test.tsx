@@ -63,6 +63,18 @@ const show = () =>
 
 beforeEach(() => jest.clearAllMocks())
 
+it('does not load a PDF whose address is not http(s)', async () => {
+  mockAccess = 'OWNER'
+  mockApi({
+    PhoneNoteFile: () => ({ data: { noteFile: { ...file, url: 'file:///data/secret.pdf' } } }),
+    PhoneNoteHighlights: () => ({ data: { note: { __typename: 'Note', id: NOTE, highlights: [] } } }),
+    PhonePdfConversion: () => ({ data: { note: { __typename: 'Note', id: NOTE, pdfConversion: null } } }),
+  })
+  await show()
+  expect(await screen.findByText('This PDF is not in the note, or you cannot open it.')).toBeTruthy()
+  expect(screen.queryByText('pdf loaded')).toBeNull()
+})
+
 it('owners highlight selected words and add them to the note with their page', async () => {
   mockAccess = 'OWNER'
   const api = mockApi({

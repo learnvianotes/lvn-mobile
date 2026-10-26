@@ -25,6 +25,7 @@ import {
   type GroupMembersQuery,
   type GroupPrivacy,
 } from '@/graphql/generated/graphql'
+import { httpUrl } from '@/lib/safe-url'
 import { attempt, PRIVACY, RANK, ROLE } from './shared'
 
 type Member = NonNullable<NonNullable<GroupMembersQuery['group']>['members']>[number]
@@ -146,12 +147,13 @@ export function GroupPicture({ group, onSaved }: { group: GroupDetailFragment; o
   }
   // A new picture is an upload (lvn-backend ADR-0097): while uploads are off only removing one is offered.
   if (!uploadsOn && !group.pictureUrl) return null
+  const picture = httpUrl(group.pictureUrl)
   return (
     <View className="gap-2">
       <Text className="font-semibold">Group picture</Text>
-      {group.pictureUrl ? (
-        <Image source={{ uri: group.pictureUrl }} accessibilityIgnoresInvertColors style={{ width: 200, height: 100, borderRadius: 12 }} resizeMode="cover" />
-      ) : (
+      {picture ? (
+        <Image source={{ uri: picture }} accessibilityIgnoresInvertColors style={{ width: 200, height: 100, borderRadius: 12 }} resizeMode="cover" />
+      ) : group.pictureUrl ? null : (
         <Text className="text-muted-foreground text-sm">No picture yet.</Text>
       )}
       <View className="flex-row flex-wrap gap-2">

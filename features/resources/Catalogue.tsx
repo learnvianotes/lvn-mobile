@@ -11,6 +11,7 @@ import { ScreenHeader } from '@/features/shell/Form'
 import { LoadState } from '@/features/shell/LoadState'
 import { ResourcesDocument, SavedResourcesDocument, SaveResourceDocument, UnsaveResourceDocument, type ResourceFieldsFragment, type ResourceSort, type ResourceType } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
+import { httpUrl } from '@/lib/safe-url'
 import { cn } from '@/lib/utils'
 import { TYPE_LABEL } from './copy'
 
@@ -81,12 +82,13 @@ export function CatalogueScreen() {
 
 export function ResourceCard({ resource: r, note }: { resource: ResourceFieldsFragment; note?: string }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const cover = httpUrl(r.coverUrl)
   const Icon = TYPE_ICON[r.type]
   return (
     <View className="bg-card border-border overflow-hidden rounded-2xl border">
       <Pressable accessibilityRole="link" accessibilityLabel={r.title} onPress={() => router.push(`/resources/${r.id}`)} className="flex-row gap-3 p-3">
         <View className="bg-secondary size-16 items-center justify-center overflow-hidden rounded-xl">
-          {r.coverUrl ? <Image source={{ uri: r.coverUrl }} style={{ width: 64, height: 64 }} contentFit="contain" accessibilityIgnoresInvertColors /> : <Icon size={28} color={accent} />}
+          {cover ? <Image source={{ uri: cover }} style={{ width: 64, height: 64 }} contentFit="contain" accessibilityIgnoresInvertColors /> : <Icon size={28} color={accent} />}
         </View>
         <View className="flex-1 gap-0.5">
           <Text className="text-primary text-[11px] font-semibold uppercase">{TYPE_LABEL[r.type]}</Text>

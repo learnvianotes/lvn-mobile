@@ -1,4 +1,5 @@
 import type { DocumentInitParameters } from 'pdfjs-dist/types/src/display/api'
+import { httpUrl } from '@/lib/safe-url'
 
 type PdfJs = typeof import('pdfjs-dist/legacy/build/pdf.mjs')
 
@@ -11,7 +12,9 @@ const FIRST_BYTES = 256 * 1024
  * file small enough to arrive whole in the first piece is given to pdf.js as data.
  */
 export async function pdfSource(pdfjs: PdfJs, firstUrl: string, refresh: () => Promise<string | null>): Promise<DocumentInitParameters> {
-  let url = firstUrl
+  const initial = httpUrl(firstUrl)
+  if (!initial) throw new Error('the PDF could not be read')
+  let url = initial
   const get = async (begin: number, end: number): Promise<{ status: number; total: number | null; bytes: Uint8Array }> => {
     for (let attempt = 0; ; attempt++) {
       const res = await fetch(url, { headers: { range: `bytes=${begin}-${end - 1}` } })
@@ -19,8 +22,8 @@ export async function pdfSource(pdfjs: PdfJs, firstUrl: string, refresh: () => P
         const total = Number(res.headers.get('content-range')?.split('/')[1])
         return { status: res.status, total: Number.isFinite(total) ? total : null, bytes: new Uint8Array(await res.arrayBuffer()) }
       }
-      // An expired URL: S3 and RustFS answer 403 (AccessDenied, "Request has expired").
-      const next = attempt === 0 && (res.status === 403 || res.status === 400) ? await refresh() : null
+      // An expired URL: S3 and RustFS answer 403 (AccessDenied, "Request has expired"). A new address still has to be http(s).
+      const next = attempt === 0 && (res.status === 403 || res.status === 400) ? httpUrl(await refresh()) : null
       if (!next) throw new Error(`the PDF could not be read (${res.status})`)
       url = next
     }

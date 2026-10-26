@@ -18,8 +18,7 @@ Notifications.setNotificationHandler({
 /** The notification's in-app path, if it carries one (ADR-0021: ids, category and path only). */
 function pathOf(response: Notifications.NotificationResponse | null): string | null {
   const data = response?.notification.request.content.data
-  const path = data?.path
-  return typeof path === 'string' && path.startsWith('/') && !path.startsWith('//') ? phonePath(path, data?.category) : null
+  return typeof data?.path === 'string' ? phonePath(data.path, data.category) : null
 }
 
 /**

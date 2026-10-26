@@ -13,8 +13,9 @@ import { useUploadsEnabled } from '@/features/notes/media/uploads'
 import { Field, ScreenHeader } from '@/features/shell/Form'
 import { LoadState } from '@/features/shell/LoadState'
 import { MyResourcesDocument, ResourceDocument, ResourcePreviewDocument, ResourceTopicOptionsDocument, SubmitResourceDocument, UpdateResourceDocument, type ResourceFieldsFragment, type ResourceType } from '@/graphql/generated/graphql'
-import { haptic } from '@/lib/haptics'
 import { RESOURCE_LIMITS } from '@/lib/contracts/validation'
+import { haptic } from '@/lib/haptics'
+import { httpUrl, localMediaUri } from '@/lib/safe-url'
 import { cn } from '@/lib/utils'
 import { TYPE_LABEL } from './copy'
 
@@ -82,8 +83,9 @@ function Form({ resource }: { resource?: ResourceFieldsFragment }) {
       if (p.title) setTitle(p.title)
       if (p.author) setAuthor(p.author)
       if (p.description) setDescription(p.description.slice(0, RESOURCE_LIMITS.description))
-      setFoundImage(p.imageUrl ?? null)
-      setUseFound(!!p.imageUrl)
+      const image = httpUrl(p.imageUrl)
+      setFoundImage(image)
+      setUseFound(!!image)
       setExists(p.existing ? { id: p.existing.id, title: p.existing.title } : null)
       if (!p.found) setNote('We could not read that page. Fill in the details yourself.')
     } catch (e) {
@@ -116,7 +118,7 @@ function Form({ resource }: { resource?: ResourceFieldsFragment }) {
         description: description.trim() || null,
         topicIds: topics.map((x) => x.id),
         coverFileId,
-        imageUrl: !coverFileId && useFound && foundImage ? foundImage : null,
+        imageUrl: !coverFileId && useFound ? httpUrl(foundImage) : null,
       }
       const payload = resource ? (await update({ variables: { input: { id: resource.id, ...fields } } })).data?.updateResource : (await submit({ variables: { input: fields } })).data?.submitResource
       const problem = payload?.userErrors[0]?.message
@@ -132,7 +134,7 @@ function Form({ resource }: { resource?: ResourceFieldsFragment }) {
   }
 
   const ready = !!type && title.trim().length >= RESOURCE_LIMITS.title.min && !!url.trim() && topics.length >= RESOURCE_LIMITS.topics.min && !busy
-  const picture = picked?.uri ?? (useFound && foundImage ? foundImage : !foundImage ? resource?.coverUrl : null)
+  const picture = localMediaUri(picked?.uri) ?? (useFound && foundImage ? foundImage : !foundImage ? httpUrl(resource?.coverUrl) : null)
   return (
     <View className="bg-background flex-1">
       <ScreenHeader title={resource ? 'Edit your resource' : 'Add a resource'} />
