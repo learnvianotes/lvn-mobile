@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { ActivityIndicator, View } from 'react-native'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
-import { ResendInstitutionalEmailCodeDocument, VerifyInstitutionalEmailDocument, ViewerDocument } from '@/graphql/generated/graphql'
+import { ResendInstitutionalEmailCodeDocument, SetInstitutionalEmailDocument, VerifyInstitutionalEmailDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { AuthScreen } from './AuthScreen'
 import { TextField } from './Controls'
 import { copy } from './copy'
@@ -32,16 +32,29 @@ export function VerifyCodeScreen() {
       </AuthScreen>
     )
   }
-  const status = viewer.institutionalEmailStatus
-  if (status === 'CONFIRMED' || status === 'PENDING_REVIEW') {
+  const status = String(viewer.institutionalEmailStatus ?? 'NONE')
+  if (status === 'CONFIRMED') {
     return (
       <AuthScreen title={t.codeTitle}>
-        <Notice tone={status === 'CONFIRMED' ? 'success' : 'info'}>{status === 'CONFIRMED' ? t.codeDone : t.pendingReview}</Notice>
+        <Notice tone="success">{t.codeDone}</Notice>
         <Button size="lg" onPress={close}>
           <Text>Continue</Text>
         </Button>
       </AuthScreen>
     )
+  }
+  if (status === 'PENDING_REVIEW' || status === 'NEEDS_REVIEW') {
+    return (
+      <AuthScreen title={t.codeTitle}>
+        <Notice tone="info">{t.needsReview}</Notice>
+        <Button size="lg" onPress={close}>
+          <Text>Continue</Text>
+        </Button>
+      </AuthScreen>
+    )
+  }
+  if (status === 'NONE' || status === 'REFUSED' || !viewer.institutionalEmail) {
+    return <AddCollegeEmail refused={status === 'REFUSED'} onClose={close} />
   }
 
   const submit = async () => {
@@ -93,6 +106,41 @@ export function VerifyCodeScreen() {
           <Text>{t.resend}</Text>
         </Button>
         <Button variant="ghost" onPress={close}>
+          <Text>{t.later}</Text>
+        </Button>
+      </View>
+    </AuthScreen>
+  )
+}
+
+/** Adds a college or organisation email, then the code screen once the API has sent one. */
+function AddCollegeEmail({ refused, onClose }: { refused: boolean; onClose: () => void }) {
+  const t = copy.verify
+  const client = useApolloClient()
+  const [setEmail, { loading }] = useMutation(SetInstitutionalEmailDocument)
+  const [email, setValue] = useState('')
+  const [problem, setProblem] = useState<string | null>(null)
+  const save = async () => {
+    setProblem(null)
+    try {
+      const { data } = await setEmail({ variables: { email: email.trim() } })
+      if (data?.setInstitutionalEmail.ok) return void (await client.refetchQueries({ include: [ViewerDocument] }))
+      setProblem(data?.setInstitutionalEmail.userErrors[0]?.message ?? t.refused)
+    } catch {
+      setProblem(copy.errors.generic)
+    }
+  }
+  return (
+    <AuthScreen title={t.addTitle} lead={t.addLead}>
+      <View className="gap-4">
+        {refused ? <Notice tone="error">{t.refused}</Notice> : null}
+        <FormField label={t.addEmail} error={problem ?? undefined}>
+          <TextField testID="college-email" accessibilityLabel={t.addEmail} value={email} onChangeText={setValue} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} invalid={!!problem} />
+        </FormField>
+        <Button testID="college-email-submit" size="lg" disabled={!email.trim() || loading} onPress={() => void save()}>
+          <Text>{t.addSubmit}</Text>
+        </Button>
+        <Button variant="ghost" onPress={onClose}>
           <Text>{t.later}</Text>
         </Button>
       </View>

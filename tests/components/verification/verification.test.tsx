@@ -95,14 +95,26 @@ it('a teacher verifies a student who asked, and must say why to decline', async 
   await waitFor(() => expect(api.calls.filter((c) => c.op === 'ReviewVerificationRequest').at(-1)?.variables).toEqual({ input: { requestId: 'r2', approve: false, reason: 'I do not teach you.' } }))
 })
 
-it('platform admins open proof of study through a recorded link', async () => {
-  const docs = { ...request({ method: 'DOCUMENTS', teacher: null }), documents: [{ __typename: 'VerificationDocument', fileId: 'f1', fileName: 'id.jpg', mimeType: 'image/jpeg', sizeBytes: 2048 }] }
+it('platform admins see the AI read of a college ID and the card image through a recorded link', async () => {
+  const docs = {
+    ...request({ method: 'DOCUMENTS', teacher: null }),
+    aiCheck: { __typename: 'IdCardCheck', verdict: 'MISMATCH', confidence: 0.42, reason: 'The name differs.', checkedAt: new Date().toISOString(), extracted: { __typename: 'IdCardFields', name: 'Ravi K', institution: 'City College', idNumber: 'CSE-19', validUntil: '2027' } },
+    requester: { ...ravi, email: null, institution: { __typename: 'Institution', name: 'City College' }, profile: { __typename: 'StudentProfile', department: 'CSE' } },
+    documents: [{ __typename: 'VerificationDocument', fileId: 'f1', fileName: 'id.jpg', mimeType: 'image/jpeg', sizeBytes: 2048 }, { __typename: 'VerificationDocument', fileId: 'f2', fileName: 'fee.pdf', mimeType: 'application/pdf', sizeBytes: 100 }],
+  }
   const api = mockApi({
     VerificationRequestsToReview: () => ({ data: { verificationRequestsToReview: [docs] } }),
-    VerificationDocumentUrl: () => ({ data: { verificationDocumentUrl: { __typename: 'SignedUrl', url: 'https://storage.test/doc', expiresAt: new Date().toISOString() } } }),
+    VerificationDocumentUrl: (v) => ({ data: { verificationDocumentUrl: { __typename: 'SignedUrl', url: v.fileId === 'f1' ? 'https://storage.test/id' : 'https://storage.test/fee', expiresAt: new Date().toISOString() } } }),
   })
   await inApollo(<ReviewRequests admin />)
-  await fireEvent.press(await screen.findByRole('button', { name: 'Open id.jpg' }))
-  await waitFor(() => expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith('https://storage.test/doc'))
+  expect(await screen.findByText('Does not match')).toBeOnTheScreen()
+  expect(screen.getByText('42% confidence', { exact: false })).toBeOnTheScreen()
+  expect(screen.getByText(/Name on the card: Ravi K/)).toBeOnTheScreen()
+  expect(screen.getByText(/ID number CSE-19/)).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('button', { name: 'Open id.jpg' }))
+  expect(await screen.findByLabelText('Preview id.jpg')).toBeOnTheScreen()
+  expect(WebBrowser.openBrowserAsync).not.toHaveBeenCalled()
+  await fireEvent.press(screen.getByRole('button', { name: 'Open fee.pdf' }))
+  await waitFor(() => expect(WebBrowser.openBrowserAsync).toHaveBeenCalledWith('https://storage.test/fee'))
   expect(api.calls.find((c) => c.op === 'VerificationDocumentUrl')?.variables).toEqual({ requestId: 'r1', fileId: 'f1' })
 })

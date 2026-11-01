@@ -1,0 +1,12 @@
+# Client errors and usage (web /admin/errors). platform MOBILE marks the phone. The server records the signed-in user id;
+# this payload carries no other identifier.
+
+mutation IngestAnalytics($input: IngestAnalyticsInput!) {
+  ingestAnalytics(input: $input) {
+    ok
+    userErrors {
+      code
+      message
+    }
+  }
+}

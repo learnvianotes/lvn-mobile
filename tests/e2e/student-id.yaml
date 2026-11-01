@@ -1,0 +1,26 @@
+# Sending a college ID card from the phone (camera), then seeing that it waits for review.
+# The option is hidden while student ID checks or uploads are off, and this flow then stops at the missing button.
+appId: ${APP_ID}
+env:
+  APP_ID: com.learnvianotes.dev
+---
+- runFlow: subflows/signed-in.yaml
+- tapOn: "Profile"
+- scrollUntilVisible:
+    element: "Send your college ID card"
+- tapOn: "Send your college ID card"
+- scrollUntilVisible:
+    element: "Take a photo"
+- tapOn: "Take a photo"
+- runFlow:
+    when:
+      visible: "While using the app"
+    commands:
+      - tapOn: "While using the app"
+- runFlow: subflows/emulator-photo.yaml
+- scrollUntilVisible:
+    element: "Send to an admin"
+- tapOn: "Send to an admin"
+- extendedWaitUntil:
+    visible: "An admin is checking your college ID card."
+    timeout: 20000
