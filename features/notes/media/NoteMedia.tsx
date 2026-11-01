@@ -2,6 +2,7 @@ import type { ApolloClient } from '@apollo/client'
 import { useApolloClient, useQuery } from '@apollo/client/react'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { CompleteNoteUploadDocument, CreateNoteUploadDocument, PhoneNoteMediaDocument, type PhoneMediaFieldsFragment, type PhoneNoteMediaQuery } from '@/graphql/generated/graphql'
+import { reportClientError } from '@/lib/client-errors'
 
 /**
  * A note's pictures, video, audio and files on the phone (lvn-backend §8.1, ADR-0041). Media cards hold only a file id;
@@ -99,6 +100,28 @@ export function cardTypeFor(mime: string): 'image' | 'video' | 'audio' | 'file' 
 
 export class UploadError extends Error {}
 
+const UPLOAD_FAILED = 'The file could not be uploaded. Try again.'
+
+/** PUT bytes to a signed upload URL. A failure is reported with no file name, address or email. */
+export async function putStoredFile(client: ApolloClient, upload: { uploadUrl: string; uploadHeaders: { name: string; value: string }[] }, body: Blob, mimeType: string): Promise<void> {
+  const headers: Record<string, string> = {}
+  for (const h of upload.uploadHeaders) if (h.name.toLowerCase() !== 'content-length') headers[h.name] = h.value
+  // Android sends a blob with the blob's own type (guessed from the file's extension) whatever Content-Type is given,
+  // and storage checks the type signed into the URL: the body takes the type the upload was asked for.
+  const typed = body.type === mimeType ? body : body.slice(0, body.size, mimeType)
+  let put: Response
+  try {
+    put = await fetch(upload.uploadUrl, { method: 'PUT', headers, body: typed })
+  } catch {
+    reportClientError(client, { code: 'upload', message: UPLOAD_FAILED })
+    throw new UploadError(UPLOAD_FAILED)
+  }
+  if (!put.ok) {
+    reportClientError(client, { code: 'upload', message: UPLOAD_FAILED })
+    throw new UploadError(UPLOAD_FAILED)
+  }
+}
+
 /**
  * Uploads a file picked on the phone (§8.1): an intent from the API, a PUT straight to storage with exactly the headers
  * it asked for, then the API checks the file. Returns the file id.
@@ -110,13 +133,7 @@ export async function uploadFile(client: ApolloClient, picked: { uri: string; na
   const res = await client.mutate({ mutation: CreateNoteUploadDocument, variables: { input: { fileName: picked.name || 'file', mimeType: picked.mimeType, sizeBytes: body.size, purpose: purpose.purpose, ...(purpose.parentId ? { parentId: purpose.parentId } : {}) } } })
   const intent = res.data?.createUploadIntent.intent
   if (!intent) throw new UploadError(res.data?.createUploadIntent.userErrors[0]?.message ?? 'The file could not be uploaded.')
-  const headers: Record<string, string> = {}
-  for (const h of intent.uploadHeaders) if (h.name.toLowerCase() !== 'content-length') headers[h.name] = h.value
-  // Android sends a blob with the blob's own type (guessed from the file's extension) whatever Content-Type is given,
-  // and storage checks the type signed into the URL: the body takes the type the upload was asked for.
-  const typed = body.type === picked.mimeType ? body : body.slice(0, body.size, picked.mimeType)
-  const put = await fetch(intent.uploadUrl, { method: 'PUT', headers, body: typed })
-  if (!put.ok) throw new UploadError('The file could not be uploaded. Try again.')
+  await putStoredFile(client, intent, body, picked.mimeType)
   const done = await client.mutate({ mutation: CompleteNoteUploadDocument, variables: { fileId: intent.fileId } })
   const problem = done.data?.completeUpload.userErrors[0]?.message
   if (problem) throw new UploadError(problem)

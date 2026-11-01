@@ -143,7 +143,7 @@ function Links({ viewer }: { viewer: ViewerFieldsFragment }) {
       show: (v) => v.globalRole === 'STUDENT' && !v.restrictedMinor,
     },
     { label: 'Your Skills tab', icon: Sparkles, href: '/skills', show: (v) => v.globalRole === 'TEACHER' || v.teacherStatus === 'PENDING' },
-    { label: 'Proof of study to review', icon: ShieldCheck, href: '/admin/verification', show: (v) => v.globalRole === 'PLATFORM_ADMIN' },
+    { label: 'Verification to review', icon: ShieldCheck, href: '/admin/verification', show: (v) => v.globalRole === 'PLATFORM_ADMIN' || v.globalRole === 'MANAGER' || v.globalRole === 'TEACHER' },
     { label: 'Moderation queue', icon: ShieldCheck, href: '/admin/moderation', show: (v) => v.globalRole === 'PLATFORM_ADMIN' },
   ]
   return (

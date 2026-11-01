@@ -33,6 +33,27 @@ query MyVerificationRequests {
 query VerificationRequestsToReview($after: UUID) {
   verificationRequestsToReview(first: 30, after: $after) {
     ...VerificationRequestFields
+    aiCheck {
+      verdict
+      confidence
+      reason
+      checkedAt
+      extracted {
+        name
+        institution
+        idNumber
+        validUntil
+      }
+    }
+    requester {
+      email
+      institution {
+        name
+      }
+      profile {
+        department
+      }
+    }
     documents {
       fileId
       fileName

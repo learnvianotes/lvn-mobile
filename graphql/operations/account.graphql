@@ -1,5 +1,5 @@
-# The account on the phone beyond sign-in (lvn-backend P3n): the terms when they change, study details, a college
-# email to add or replace, data from the old site, and importing notes.
+# The account on the phone beyond sign-in (lvn-backend P3n): the terms when they change, study details, data from the
+# old site, and importing notes. The college email mutation lives in auth.graphql.
 
 query TermsStatus {
   termsVersion
@@ -47,15 +47,6 @@ mutation UpdateProfile($input: UpdateProfileInput!) {
       yearOfStudy
       showOnProfile
     }
-    userErrors {
-      ...Problems
-    }
-  }
-}
-
-mutation SetInstitutionalEmail($email: String!) {
-  setInstitutionalEmail(input: { email: $email }) {
-    ok
     userErrors {
       ...Problems
     }

@@ -1855,6 +1855,7 @@ type ForkCredit {
 }
 
 enum GlobalRole {
+  MANAGER
   PLATFORM_ADMIN
   STUDENT
   TEACHER
@@ -2628,6 +2629,11 @@ type Mutation {
   createNote(input: CreateNoteInput!): NotePayload!
   createUploadIntent(input: CreateUploadIntentInput!): UploadIntentPayload!
 
+  """
+  A college ID card upload: PUT the bytes to upload.uploadUrl, then submitStudentIdVerification
+  """
+  createStudentIdUploadIntent(input: CreateStudentIdUploadInput!): StudentIdUploadPayload!
+
   """Platform admins"""
   decideDomainReview(input: DecideDomainReviewInput!): OkPayload!
 
@@ -2705,6 +2711,11 @@ type Mutation {
 
   """Import notes; everything arrives PRIVATE. Five imports a day"""
   importNotes(input: ImportNotesInput!): NoteImportPayload!
+
+  """
+  Client usage and errors (web /admin/errors). The signed-in user id is recorded by the server; clients send no other identifier.
+  """
+  ingestAnalytics(input: IngestAnalyticsInput!): OkPayload!
 
   """Admins and the Owner invite a teacher; the invite lasts 14 days"""
   inviteMentor(input: InviteMentorInput!): GroupPayload!
@@ -2841,6 +2852,14 @@ type Mutation {
   reviewVerificationRequest(input: ReviewVerificationRequestInput!): VerificationRequestPayload!
 
   """
+  Platform admins, managers and teachers: approve or reject a college ID card. The API scopes whose cards each role sees.
+  """
+  reviewStudentIdVerification(input: ReviewStudentIdVerificationInput!): StudentIdVerificationPayload!
+
+  """The viewer sends a college ID card that was just uploaded"""
+  submitStudentIdVerification(input: SubmitStudentIdVerificationInput!): StudentIdVerificationPayload!
+
+  """
   Queues a task; poll aiArtifact until it is READY or FAILED. RATE_LIMITED past the day's allowance, UNAVAILABLE when AI is off
   """
   runAiTask(input: RunAiTaskInput!): AiArtifactPayload!
@@ -2887,6 +2906,9 @@ type Mutation {
   Adds or replaces the college or organisation email; a code is sent to it
   """
   setInstitutionalEmail(input: SetInstitutionalEmailInput!): OkPayload!
+
+  """Platform admins: whether students may send a college ID card"""
+  setStudentIdVerificationEnabled(enabled: Boolean!): OkPayload!
 
   """
   Signed in only. The apps send the device's zone with events; this sets it by hand
@@ -3009,6 +3031,7 @@ type Mutation {
   withdrawConnectionRequest(input: ConnectionRequestInput!): PersonPayload!
   withdrawGroupJoinRequest(input: JoinRequestIdInput!): GroupPayload!
   withdrawVerificationRequest(requestId: UUID!): OkPayload!
+  withdrawStudentIdVerification(requestId: UUID!): OkPayload!
 }
 
 input MuteGroupMemberInput {
@@ -3958,6 +3981,25 @@ type Query {
   Tasks worth setting this week: the next exam's weakest topic, weak topics, flashcards due
   """
   taskSuggestions: [TaskSuggestion!]!
+
+  """Whether students may send a college ID card. Public, so the control can stay hidden while it is off."""
+  studentIdVerificationEnabled: Boolean!
+
+  """The viewer's latest college ID card, if they have sent one"""
+  myStudentIdVerification: StudentIdVerificationRequest
+
+  """
+  College ID cards waiting for review. Platform admins see every card; managers and teachers see the cards their role may decide. Oldest first.
+  """
+  studentIdVerificationQueue(after: UUID, first: Int): [StudentIdVerificationRequest!]!
+
+  """
+  A short-lived link to one college ID card. Every open is recorded. Platform admins, managers and teachers, scoped like the queue.
+  """
+  studentIdCardUrl(requestId: UUID!): SignedUrl!
+
+  """Platform admins: the college ID switch and how long a card is kept"""
+  studentIdVerificationSettings: StudentIdVerificationSettings!
 
   """
   Verified teachers whose name or handle matches, to ask one of them for verification
@@ -5612,6 +5654,11 @@ type VerificationRequest {
   decidedAt: DateTime
 
   """
+  What was read from a college ID card, when one was checked (null until a check has run)
+  """
+  aiCheck: IdCardCheck
+
+  """
   Platform admins only; open one with verificationDocumentUrl (every view is audited)
   """
   documents: [VerificationDocument!]!
@@ -5737,4 +5784,112 @@ enum YearOfStudy {
   YEAR_3
   YEAR_4
   YEAR_5
+}
+
+"""Where a client error or usage event was sent from. Phones use MOBILE."""
+enum ClientPlatform {
+  MOBILE
+  WEB
+}
+
+input ClientErrorInput {
+  """A short code, such as upload. Not a person's name or email."""
+  code: String!
+
+  """What went wrong, with emails and addresses removed"""
+  message: String!
+  platform: ClientPlatform!
+
+  """A path, with no query string"""
+  route: String
+  occurredAt: DateTime
+}
+
+input UsageEventInput {
+  name: String!
+  platform: ClientPlatform!
+  occurredAt: DateTime
+  props: JSON
+}
+
+input IngestAnalyticsInput {
+  events: [UsageEventInput!]
+  errors: [ClientErrorInput!]
+}
+
+"""What an automatic read of a college ID card decided"""
+enum IdCardVerdict {
+  MATCH
+  MISMATCH
+  UNREADABLE
+}
+
+type IdCardFields {
+  name: String
+  institution: String
+  idNumber: String
+  validUntil: String
+}
+
+type IdCardCheck {
+  verdict: IdCardVerdict!
+  confidence: Float
+  reason: String
+  checkedAt: DateTime
+  extracted: IdCardFields!
+}
+
+input CreateStudentIdUploadInput {
+  fileName: String!
+  mimeType: String!
+  sizeBytes: Int!
+}
+
+type StudentIdUploadHeader {
+  name: String!
+  value: String!
+}
+
+type StudentIdUpload {
+  expiresAt: DateTime!
+  fileId: UUID!
+  uploadHeaders: [StudentIdUploadHeader!]!
+  uploadUrl: String!
+}
+
+type StudentIdUploadPayload {
+  upload: StudentIdUpload
+  userErrors: [UserError!]!
+}
+
+type StudentIdVerificationRequest {
+  aiCheck: IdCardCheck
+  createdAt: DateTime!
+  decidedAt: DateTime
+  id: UUID!
+  message: String
+  reason: String
+  requester: User!
+  status: VerificationRequestStatus!
+}
+
+type StudentIdVerificationPayload {
+  request: StudentIdVerificationRequest
+  userErrors: [UserError!]!
+}
+
+input SubmitStudentIdVerificationInput {
+  fileId: UUID!
+}
+
+input ReviewStudentIdVerificationInput {
+  approve: Boolean!
+  reason: String
+  requestId: UUID!
+}
+
+type StudentIdVerificationSettings {
+  confidenceThreshold: Float!
+  enabled: Boolean!
+  imageRetentionDays: Int!
 }

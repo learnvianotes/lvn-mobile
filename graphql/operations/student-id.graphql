@@ -1,0 +1,115 @@
+# A college ID card (lvn-web graphql/operations/student-id.graphql). Hidden while studentIdVerificationEnabled is false.
+# Upload with createStudentIdUploadIntent, PUT the bytes, then submitStudentIdVerification.
+
+query StudentIdVerificationEnabled {
+  studentIdVerificationEnabled
+}
+
+fragment StudentIdVerificationFields on StudentIdVerificationRequest {
+  id
+  status
+  reason
+  createdAt
+  decidedAt
+  requester {
+    id
+    displayName
+    handle
+  }
+}
+
+query MyStudentIdVerification {
+  myStudentIdVerification {
+    ...StudentIdVerificationFields
+  }
+}
+
+mutation CreateStudentIdUploadIntent($input: CreateStudentIdUploadInput!) {
+  createStudentIdUploadIntent(input: $input) {
+    upload {
+      fileId
+      uploadUrl
+      expiresAt
+      uploadHeaders {
+        name
+        value
+      }
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation SubmitStudentIdVerification($input: SubmitStudentIdVerificationInput!) {
+  submitStudentIdVerification(input: $input) {
+    request {
+      ...StudentIdVerificationFields
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation WithdrawStudentIdVerification($requestId: UUID!) {
+  withdrawStudentIdVerification(requestId: $requestId) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+# Platform admins, managers and teachers. The API returns only the cards that role may decide.
+query StudentIdVerificationQueue($first: Int, $after: UUID) {
+  studentIdVerificationQueue(first: $first, after: $after) {
+    id
+    status
+    reason
+    createdAt
+    aiCheck {
+      verdict
+      confidence
+      reason
+      checkedAt
+      extracted {
+        name
+        institution
+        idNumber
+        validUntil
+      }
+    }
+    requester {
+      id
+      displayName
+      handle
+      email
+      institution {
+        name
+      }
+      profile {
+        department
+      }
+    }
+  }
+}
+
+query StudentIdCardUrl($requestId: UUID!) {
+  studentIdCardUrl(requestId: $requestId) {
+    url
+    expiresAt
+  }
+}
+
+mutation ReviewStudentIdVerification($input: ReviewStudentIdVerificationInput!) {
+  reviewStudentIdVerification(input: $input) {
+    request {
+      id
+      status
+    }
+    userErrors {
+      ...Problems
+    }
+  }
+}
