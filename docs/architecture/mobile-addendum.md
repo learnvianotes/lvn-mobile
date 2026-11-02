@@ -112,22 +112,23 @@ screen navigates after sign-in or sign-out itself.
 - **LinkedIn — later, web first.** LinkedIn redirects only to http(s) URLs, never to an app scheme, so the app has no
   LinkedIn button. It needs Android App Links / iOS universal links for `https://<web>/oauth/callback`, or a page on
   lvn-web that hands the code to the app's scheme.
-- **Emailed links.** Email confirmation and password reset links open lvn-web (`/verify?token=`, `/reset?token=`)
-  until app links exist; the app asks for the reset link and the web page sets the new password.
+- **Emailed links.** Password reset links open lvn-web (`/reset?token=`). A sign-in verification link that opens the app
+  (`/verify?token=`) is accepted with `verifyEmail`; otherwise that link still opens lvn-web.
 - **Forms.** Date of birth is three number fields (day, month, year — GOV.UK's pattern for a date people know, not a
   picker). Emails are trimmed (keyboards add a trailing space). A wrong code or password is cleared for a fresh try.
   The API's `userErrors` land on their fields; anything else shows above the form. An invite-only refusal is one
   sentence, and it clears when the email changes. A password reset always shows the same sentence, including when the
   API names an unknown address.
-- **Email after sign-in.** `VerifyEmailBanner` (Home, Profile, Settings) shows while `emailVerified` is false. Resend
-  calls `resendVerification` with no arguments and reads `OkPayload`. That field is not in the schema checked in here;
-  the document lives in `features/auth/resendVerification.ts`, outside `graphql/operations`, so codegen still matches
-  this schema. "I've verified", returning to the app, and a successful college-code check run `refreshViewer`
-  (`Viewer` with `network-only`), because those mutations do not return the account.
-- **What an unverified account can do.** The app explains only the verified-account gates the schema names: publishing
-  a note, choosing who can read it, and sharing it with someone. The sentence shows when `viewer.verified` is false and
-  the matching `viewerCan` flag is false. Notes, study, classes, comments, follows and new groups stay on screen; a
-  refusal is the API's own message.
+- **Email after sign-in.** `VerifyEmailBanner` (Home, Profile, Settings) shows while `emailVerified` is false, and never
+  for a platform admin. Resend calls `resendVerification` (no arguments, `OkPayload`; three an hour, then
+  `RATE_LIMITED` with `retryAfter`). A link that opens the app as `/verify?token=` calls `verifyEmail`, which returns
+  the account, and then `refreshViewer` (`Viewer` with `network-only`). "I've verified", returning to the app, and a
+  successful college-code check do that reload too. What an unverified account cannot do comes from
+  `unverifiedGatedActions`, not from a fixed client list. Verification review is for platform admins and verified
+  teachers.
+- **What an unverified account can do.** Explanations follow `unverifiedGatedActions` together with the note's
+  `viewerCan` flags. Notes, study, classes, comments, follows and new groups stay on screen; a refusal is the API's own
+  message. Platform admins never see a verify prompt.
 
 Tests live in `tests/`, never in `app/`: Expo Router turns every file in `app/` into a route, so a test there
 would be bundled into the app. `tests/unit` covers `lib/`, `tests/components` every exported component with props

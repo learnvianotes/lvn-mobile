@@ -6,16 +6,20 @@ import { mockApi, viewer } from '../../support/api'
 import { renderInApp } from '../../support/render'
 
 /** College or organisation email on the verify screen: add it, then the code; verified, needs review, and refused. */
+const searchParams: { token?: string } = {}
 jest.mock('expo-router', () => ({
   router: { push: jest.fn(), canGoBack: jest.fn(() => true), back: jest.fn(), replace: jest.fn() },
   Link: ({ children }: { children: React.ReactNode }) => children,
-  useLocalSearchParams: () => ({}),
+  useLocalSearchParams: () => searchParams,
 }))
 
 const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client={createApolloClient()}>{ui}</ApolloProvider>)
 const ok = { __typename: 'OkPayload', ok: true, userErrors: [] }
 
-beforeEach(() => jest.clearAllMocks())
+beforeEach(() => {
+  searchParams.token = undefined
+  jest.clearAllMocks()
+})
 
 it('adds a college email, which leads into the code', async () => {
   let status = 'NONE'
@@ -54,4 +58,20 @@ it('shows a refused address and the form to try another', async () => {
   await fireEvent.press(screen.getByRole('button', { name: 'Send the code' }))
   expect(await screen.findByText('That college address was not accepted.')).toBeOnTheScreen()
   await waitFor(() => expect(screen.getByLabelText('Email')).toBeOnTheScreen())
+})
+
+it('accepts a sign-in verification link and reloads the account', async () => {
+  searchParams.token = 'email-token'
+  let confirmed = false
+  const api = mockApi({
+    VerifyEmail: () => {
+      confirmed = true
+      return { data: { verifyEmail: { __typename: 'VerifyEmailPayload', ok: true, user: viewer({ emailVerified: true, verified: true }), userErrors: [] } } }
+    },
+    Viewer: () => ({ data: { viewer: viewer({ emailVerified: confirmed, verified: confirmed }) } }),
+  })
+  await inApollo(<VerifyCodeScreen />)
+  expect(await screen.findByText('Your email is confirmed.')).toBeOnTheScreen()
+  expect(api.calls.find((c) => c.op === 'VerifyEmail')?.variables).toEqual({ token: 'email-token' })
+  expect(api.ops().filter((op) => op === 'Viewer').length).toBeGreaterThan(0)
 })

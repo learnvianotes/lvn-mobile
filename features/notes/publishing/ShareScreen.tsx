@@ -5,6 +5,7 @@ import { Pressable, ScrollView, Share, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { GATED, useGatedActions } from '@/features/auth/gates'
 import { attempt } from '@/features/groups/shared'
 import { Choices, Field, Outcome, Pill, ScreenHeader, Toggle } from '@/features/shell/Form'
 import {
@@ -15,7 +16,6 @@ import {
   SetNoteSharedWithConnectionsDocument,
   ShareNoteDocument,
   UnshareNoteDocument,
-  ViewerDocument,
   type NoteShareRole,
   type Visibility,
 } from '@/graphql/generated/graphql'
@@ -44,7 +44,6 @@ export function ShareScreen({ id }: { id: string }) {
   const [person, setPerson] = useState('')
   const [role, setRole] = useState<NoteShareRole>('VIEWER')
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null)
-  const viewer = useQuery(ViewerDocument).data?.viewer
   const m = meta.data?.note
   const people = shares.data?.note?.shares ?? []
   const teacher = shares.data?.viewer?.globalRole === 'TEACHER'
@@ -76,7 +75,7 @@ export function ShareScreen({ id }: { id: string }) {
           }}
           options={(['PRIVATE', 'SHARED', 'PUBLIC'] as const).map((v) => ({ value: v, label: v === 'PRIVATE' ? 'Private' : v === 'SHARED' ? 'Shared' : 'Public', hint: v === 'PUBLIC' && !m.publishedVersion ? 'Publish the note first: readers see the published version.' : HINT[v] }))}
         />
-        <ShareGate viewerVerified={viewer?.verified} canChange={m.viewerCan.changeVisibility} canShare={m.viewerCan.share} />
+        <ShareGate canChange={m.viewerCan.changeVisibility} canShare={m.viewerCan.share} />
 
         <View className="gap-3">
           <Text className="text-sm font-semibold" accessibilityRole="header">
@@ -146,12 +145,12 @@ export function ShareScreen({ id }: { id: string }) {
 }
 
 /**
- * Publish, who can read a note, and sharing it with someone are the verified-account gates the API enforces.
- * The form stays on screen. This sentence appears only when this account is unverified and the matching flag is off.
+ * Who can read a note, and sharing it with someone, are explained only when `unverifiedGatedActions` names them
+ * and this note's permission is off. The form stays on screen.
  */
-function ShareGate({ viewerVerified, canChange, canShare }: { viewerVerified?: boolean; canChange: boolean; canShare: boolean }) {
-  if (viewerVerified !== false) return null
-  const waiting = [!canChange ? 'choosing who can read it' : '', !canShare ? 'sharing it with someone' : ''].filter(Boolean)
+function ShareGate({ canChange, canShare }: { canChange: boolean; canShare: boolean }) {
+  const { gated } = useGatedActions()
+  const waiting = [!canChange && gated(GATED.visibility) ? 'choosing who can read it' : '', !canShare && gated(GATED.share) ? 'sharing it with someone' : ''].filter(Boolean)
   if (!waiting.length) return null
   const list = waiting.length === 2 ? `${waiting[0]} and ${waiting[1]}` : waiting[0]
   return <Text className="text-muted-foreground text-sm">This account is not verified yet, so {list} waits. You can keep writing the note.</Text>

@@ -16,6 +16,7 @@ import { DeleteAccountCard } from '@/features/data/DeleteAccountCard'
 import { InstitutionalEmailCard, LegacyDataCard, StudyDetailsCard } from './AccountDetails'
 import { copy } from './copy'
 import { Notice } from './Notice'
+import { VerifyAccountNote } from './gates'
 import { VerifyEmailBanner } from './VerifyEmailBanner'
 import { forgetPushToken } from '@/features/push/push'
 import { AiAccountCard } from '@/features/ai/AiScreen'
@@ -98,7 +99,7 @@ function Account({ viewer }: { viewer: ViewerFieldsFragment }) {
             {viewer.verified && viewer.verificationMethod ? <Text className="text-muted-foreground text-sm font-normal"> {t.verifiedBy[viewer.verificationMethod]}</Text> : null}
           </Text>
         </View>
-        {!viewer.verified ? <Text className="text-muted-foreground text-sm">{t.verifyLead}</Text> : null}
+        {viewer.globalRole === 'PLATFORM_ADMIN' ? null : <VerifyAccountNote />}
         <VerifyEmailBanner />
         {viewer.restrictedMinor ? <Notice tone="info">{t.minor}</Notice> : null}
       </View>

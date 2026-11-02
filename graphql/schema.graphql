@@ -2818,6 +2818,11 @@ type Mutation {
   requestToJoinGroup(input: RequestToJoinGroupInput!): GroupPayload!
   resendInstitutionalEmailCode: OkPayload!
 
+  """
+  Sends the sign-in verification link again. Signed in, no arguments. Three an hour, then RATE_LIMITED with retryAfter (contracts 0.74.0).
+  """
+  resendVerification: OkPayload!
+
   """The card starts again as new"""
   resetCardReview(input: CardIdInput!): OkPayload!
 
@@ -3023,7 +3028,11 @@ type Mutation {
   """Replaces the items written by hand; imported items stay"""
   updateTeacherProfile(input: UpdateTeacherProfileInput!): TeacherProfilePayload!
   updateWeeklyTask(input: UpdateWeeklyTaskInput!): WeeklyTaskPayload!
-  verifyEmail(input: VerifyEmailInput!): OkPayload!
+
+  """
+  Accepts the token from the sign-in verification email and returns the account when the link worked (contracts 0.74.0).
+  """
+  verifyEmail(input: VerifyEmailInput!): VerifyEmailPayload!
   verifyInstitutionalEmail(input: VerifyInstitutionalEmailInput!): OkPayload!
   withdrawClassroomJoinRequest(input: JoinRequestIdInput!): ClassroomPayload!
 
@@ -4016,6 +4025,12 @@ type Query {
   """
   trendingFeed(after: String, first: Int): CommunityConnection!
   unreadNotificationCount: Int!
+
+  """
+  Signed in. Names of actions this account cannot take until it is verified (contracts 0.74.0). Empty for a verified
+  account and for PLATFORM_ADMIN. Known names include PUBLISH_NOTE, CHANGE_NOTE_VISIBILITY, SHARE_NOTE and SUBMIT_RESOURCE.
+  """
+  unverifiedGatedActions: [String!]!
 
   """
   ADR-0097: whether people may upload files here. Off, clients hide every upload control and createUploadIntent answers UNAVAILABLE.
@@ -5623,6 +5638,9 @@ type UserError {
   code: ErrorCode!
   field: [String!]
   message: String!
+
+  """Seconds until the action is allowed again. Set when code is RATE_LIMITED."""
+  retryAfter: Int
 }
 
 type VerificationDocument {
@@ -5688,6 +5706,15 @@ enum VerificationRequestStatus {
   PENDING
   REJECTED
   WITHDRAWN
+}
+
+"""The signed-in account after the email link is accepted."""
+type VerifyEmailPayload {
+  ok: Boolean!
+
+  """The account when the link worked, so the client can refresh verification."""
+  user: User
+  userErrors: [UserError!]!
 }
 
 input VerifyEmailInput {

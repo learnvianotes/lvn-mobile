@@ -3,29 +3,41 @@ import { useEffect, useState } from 'react'
 import { AppState, useWindowDimensions, View } from 'react-native'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
-import { ViewerDocument } from '@/graphql/generated/graphql'
+import { ResendVerificationDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { refreshViewer } from '@/lib/auth/viewer'
 import { copy } from './copy'
-import { ResendVerificationDocument } from './resendVerification'
 
-type ResendResult = { resendVerification?: { ok: boolean; userErrors: { message: string }[] } | null }
+type RateLimit = { message: string; code?: string | null; retryAfter?: number | null }
+
+/** Narrow phones stack the two actions; a large phone keeps them on one row. */
+export function stackVerifyActions(width: number): boolean {
+  return width < 400
+}
+
+/** The API's words, plus how long to wait when it sends retryAfter with RATE_LIMITED. */
+function resendError(err: RateLimit | undefined, fallback: string): string {
+  if (!err?.message) return fallback
+  if (err.code !== 'RATE_LIMITED' || !err.retryAfter) return err.message
+  const minutes = Math.max(1, Math.ceil(err.retryAfter / 60))
+  return `${err.message} You can try again in ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`
+}
 
 /**
  * After login, when the sign-in email is still unconfirmed: resend the link, or reload the account
- * after the link was opened. Notes and study stay available; this does not gate them.
+ * after the link was opened. Notes and study stay available. A platform admin never sees this.
  * Stacks the actions on a narrow phone and keeps them on one row on a large one.
  */
 export function VerifyEmailBanner() {
   const client = useApolloClient()
   const { data } = useQuery(ViewerDocument)
   const viewer = data?.viewer
-  const [resend] = useMutation<ResendResult>(ResendVerificationDocument)
+  const [resend] = useMutation(ResendVerificationDocument)
   const [note, setNote] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState<'resend' | 'check' | null>(null)
   const { width } = useWindowDimensions()
-  const narrow = width < 400
-  const unverified = !!viewer && !viewer.emailVerified
+  const narrow = stackVerifyActions(width)
+  const unverified = !!viewer && viewer.globalRole !== 'PLATFORM_ADMIN' && !viewer.emailVerified
 
   useEffect(() => {
     if (!unverified) return
@@ -45,7 +57,7 @@ export function VerifyEmailBanner() {
       const { data: res } = await resend()
       const payload = res?.resendVerification
       if (payload?.ok) setNote(t.sent)
-      else setError(payload?.userErrors[0]?.message ?? t.failed)
+      else setError(resendError(payload?.userErrors[0], t.failed))
     } catch {
       setError(t.failed)
     } finally {

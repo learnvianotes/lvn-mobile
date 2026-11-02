@@ -60,7 +60,7 @@ export function ProfileTab() {
         <VerifyEmailBanner />
         {viewer ? <Header viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
-        {viewer && !viewer.verified ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
+        {viewer && !viewer.verified && viewer.globalRole !== 'PLATFORM_ADMIN' ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
         {viewer?.globalRole === 'TEACHER' && viewer.verified ? <ReviewRequests /> : null}
         {viewer ? <Achievements /> : null}
         {viewer ? <Links viewer={viewer} /> : null}
@@ -145,7 +145,7 @@ function Links({ viewer }: { viewer: ViewerFieldsFragment }) {
       show: (v) => v.globalRole === 'STUDENT' && !v.restrictedMinor,
     },
     { label: 'Your Skills tab', icon: Sparkles, href: '/skills', show: (v) => v.globalRole === 'TEACHER' || v.teacherStatus === 'PENDING' },
-    { label: 'Verification to review', icon: ShieldCheck, href: '/admin/verification', show: (v) => v.globalRole === 'PLATFORM_ADMIN' || v.globalRole === 'MANAGER' || v.globalRole === 'TEACHER' },
+    { label: 'Verification to review', icon: ShieldCheck, href: '/admin/verification', show: (v) => v.globalRole === 'PLATFORM_ADMIN' || (v.globalRole === 'TEACHER' && v.verified) },
     { label: 'Moderation queue', icon: ShieldCheck, href: '/admin/moderation', show: (v) => v.globalRole === 'PLATFORM_ADMIN' },
   ]
   return (

@@ -32,7 +32,8 @@ it('resends the link, then drops the banner once the account is confirmed', asyn
   })
   await inApp(<VerifyEmailBanner />)
   expect(await screen.findByText(copy.verifyEmail.lead)).toBeOnTheScreen()
-  expect(screen.getByRole('button', { name: copy.verifyEmail.resend }).props.className).toEqual(expect.stringContaining('flex-1'))
+  expect(screen.getByRole('button', { name: copy.verifyEmail.resend })).toBeOnTheScreen()
+  expect(screen.getByRole('button', { name: copy.verifyEmail.check })).toBeOnTheScreen()
 
   await fireEvent.press(screen.getByRole('button', { name: copy.verifyEmail.resend }))
   expect(await screen.findByText(copy.verifyEmail.sent)).toBeOnTheScreen()
@@ -43,20 +44,22 @@ it('resends the link, then drops the banner once the account is confirmed', asyn
   await waitFor(() => expect(screen.queryByText(copy.verifyEmail.lead)).toBeNull())
 })
 
-it('says the email is still unconfirmed, and stacks the actions on a narrow phone', async () => {
-  jest.spyOn(ReactNative, 'useWindowDimensions').mockReturnValue({ width: 320, height: 640, scale: 2, fontScale: 1 })
+it('says the email is still unconfirmed, and names the wait when resend is rate limited', async () => {
   mockApi({
     Viewer: () => ({ data: { viewer: viewer({ emailVerified: false }) } }),
-    ResendVerification: () => ({ data: { resendVerification: { __typename: 'OkPayload', ok: false, userErrors: [] } } }),
+    ResendVerification: () => ({ data: { resendVerification: { __typename: 'OkPayload', ok: false, userErrors: [{ __typename: 'UserError', field: null, message: 'Too many links.', code: 'RATE_LIMITED', retryAfter: 120 }] } } }),
   })
   await inApp(<VerifyEmailBanner />)
-  const resend = await screen.findByRole('button', { name: copy.verifyEmail.resend })
-  expect(resend.props.className).toEqual(expect.stringContaining('w-full'))
-  expect(screen.getByRole('button', { name: copy.verifyEmail.check }).props.className).toEqual(expect.stringContaining('w-full'))
-
-  await fireEvent.press(screen.getByRole('button', { name: copy.verifyEmail.check }))
+  await fireEvent.press(await screen.findByRole('button', { name: copy.verifyEmail.check }))
   expect(await screen.findByText(copy.verifyEmail.still)).toBeOnTheScreen()
 
   await fireEvent.press(screen.getByRole('button', { name: copy.verifyEmail.resend }))
-  expect(await screen.findByText(copy.verifyEmail.failed)).toBeOnTheScreen()
+  expect(await screen.findByText('Too many links. You can try again in 2 minutes.')).toBeOnTheScreen()
+})
+
+it('never asks a platform admin to verify', async () => {
+  const api = mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN', emailVerified: false, verified: false }) } }) })
+  await inApp(<VerifyEmailBanner />)
+  await waitFor(() => expect(api.ops()).toContain('Viewer'))
+  expect(screen.queryByText(copy.verifyEmail.lead)).toBeNull()
 })

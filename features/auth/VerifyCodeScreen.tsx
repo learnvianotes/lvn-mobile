@@ -1,10 +1,10 @@
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
-import { router } from 'expo-router'
-import { useState } from 'react'
+import { router, useLocalSearchParams } from 'expo-router'
+import { useEffect, useState } from 'react'
 import { ActivityIndicator, View } from 'react-native'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
-import { ResendInstitutionalEmailCodeDocument, SetInstitutionalEmailDocument, VerifyInstitutionalEmailDocument, ViewerDocument } from '@/graphql/generated/graphql'
+import { ResendInstitutionalEmailCodeDocument, SetInstitutionalEmailDocument, VerifyEmailDocument, VerifyInstitutionalEmailDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { refreshViewer } from '@/lib/auth/viewer'
 import { AuthScreen } from './AuthScreen'
 import { TextField } from './Controls'
@@ -14,8 +14,52 @@ import { Notice } from './Notice'
 
 const close = () => (router.canGoBack() ? router.back() : router.replace('/'))
 
-/** The 6-digit code sent to a college or organisation email (ADR-0017). */
+/** The 6-digit code sent to a college or organisation email (ADR-0017). A sign-in email link (`?token=`) is accepted here too. */
 export function VerifyCodeScreen() {
+  const token = useLocalSearchParams<{ token?: string }>().token
+  if (typeof token === 'string' && token) return <ConfirmSignInEmail token={token} />
+  return <CollegeCode />
+}
+
+/** `verifyEmail` returns the account. Reload it straight after, so verified status does not stay as it was at sign-in. */
+function ConfirmSignInEmail({ token }: { token: string }) {
+  const client = useApolloClient()
+  const [verify] = useMutation(VerifyEmailDocument)
+  const [problem, setProblem] = useState<string | null>(null)
+  const [done, setDone] = useState(false)
+  useEffect(() => {
+    let cancel = false
+    void (async () => {
+      try {
+        const { data } = await verify({ variables: { token } })
+        const payload = data?.verifyEmail
+        if (!payload?.ok) {
+          if (!cancel) setProblem(payload?.userErrors[0]?.message ?? copy.errors.generic)
+          return
+        }
+        await refreshViewer(client)
+        if (!cancel) setDone(true)
+      } catch {
+        if (!cancel) setProblem(copy.errors.generic)
+      }
+    })()
+    return () => {
+      cancel = true
+    }
+  }, [client, token, verify])
+  return (
+    <AuthScreen title="Confirm your email">
+      {done ? <Notice tone="success">Your email is confirmed.</Notice> : problem ? <Notice>{problem}</Notice> : <ActivityIndicator accessibilityLabel="Loading" />}
+      {done || problem ? (
+        <Button size="lg" onPress={close}>
+          <Text>Continue</Text>
+        </Button>
+      ) : null}
+    </AuthScreen>
+  )
+}
+
+function CollegeCode() {
   const t = copy.verify
   const client = useApolloClient()
   const { data } = useQuery(ViewerDocument)

@@ -43,6 +43,11 @@ query Viewer {
   }
 }
 
+# Actions this account cannot take until it is verified (contracts 0.74.0). Empty for a verified account and for PLATFORM_ADMIN.
+query UnverifiedGatedActions {
+  unverifiedGatedActions
+}
+
 query SignInOptions {
   signInOptions {
     emailPassword
@@ -122,6 +127,32 @@ mutation VerifyInstitutionalEmail($code: String!) {
 mutation ResendInstitutionalEmailCode {
   resendInstitutionalEmailCode {
     ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+# Sign-in email link again. No arguments. Three an hour, then RATE_LIMITED with retryAfter (contracts 0.74.0).
+mutation ResendVerification {
+  resendVerification {
+    ok
+    userErrors {
+      field
+      message
+      code
+      retryAfter
+    }
+  }
+}
+
+# The token from the sign-in verification email. The returned user is the account after the link is accepted.
+mutation VerifyEmail($token: String!) {
+  verifyEmail(input: { token: $token }) {
+    ok
+    user {
+      ...ViewerFields
+    }
     userErrors {
       ...Problems
     }

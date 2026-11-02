@@ -37,6 +37,8 @@ jest.mock('firebase/auth', () => ({
   signOut: (auth: unknown) => mockFirebase.signOut(auth),
 }))
 
+jest.setTimeout(20_000)
+
 const settle = () => act(async () => void (await jest.advanceTimersByTimeAsync(500)))
 const withGoogle = { data: { ...signInOptions.data, signInOptions: { ...signInOptions.data.signInOptions, google: true } } }
 

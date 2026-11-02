@@ -81,3 +81,25 @@ it('Settings holds the account: notification settings, sign-out, and the way bac
   await fireEvent.press(screen.getByRole('button', { name: 'Back' }))
   expect(router.back).toHaveBeenCalled()
 })
+
+it('offers verification review to a platform admin and a verified teacher, and not to a manager', async () => {
+  const handlers = {
+    MyStanding: () => standing,
+    ProfileTab: () => ({ data: { viewer: { __typename: 'User', id: viewer().id, followerCount: 12, followingCount: 3, profile: { __typename: 'StudentProfile', department: 'CSE', yearOfStudy: 'YEAR_3', showOnProfile: true } } } }),
+    MyDataExports: () => ({ data: { myDataExports: [] } }),
+    MyVerificationRequests: () => ({ data: { myVerificationRequests: [] } }),
+  }
+  mockApi({ ...handlers, Viewer: () => ({ data: { viewer: viewer({ globalRole: 'MANAGER', verified: true }) } }) })
+  await inApp(<ProfileTab />)
+  expect(await screen.findByText('Asha Rao')).toBeOnTheScreen()
+  expect(screen.queryByRole('link', { name: 'Verification to review' })).toBeNull()
+
+  mockApi({ ...handlers, Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN', verified: false, emailVerified: false }) } }) })
+  await inApp(<ProfileTab />)
+  expect(await screen.findByRole('link', { name: 'Verification to review' })).toBeOnTheScreen()
+  expect(screen.queryByText('Get verified')).toBeNull()
+
+  mockApi({ ...handlers, Viewer: () => ({ data: { viewer: viewer({ globalRole: 'TEACHER', verified: true }) } }) })
+  await inApp(<ProfileTab />)
+  expect(await screen.findByRole('link', { name: 'Verification to review' })).toBeOnTheScreen()
+})

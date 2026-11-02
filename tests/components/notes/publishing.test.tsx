@@ -190,6 +190,7 @@ it('explains publish, and who can read a note, only when this account is unverif
     PhoneNoteMeta: () => ({ data: { note: meta({ viewerCan: blocked }) } }),
     NoteShares: () => ({ data: { note: { __typename: 'Note', id: NOTE, visibility: 'PRIVATE', sharedWithConnections: false, shares: [] }, viewer: { __typename: 'User', id: ME, globalRole: 'STUDENT' } } }),
     Viewer: () => ({ data: { viewer: viewer({ verified: false }) } }),
+    UnverifiedGatedActions: () => ({ data: { unverifiedGatedActions: ['PUBLISH_NOTE', 'CHANGE_NOTE_VISIBILITY', 'SHARE_NOTE'] } }),
   })
   await inApollo(<NoteScreen id={NOTE} />)
   expect(await screen.findByText('Verify your account to publish notes.')).toBeOnTheScreen()
@@ -198,6 +199,7 @@ it('explains publish, and who can read a note, only when this account is unverif
     PhoneNoteMeta: () => ({ data: { note: meta({ viewerCan: blocked }) } }),
     NoteShares: () => ({ data: { note: { __typename: 'Note', id: NOTE, visibility: 'PRIVATE', sharedWithConnections: false, shares: [] }, viewer: { __typename: 'User', id: ME, globalRole: 'STUDENT' } } }),
     Viewer: () => ({ data: { viewer: viewer({ verified: false }) } }),
+    UnverifiedGatedActions: () => ({ data: { unverifiedGatedActions: ['PUBLISH_NOTE', 'CHANGE_NOTE_VISIBILITY', 'SHARE_NOTE'] } }),
   })
   await inApollo(<ShareScreen id={NOTE} />)
   expect(await screen.findByText('This account is not verified yet, so choosing who can read it and sharing it with someone waits. You can keep writing the note.')).toBeOnTheScreen()

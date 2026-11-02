@@ -7,5 +7,5 @@ import { ViewerDocument, type ViewerQuery } from '@/graphql/generated/graphql'
  */
 export async function refreshViewer(client: ApolloClient): Promise<ViewerQuery['viewer']> {
   const { data } = await client.query({ query: ViewerDocument, fetchPolicy: 'network-only' })
-  return data.viewer
+  return data?.viewer ?? null
 }
