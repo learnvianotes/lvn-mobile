@@ -57,9 +57,20 @@ it('says the email is still unconfirmed, and names the wait when resend is rate 
   expect(await screen.findByText('Too many links. You can try again in 2 minutes.')).toBeOnTheScreen()
 })
 
-it('never asks a platform admin to verify', async () => {
-  const api = mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN', emailVerified: false, verified: false }) } }) })
+it('never asks a platform admin to verify when viewerNeedsVerification is absent', async () => {
+  const api = mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN', emailVerified: false, verified: false, viewerNeedsVerification: null }) } }) })
   await inApp(<VerifyEmailBanner />)
   await waitFor(() => expect(api.ops()).toContain('Viewer'))
   expect(screen.queryByText(copy.verifyEmail.lead)).toBeNull()
+})
+
+it('hides the banner when viewerNeedsVerification is false, and shows it when that field is true', async () => {
+  const hidden = mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'STUDENT', emailVerified: false, viewerNeedsVerification: false }) } }) })
+  await inApp(<VerifyEmailBanner />)
+  await waitFor(() => expect(hidden.ops()).toContain('Viewer'))
+  expect(screen.queryByText(copy.verifyEmail.lead)).toBeNull()
+
+  mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN', emailVerified: false, viewerNeedsVerification: true }) } }) })
+  await inApp(<VerifyEmailBanner />)
+  expect(await screen.findByText(copy.verifyEmail.lead)).toBeOnTheScreen()
 })

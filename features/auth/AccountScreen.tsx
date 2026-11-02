@@ -99,7 +99,7 @@ function Account({ viewer }: { viewer: ViewerFieldsFragment }) {
             {viewer.verified && viewer.verificationMethod ? <Text className="text-muted-foreground text-sm font-normal"> {t.verifiedBy[viewer.verificationMethod]}</Text> : null}
           </Text>
         </View>
-        {viewer.globalRole === 'PLATFORM_ADMIN' ? null : <VerifyAccountNote />}
+        <VerifyAccountNote />
         <VerifyEmailBanner />
         {viewer.restrictedMinor ? <Notice tone="info">{t.minor}</Notice> : null}
       </View>

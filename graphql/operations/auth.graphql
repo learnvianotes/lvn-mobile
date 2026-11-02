@@ -9,6 +9,7 @@ fragment ViewerFields on User {
   emailVerified
   registrationComplete
   verified
+  viewerNeedsVerification
   verificationMethod
   globalRole
   teacherStatus
@@ -43,9 +44,14 @@ query Viewer {
   }
 }
 
-# Actions this account cannot take until it is verified (contracts 0.74.0). Empty for a verified account and for PLATFORM_ADMIN.
+# Lowercase dotted names this account cannot take until it is verified. Empty for a verified account and for PLATFORM_ADMIN.
 query UnverifiedGatedActions {
   unverifiedGatedActions
+}
+
+# Whether Public requires a verified account (setting public_notes_require_verification).
+query PublicNotesRequireVerification {
+  publicNotesRequireVerification
 }
 
 query SignInOptions {

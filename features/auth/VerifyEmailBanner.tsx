@@ -6,6 +6,7 @@ import { Text } from '@/components/ui/text'
 import { ResendVerificationDocument, ViewerDocument } from '@/graphql/generated/graphql'
 import { refreshViewer } from '@/lib/auth/viewer'
 import { copy } from './copy'
+import { needsVerifyPrompt } from './gates'
 
 type RateLimit = { message: string; code?: string | null; retryAfter?: number | null }
 
@@ -24,7 +25,8 @@ function resendError(err: RateLimit | undefined, fallback: string): string {
 
 /**
  * After login, when the sign-in email is still unconfirmed: resend the link, or reload the account
- * after the link was opened. Notes and study stay available. A platform admin never sees this.
+ * after the link was opened. Notes and study stay available. Hidden when `viewerNeedsVerification` is false,
+ * and for a platform admin when that field is absent.
  * Stacks the actions on a narrow phone and keeps them on one row on a large one.
  */
 export function VerifyEmailBanner() {
@@ -37,7 +39,7 @@ export function VerifyEmailBanner() {
   const [busy, setBusy] = useState<'resend' | 'check' | null>(null)
   const { width } = useWindowDimensions()
   const narrow = stackVerifyActions(width)
-  const unverified = !!viewer && viewer.globalRole !== 'PLATFORM_ADMIN' && !viewer.emailVerified
+  const unverified = !!viewer && !viewer.emailVerified && needsVerifyPrompt(viewer)
 
   useEffect(() => {
     if (!unverified) return

@@ -184,13 +184,14 @@ it('sharing: who can read it, people with what they can do, copies, and the link
   expect(await screen.findByText('Not shared with anyone yet.')).toBeOnTheScreen()
 })
 
-it('explains publish, and who can read a note, only when this account is unverified and the API refuses them', async () => {
+it('explains publish and sharing from the dotted names, and not a visibility change', async () => {
   const blocked = { __typename: 'NoteActions', edit: true, publish: false, changeVisibility: false, delete: true, share: false, fork: false }
   mockApi({
     PhoneNoteMeta: () => ({ data: { note: meta({ viewerCan: blocked }) } }),
     NoteShares: () => ({ data: { note: { __typename: 'Note', id: NOTE, visibility: 'PRIVATE', sharedWithConnections: false, shares: [] }, viewer: { __typename: 'User', id: ME, globalRole: 'STUDENT' } } }),
-    Viewer: () => ({ data: { viewer: viewer({ verified: false }) } }),
-    UnverifiedGatedActions: () => ({ data: { unverifiedGatedActions: ['PUBLISH_NOTE', 'CHANGE_NOTE_VISIBILITY', 'SHARE_NOTE'] } }),
+    Viewer: () => ({ data: { viewer: viewer({ verified: false, viewerNeedsVerification: true }) } }),
+    PublicNotesRequireVerification: () => ({ data: { publicNotesRequireVerification: false } }),
+    UnverifiedGatedActions: () => ({ data: { unverifiedGatedActions: ['note.publish', 'note.share', 'contest.enter'] } }),
   })
   await inApollo(<NoteScreen id={NOTE} />)
   expect(await screen.findByText('Verify your account to publish notes.')).toBeOnTheScreen()
@@ -198,11 +199,41 @@ it('explains publish, and who can read a note, only when this account is unverif
   mockApi({
     PhoneNoteMeta: () => ({ data: { note: meta({ viewerCan: blocked }) } }),
     NoteShares: () => ({ data: { note: { __typename: 'Note', id: NOTE, visibility: 'PRIVATE', sharedWithConnections: false, shares: [] }, viewer: { __typename: 'User', id: ME, globalRole: 'STUDENT' } } }),
-    Viewer: () => ({ data: { viewer: viewer({ verified: false }) } }),
-    UnverifiedGatedActions: () => ({ data: { unverifiedGatedActions: ['PUBLISH_NOTE', 'CHANGE_NOTE_VISIBILITY', 'SHARE_NOTE'] } }),
+    Viewer: () => ({ data: { viewer: viewer({ verified: false, viewerNeedsVerification: true }) } }),
+    PublicNotesRequireVerification: () => ({ data: { publicNotesRequireVerification: false } }),
+    UnverifiedGatedActions: () => ({ data: { unverifiedGatedActions: ['note.publish', 'note.share', 'contest.enter'] } }),
   })
   await inApollo(<ShareScreen id={NOTE} />)
-  expect(await screen.findByText('This account is not verified yet, so choosing who can read it and sharing it with someone waits. You can keep writing the note.')).toBeOnTheScreen()
+  expect(await screen.findByText('This account is not verified yet, so sharing it with someone waits. You can keep writing the note.')).toBeOnTheScreen()
+  expect(screen.queryByText(/choosing who can read it|making it public/)).toBeNull()
+})
+
+it('holds Public when publicNotesRequireVerification is on, and hides prompts when the viewer does not need verification', async () => {
+  const api = mockApi({
+    PhoneNoteMeta: () => ({ data: { note: meta({ publishedVersion: version(1) }) } }),
+    NoteShares: () => ({ data: { note: { __typename: 'Note', id: NOTE, visibility: 'PRIVATE', sharedWithConnections: false, shares: [] }, viewer: { __typename: 'User', id: ME, globalRole: 'STUDENT' } } }),
+    Viewer: () => ({ data: { viewer: viewer({ verified: false, viewerNeedsVerification: true }) } }),
+    PublicNotesRequireVerification: () => ({ data: { publicNotesRequireVerification: true } }),
+    UnverifiedGatedActions: () => ({ data: { unverifiedGatedActions: ['note.publish'] } }),
+  })
+  await inApollo(<ShareScreen id={NOTE} />)
+  expect(await screen.findByText('This account is not verified yet, so making it public waits. You can keep writing the note.')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('radio', { name: 'Public' }))
+  expect(api.ops()).not.toContain('ChangeNoteVisibility')
+  await fireEvent.press(screen.getByRole('radio', { name: 'Shared' }))
+  expect(api.calls.find((c) => c.op === 'ChangeNoteVisibility')?.variables).toEqual({ noteId: NOTE, visibility: 'SHARED' })
+})
+
+it('skips verify prompts and the gated-actions query when viewerNeedsVerification is false', async () => {
+  const api = mockApi({
+    PhoneNoteMeta: () => ({ data: { note: meta({ viewerCan: { __typename: 'NoteActions', edit: true, publish: false, changeVisibility: true, delete: true, share: true, fork: false } }) } }),
+    Viewer: () => ({ data: { viewer: viewer({ verified: false, viewerNeedsVerification: false, globalRole: 'STUDENT' }) } }),
+    UnverifiedGatedActions: () => ({ data: { unverifiedGatedActions: ['note.publish', 'note.share'] } }),
+  })
+  await inApollo(<NoteScreen id={NOTE} />)
+  expect(await screen.findByLabelText('Status: Note · Private · Draft, not published')).toBeOnTheScreen()
+  expect(screen.queryByText('Verify your account to publish notes.')).toBeNull()
+  expect(api.ops()).not.toContain('UnverifiedGatedActions')
 })
 
 it('a note never published cannot go public yet', async () => {

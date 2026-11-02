@@ -94,9 +94,14 @@ it('offers verification review to a platform admin and a verified teacher, and n
   expect(await screen.findByText('Asha Rao')).toBeOnTheScreen()
   expect(screen.queryByRole('link', { name: 'Verification to review' })).toBeNull()
 
-  mockApi({ ...handlers, Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN', verified: false, emailVerified: false }) } }) })
+  mockApi({ ...handlers, Viewer: () => ({ data: { viewer: viewer({ globalRole: 'PLATFORM_ADMIN', verified: false, emailVerified: false, viewerNeedsVerification: null }) } }) })
   await inApp(<ProfileTab />)
   expect(await screen.findByRole('link', { name: 'Verification to review' })).toBeOnTheScreen()
+  expect(screen.queryByText('Get verified')).toBeNull()
+
+  mockApi({ ...handlers, Viewer: () => ({ data: { viewer: viewer({ globalRole: 'STUDENT', verified: false, viewerNeedsVerification: false }) } }), MyVerificationRequests: () => ({ data: { myVerificationRequests: [] } }) })
+  await inApp(<ProfileTab />)
+  expect(await screen.findByText('Asha Rao')).toBeOnTheScreen()
   expect(screen.queryByText('Get verified')).toBeNull()
 
   mockApi({ ...handlers, Viewer: () => ({ data: { viewer: viewer({ globalRole: 'TEACHER', verified: true }) } }) })

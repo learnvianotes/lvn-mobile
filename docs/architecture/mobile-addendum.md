@@ -119,16 +119,19 @@ screen navigates after sign-in or sign-out itself.
   The API's `userErrors` land on their fields; anything else shows above the form. An invite-only refusal is one
   sentence, and it clears when the email changes. A password reset always shows the same sentence, including when the
   API names an unknown address.
-- **Email after sign-in.** `VerifyEmailBanner` (Home, Profile, Settings) shows while `emailVerified` is false, and never
-  for a platform admin. Resend calls `resendVerification` (no arguments, `OkPayload`; three an hour, then
-  `RATE_LIMITED` with `retryAfter`). A link that opens the app as `/verify?token=` calls `verifyEmail`, which returns
-  the account, and then `refreshViewer` (`Viewer` with `network-only`). "I've verified", returning to the app, and a
-  successful college-code check do that reload too. What an unverified account cannot do comes from
-  `unverifiedGatedActions`, not from a fixed client list. Verification review is for platform admins and verified
-  teachers.
-- **What an unverified account can do.** Explanations follow `unverifiedGatedActions` together with the note's
-  `viewerCan` flags. Notes, study, classes, comments, follows and new groups stay on screen; a refusal is the API's own
-  message. Platform admins never see a verify prompt.
+- **Email after sign-in.** `VerifyEmailBanner` (Home, Profile, Settings) shows while `emailVerified` is false.
+  `viewer.viewerNeedsVerification` hides it when false (platform admins). When that field is null, a platform admin
+  is still hidden and everyone else still sees it. Resend calls `resendVerification` (no arguments, `OkPayload`; three
+  an hour, then `RATE_LIMITED` with `retryAfter`). A link that opens the app as `/verify?token=` calls `verifyEmail`,
+  which returns the account, and then `refreshViewer` (`Viewer` with `network-only`). "I've verified", returning to the
+  app, and a successful college-code check do that reload too. What an unverified account cannot do comes from
+  `unverifiedGatedActions` (`note.publish`, `note.share`, `contest.enter`, `payout.request`, `ai.bulk`,
+  `resource.submit`). Verification review is for platform admins and verified teachers.
+- **What an unverified account can do.** Explanations follow those dotted names together with the note's `viewerCan`
+  flags. Changing who can read a note is not gated. Public follows `publicNotesRequireVerification`
+  (`public_notes_require_verification`): when that setting is on, making a note public waits until the account is
+  verified, and Private and Shared stay available. Notes, study, classes, comments, follows and new groups stay on
+  screen; a refusal is the API's own message.
 
 Tests live in `tests/`, never in `app/`: Expo Router turns every file in `app/` into a route, so a test there
 would be bundled into the app. `tests/unit` covers `lib/`, `tests/components` every exported component with props

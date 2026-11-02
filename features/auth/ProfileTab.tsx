@@ -14,6 +14,7 @@ import { ReviewRequests, VerifyCard } from '@/features/verification/Verification
 import { MyAchievementsDocument, ProfileTabDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { YEARS } from './AccountDetails'
 import { copy } from './copy'
+import { needsVerifyPrompt } from './gates'
 import { Notice } from './Notice'
 import { VerifyEmailBanner } from './VerifyEmailBanner'
 
@@ -60,7 +61,7 @@ export function ProfileTab() {
         <VerifyEmailBanner />
         {viewer ? <Header viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
-        {viewer && !viewer.verified && viewer.globalRole !== 'PLATFORM_ADMIN' ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
+        {viewer && !viewer.verified && needsVerifyPrompt(viewer) ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
         {viewer?.globalRole === 'TEACHER' && viewer.verified ? <ReviewRequests /> : null}
         {viewer ? <Achievements /> : null}
         {viewer ? <Links viewer={viewer} /> : null}

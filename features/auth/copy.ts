@@ -104,7 +104,7 @@ export const copy = {
     verified: 'Verified',
     notVerified: 'Not verified yet',
     verifiedBy: { INSTITUTIONAL_EMAIL: 'by your college email', TEACHER: 'by a teacher', DOCUMENTS: 'by our team' } as Record<string, string>,
-    verifyLead: 'You can keep notes, study and use your classes. Publishing a note, and choosing who can read it, waits until this account is verified.',
+    verifyLead: 'You can keep notes, study and use your classes. Some features wait until this account is verified.',
     emailUnverified: 'Confirm your sign-in email. Open the link we send, then come back.',
     minor: 'Some features stay off until a parent, guardian or your school confirms your account.',
     institution: 'College or organisation email',

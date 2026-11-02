@@ -2587,7 +2587,9 @@ type Mutation {
   cancelAccountDeletion: AccountDeletionPayload!
 
   """
-  PRIVATE, SHARED or PUBLIC (owner, verified account); PUBLIC needs a published version
+  PRIVATE, SHARED or PUBLIC (owner). PUBLIC needs a published version. Whether PUBLIC also needs a verified account
+  follows publicNotesRequireVerification (setting public_notes_require_verification). Changing visibility is not an
+  unverifiedGatedActions name.
   """
   changeNoteVisibility(input: ChangeNoteVisibilityInput!): NotePayload!
 
@@ -2750,7 +2752,7 @@ type Mutation {
   publishContest(input: ContestIdInput!): AdminContestPayload!
 
   """
-  Snapshot the draft as the version readers see (owner; a verified account)
+  Snapshot the draft as the version readers see (owner). An unverified account is refused when note.publish is gated.
   """
   publishNote(input: NoteIdInput!): NotePayload!
 
@@ -4027,8 +4029,14 @@ type Query {
   unreadNotificationCount: Int!
 
   """
-  Signed in. Names of actions this account cannot take until it is verified (contracts 0.74.0). Empty for a verified
-  account and for PLATFORM_ADMIN. Known names include PUBLISH_NOTE, CHANGE_NOTE_VISIBILITY, SHARE_NOTE and SUBMIT_RESOURCE.
+  Whether a note can be public only after the account is verified (setting public_notes_require_verification).
+  """
+  publicNotesRequireVerification: Boolean!
+
+  """
+  Signed in. Lowercase dotted names of actions this account cannot take until it is verified. Empty for a verified
+  account and for PLATFORM_ADMIN. The default list is note.publish, note.share, contest.enter, payout.request,
+  ai.bulk and resource.submit. Changing visibility is not one of them.
   """
   unverifiedGatedActions: [String!]!
 
@@ -5629,6 +5637,12 @@ type User {
   Verified by institutional email, a teacher, or platform admins (ADR-0019)
   """
   verified: Boolean!
+
+  """
+  Viewer only (contracts 0.75.0). False for a platform admin, so clients hide verify prompts. Null on anyone else's
+  user. When this is null, clients fall back to hiding those prompts for PLATFORM_ADMIN.
+  """
+  viewerNeedsVerification: Boolean
 }
 
 """
