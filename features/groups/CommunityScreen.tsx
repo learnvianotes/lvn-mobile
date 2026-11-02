@@ -18,7 +18,7 @@ const SECTIONS: Record<Section, string> = { forYou: 'For You', trending: 'Trendi
 /**
  * The Community tab (spec §13.1, lvn-backend ADR-0045, ADR-0046, ADR-0049, ADR-0076): For You and Trending (public
  * notes), the Following feed, the activity of your groups and classes, and your classes (with a class code to enter),
- * your groups and public groups to find. Anyone verified starts a group here; teachers start classes from the classes
+ * your groups and public groups to find. Starting a group is the API's decision; a refusal is its message. Teachers start classes from the classes
  * section.
  */
 export function CommunityScreen() {

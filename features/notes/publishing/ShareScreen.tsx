@@ -5,12 +5,14 @@ import { Pressable, ScrollView, Share, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { GATED, shareGateCopy, useGatedActions } from '@/features/auth/gates'
 import { attempt } from '@/features/groups/shared'
 import { Choices, Field, Outcome, Pill, ScreenHeader, Toggle } from '@/features/shell/Form'
 import {
   ChangeNoteVisibilityDocument,
   NoteSharesDocument,
   PhoneNoteMetaDocument,
+  PublicNotesRequireVerificationDocument,
   SetNoteForkingDocument,
   SetNoteSharedWithConnectionsDocument,
   ShareNoteDocument,
@@ -35,6 +37,9 @@ export function ShareScreen({ id }: { id: string }) {
   const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
   const meta = useQuery(PhoneNoteMetaDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const shares = useQuery(NoteSharesDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
+  const { needsPrompt } = useGatedActions()
+  const publicRule = useQuery(PublicNotesRequireVerificationDocument, { skip: !needsPrompt, fetchPolicy: 'cache-and-network' })
+  const publicNeedsVerification = needsPrompt && publicRule.data?.publicNotesRequireVerification === true
   const [changeVisibility] = useMutation(ChangeNoteVisibilityDocument)
   const [share, sharing] = useMutation(ShareNoteDocument)
   const [unshare] = useMutation(UnshareNoteDocument)
@@ -70,11 +75,16 @@ export function ShareScreen({ id }: { id: string }) {
             if (!m.viewerCan.changeVisibility || v === m.visibility) return
             if (v === 'PUBLIC' && !m.publishedVersion) return setMessage({ ok: false, text: 'Publish the note first: readers see the published version.' })
             if (v === 'PUBLIC' && offPublic) return setMessage({ ok: false, text: 'Moderators took this note off the public pages. You can appeal from the note.' })
+            if (v === 'PUBLIC' && publicNeedsVerification) return setMessage({ ok: false, text: shareGateCopy({ publicWaits: true, shareWaits: false }) ?? '' })
             void run(() => changeVisibility({ variables: { noteId: id, visibility: v } }))
           }}
-          options={(['PRIVATE', 'SHARED', 'PUBLIC'] as const).map((v) => ({ value: v, label: v === 'PRIVATE' ? 'Private' : v === 'SHARED' ? 'Shared' : 'Public', hint: v === 'PUBLIC' && !m.publishedVersion ? 'Publish the note first: readers see the published version.' : HINT[v] }))}
+          options={(['PRIVATE', 'SHARED', 'PUBLIC'] as const).map((v) => ({
+            value: v,
+            label: v === 'PRIVATE' ? 'Private' : v === 'SHARED' ? 'Shared' : 'Public',
+            hint: v === 'PUBLIC' && publicNeedsVerification ? 'Public waits until this account is verified.' : v === 'PUBLIC' && !m.publishedVersion ? 'Publish the note first: readers see the published version.' : HINT[v],
+          }))}
         />
-        {!m.viewerCan.changeVisibility ? <Text className="text-muted-foreground text-xs">Verify your account to share notes.</Text> : null}
+        <ShareGate canShare={m.viewerCan.share} publicWaits={publicNeedsVerification} />
 
         <View className="gap-3">
           <Text className="text-sm font-semibold" accessibilityRole="header">
@@ -141,4 +151,15 @@ export function ShareScreen({ id }: { id: string }) {
       </ScrollView>
     </View>
   )
+}
+
+/**
+ * Sharing a note is explained only when `note.share` is gated and this note cannot be shared.
+ * Public is explained from `publicNotesRequireVerification`, not from a visibility action. The form stays on screen.
+ */
+function ShareGate({ canShare, publicWaits }: { canShare: boolean; publicWaits: boolean }) {
+  const { gated } = useGatedActions()
+  const text = shareGateCopy({ publicWaits, shareWaits: !canShare && gated(GATED.share) })
+  if (!text) return null
+  return <Text className="text-muted-foreground text-sm">{text}</Text>
 }

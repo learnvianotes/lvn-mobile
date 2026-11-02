@@ -14,7 +14,9 @@ import { ReviewRequests, VerifyCard } from '@/features/verification/Verification
 import { MyAchievementsDocument, ProfileTabDocument, ViewerDocument, type ViewerFieldsFragment } from '@/graphql/generated/graphql'
 import { YEARS } from './AccountDetails'
 import { copy } from './copy'
+import { needsVerifyPrompt } from './gates'
 import { Notice } from './Notice'
+import { VerifyEmailBanner } from './VerifyEmailBanner'
 
 type Row = { label: string; icon: LucideIcon; href: Href; show?: (v: ViewerFieldsFragment) => boolean }
 
@@ -56,9 +58,10 @@ export function ProfileTab() {
         </View>
         <AppearanceCard />
         {viewer ? <AccountStanding userId={viewer.id} /> : null}
+        <VerifyEmailBanner />
         {viewer ? <Header viewer={viewer} /> : loading ? <ActivityIndicator accessibilityLabel="Loading" /> : <Notice>{copy.errors.generic}</Notice>}
         {/* Without a college email (ADR-0019): a teacher vouches, or our team checks proof of study. */}
-        {viewer && !viewer.verified ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
+        {viewer && !viewer.verified && needsVerifyPrompt(viewer) ? <VerifyCard restrictedMinor={!!viewer.restrictedMinor} /> : null}
         {viewer?.globalRole === 'TEACHER' && viewer.verified ? <ReviewRequests /> : null}
         {viewer ? <Achievements /> : null}
         {viewer ? <Links viewer={viewer} /> : null}
@@ -143,7 +146,7 @@ function Links({ viewer }: { viewer: ViewerFieldsFragment }) {
       show: (v) => v.globalRole === 'STUDENT' && !v.restrictedMinor,
     },
     { label: 'Your Skills tab', icon: Sparkles, href: '/skills', show: (v) => v.globalRole === 'TEACHER' || v.teacherStatus === 'PENDING' },
-    { label: 'Verification to review', icon: ShieldCheck, href: '/admin/verification', show: (v) => v.globalRole === 'PLATFORM_ADMIN' || v.globalRole === 'MANAGER' || v.globalRole === 'TEACHER' },
+    { label: 'Verification to review', icon: ShieldCheck, href: '/admin/verification', show: (v) => v.globalRole === 'PLATFORM_ADMIN' || (v.globalRole === 'TEACHER' && v.verified) },
     { label: 'Moderation queue', icon: ShieldCheck, href: '/admin/moderation', show: (v) => v.globalRole === 'PLATFORM_ADMIN' },
   ]
   return (

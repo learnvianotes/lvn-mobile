@@ -505,20 +505,27 @@ function AiCheck({ check, profileName, profileInstitution }: { check: Request['a
   )
 }
 
-const STAFF = new Set(['PLATFORM_ADMIN', 'MANAGER', 'TEACHER'])
 type Queued = StudentIdVerificationQueueQuery['studentIdVerificationQueue'][number]
 
+/** Platform admins, and teachers whose own account is verified. Managers no longer review. */
+export function canReviewVerification(viewer: { globalRole: string; verified: boolean } | null | undefined): boolean {
+  if (!viewer) return false
+  if (viewer.globalRole === 'PLATFORM_ADMIN') return true
+  return viewer.globalRole === 'TEACHER' && viewer.verified
+}
+
+const REVIEWERS = 'This is for platform admins and verified teachers.'
+
 /**
- * College ID cards waiting for a decision. Platform admins, managers and teachers; the API hides cards outside their scope.
+ * College ID cards waiting for a decision. Platform admins and verified teachers; the API hides cards outside their scope.
  */
 export function StudentIdQueue() {
   const viewer = useQuery(ViewerDocument, { fetchPolicy: 'cache-and-network' })
-  const role = viewer.data?.viewer?.globalRole
-  const allowed = !!role && STAFF.has(role)
+  const allowed = canReviewVerification(viewer.data?.viewer)
   const queue = useQuery(StudentIdVerificationQueueDocument, { skip: !allowed, variables: { first: 30 }, fetchPolicy: 'cache-and-network' })
   if (!viewer.data?.viewer) return null
-  if (!allowed) return <Text className="text-muted-foreground py-8 text-center">This is for platform admins, managers and teachers.</Text>
-  if (CombinedGraphQLErrors.is(queue.error) && queue.error.errors.some((e) => e.extensions?.code === 'FORBIDDEN')) return <Text className="text-muted-foreground py-8 text-center">This is for platform admins, managers and teachers.</Text>
+  if (!allowed) return <Text className="text-muted-foreground py-8 text-center">{REVIEWERS}</Text>
+  if (CombinedGraphQLErrors.is(queue.error) && queue.error.errors.some((e) => e.extensions?.code === 'FORBIDDEN')) return <Text className="text-muted-foreground py-8 text-center">{REVIEWERS}</Text>
   const items = queue.data?.studentIdVerificationQueue ?? []
   return (
     <View className="gap-3">

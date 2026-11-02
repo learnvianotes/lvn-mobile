@@ -2587,7 +2587,9 @@ type Mutation {
   cancelAccountDeletion: AccountDeletionPayload!
 
   """
-  PRIVATE, SHARED or PUBLIC (owner, verified account); PUBLIC needs a published version
+  PRIVATE, SHARED or PUBLIC (owner). PUBLIC needs a published version. Whether PUBLIC also needs a verified account
+  follows publicNotesRequireVerification (setting public_notes_require_verification). Changing visibility is not an
+  unverifiedGatedActions name.
   """
   changeNoteVisibility(input: ChangeNoteVisibilityInput!): NotePayload!
 
@@ -2750,7 +2752,7 @@ type Mutation {
   publishContest(input: ContestIdInput!): AdminContestPayload!
 
   """
-  Snapshot the draft as the version readers see (owner; a verified account)
+  Snapshot the draft as the version readers see (owner). An unverified account is refused when note.publish is gated.
   """
   publishNote(input: NoteIdInput!): NotePayload!
 
@@ -2817,6 +2819,11 @@ type Mutation {
   """Every other group: the admins accept or reject"""
   requestToJoinGroup(input: RequestToJoinGroupInput!): GroupPayload!
   resendInstitutionalEmailCode: OkPayload!
+
+  """
+  Sends the sign-in verification link again. Signed in, no arguments. Three an hour, then RATE_LIMITED with retryAfter (contracts 0.74.0).
+  """
+  resendVerification: OkPayload!
 
   """The card starts again as new"""
   resetCardReview(input: CardIdInput!): OkPayload!
@@ -3023,7 +3030,11 @@ type Mutation {
   """Replaces the items written by hand; imported items stay"""
   updateTeacherProfile(input: UpdateTeacherProfileInput!): TeacherProfilePayload!
   updateWeeklyTask(input: UpdateWeeklyTaskInput!): WeeklyTaskPayload!
-  verifyEmail(input: VerifyEmailInput!): OkPayload!
+
+  """
+  Accepts the token from the sign-in verification email and returns the account when the link worked (contracts 0.74.0).
+  """
+  verifyEmail(input: VerifyEmailInput!): VerifyEmailPayload!
   verifyInstitutionalEmail(input: VerifyInstitutionalEmailInput!): OkPayload!
   withdrawClassroomJoinRequest(input: JoinRequestIdInput!): ClassroomPayload!
 
@@ -4016,6 +4027,18 @@ type Query {
   """
   trendingFeed(after: String, first: Int): CommunityConnection!
   unreadNotificationCount: Int!
+
+  """
+  Whether a note can be public only after the account is verified (setting public_notes_require_verification).
+  """
+  publicNotesRequireVerification: Boolean!
+
+  """
+  Signed in. Lowercase dotted names of actions this account cannot take until it is verified. Empty for a verified
+  account and for PLATFORM_ADMIN. The default list is note.publish, note.share, contest.enter, payout.request,
+  ai.bulk and resource.submit. Changing visibility is not one of them.
+  """
+  unverifiedGatedActions: [String!]!
 
   """
   ADR-0097: whether people may upload files here. Off, clients hide every upload control and createUploadIntent answers UNAVAILABLE.
@@ -5614,6 +5637,12 @@ type User {
   Verified by institutional email, a teacher, or platform admins (ADR-0019)
   """
   verified: Boolean!
+
+  """
+  Viewer only (contracts 0.75.0). False for a platform admin, so clients hide verify prompts. Null on anyone else's
+  user. When this is null, clients fall back to hiding those prompts for PLATFORM_ADMIN.
+  """
+  viewerNeedsVerification: Boolean
 }
 
 """
@@ -5623,6 +5652,9 @@ type UserError {
   code: ErrorCode!
   field: [String!]
   message: String!
+
+  """Seconds until the action is allowed again. Set when code is RATE_LIMITED."""
+  retryAfter: Int
 }
 
 type VerificationDocument {
@@ -5688,6 +5720,15 @@ enum VerificationRequestStatus {
   PENDING
   REJECTED
   WITHDRAWN
+}
+
+"""The signed-in account after the email link is accepted."""
+type VerifyEmailPayload {
+  ok: Boolean!
+
+  """The account when the link worked, so the client can refresh verification."""
+  user: User
+  userErrors: [UserError!]!
 }
 
 input VerifyEmailInput {

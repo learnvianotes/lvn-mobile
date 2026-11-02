@@ -9,6 +9,7 @@ fragment ViewerFields on User {
   emailVerified
   registrationComplete
   verified
+  viewerNeedsVerification
   verificationMethod
   globalRole
   teacherStatus
@@ -41,6 +42,16 @@ query Viewer {
   viewer {
     ...ViewerFields
   }
+}
+
+# Lowercase dotted names this account cannot take until it is verified. Empty for a verified account and for PLATFORM_ADMIN.
+query UnverifiedGatedActions {
+  unverifiedGatedActions
+}
+
+# Whether Public requires a verified account (setting public_notes_require_verification).
+query PublicNotesRequireVerification {
+  publicNotesRequireVerification
 }
 
 query SignInOptions {
@@ -122,6 +133,32 @@ mutation VerifyInstitutionalEmail($code: String!) {
 mutation ResendInstitutionalEmailCode {
   resendInstitutionalEmailCode {
     ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+# Sign-in email link again. No arguments. Three an hour, then RATE_LIMITED with retryAfter (contracts 0.74.0).
+mutation ResendVerification {
+  resendVerification {
+    ok
+    userErrors {
+      field
+      message
+      code
+      retryAfter
+    }
+  }
+}
+
+# The token from the sign-in verification email. The returned user is the account after the link is accepted.
+mutation VerifyEmail($token: String!) {
+  verifyEmail(input: { token: $token }) {
+    ok
+    user {
+      ...ViewerFields
+    }
     userErrors {
       ...Problems
     }

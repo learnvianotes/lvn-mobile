@@ -133,7 +133,7 @@ it('lets a teacher open a college ID and approve it, and a student cannot see th
   const item = { ...card(), aiCheck: { __typename: 'IdCardCheck', verdict: 'MATCH', confidence: 0.91, reason: 'Name and college agree.', checkedAt: new Date().toISOString(), extracted: { __typename: 'IdCardFields', name: 'Ravi Kumar', institution: 'City College', idNumber: '19', validUntil: null } }, requester: person }
   let waiting = [item]
   const api = mockApi({
-    Viewer: () => ({ data: { viewer: viewer({ globalRole: 'TEACHER' }) } }),
+    Viewer: () => ({ data: { viewer: viewer({ globalRole: 'TEACHER', verified: true }) } }),
     StudentIdVerificationQueue: () => ({ data: { studentIdVerificationQueue: waiting } }),
     StudentIdCardUrl: () => ({ data: { studentIdCardUrl: { __typename: 'SignedUrl', url: 'https://storage.test/card', expiresAt: new Date().toISOString() } } }),
     ReviewStudentIdVerification: () => ((waiting = []), { data: { reviewStudentIdVerification: { __typename: 'StudentIdVerificationPayload', request: { __typename: 'StudentIdVerificationRequest', id: 'c1', status: 'APPROVED' }, ...none } } }),
@@ -153,14 +153,19 @@ it('lets a teacher open a college ID and approve it, and a student cannot see th
 
   mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'STUDENT' }) } }) })
   await inApollo(<StudentIdQueue />)
-  expect(await screen.findByText('This is for platform admins, managers and teachers.')).toBeOnTheScreen()
+  expect(await screen.findByText('This is for platform admins and verified teachers.')).toBeOnTheScreen()
 })
 
-it('a manager sees the college ID queue', async () => {
-  mockApi({
-    Viewer: () => ({ data: { viewer: viewer({ globalRole: 'MANAGER' }) } }),
+it('does not show the college ID queue to a manager or an unverified teacher', async () => {
+  const api = mockApi({
+    Viewer: () => ({ data: { viewer: viewer({ globalRole: 'MANAGER', verified: true }) } }),
     StudentIdVerificationQueue: () => ({ data: { studentIdVerificationQueue: [] } }),
   })
   await inApollo(<StudentIdQueue />)
-  expect(await screen.findByText('No college ID cards waiting.')).toBeOnTheScreen()
+  expect(await screen.findByText('This is for platform admins and verified teachers.')).toBeOnTheScreen()
+  expect(api.ops()).not.toContain('StudentIdVerificationQueue')
+
+  mockApi({ Viewer: () => ({ data: { viewer: viewer({ globalRole: 'TEACHER', verified: false }) } }) })
+  await inApollo(<StudentIdQueue />)
+  expect(await screen.findByText('This is for platform admins and verified teachers.')).toBeOnTheScreen()
 })

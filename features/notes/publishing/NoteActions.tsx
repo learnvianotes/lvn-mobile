@@ -7,6 +7,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { attempt } from '@/features/groups/shared'
 import { ActionSheet, type SheetAction } from '@/features/shell/ActionSheet'
+import { GATED, useGatedActions } from '@/features/auth/gates'
 import { ForkNoteDocument, PhoneNoteMetaDocument, PublishNoteDocument } from '@/graphql/generated/graphql'
 import { useLocal } from '../hooks'
 import type { LocalNote } from '../model/types'
@@ -35,6 +36,7 @@ export function useNoteActions(note: LocalNote, onTrash: () => void) {
     if (wasUnsent.current && !unsent && !note.localOnly && note.access === 'OWNER') void refetch().catch(() => undefined)
     wasUnsent.current = unsent
   }, [unsent, note.localOnly, note.access, refetch])
+  const { gated } = useGatedActions()
   const m = meta.data?.note
   const online = (go: () => void) => () => {
     if (note.localOnly || !m) return Alert.alert('This needs a connection', note.localOnly ? 'The note is still only on this phone. It is sent as soon as you are online.' : 'Connect to the internet and try again.')
@@ -69,7 +71,8 @@ export function useNoteActions(note: LocalNote, onTrash: () => void) {
     button: <MoreButton onPress={() => setOpen(true)} />,
     sheet: <ActionSheet name="note-actions" title={note.title || 'Untitled note'} actions={actions} open={open} onClose={() => setOpen(false)} />,
     status,
-    verifyToPublish: m && !m.viewerCan.publish,
+    // Say so only when this note cannot be published and the API lists publish as waiting on verification.
+    verifyToPublish: !!(m && !m.viewerCan.publish && gated(GATED.publish)),
     publishing: publishing.loading,
     message,
   }

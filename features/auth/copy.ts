@@ -80,6 +80,16 @@ export const copy = {
     addSubmit: 'Send the code',
     later: 'Later',
   },
+  verifyEmail: {
+    lead: 'Confirm your sign-in email. Open the link we send, then come back.',
+    resend: 'Resend link',
+    sending: 'Sending…',
+    sent: 'A new link is on its way.',
+    check: 'I’ve verified',
+    checking: 'Checking…',
+    still: 'That email is not confirmed yet. Open the latest link, then try again.',
+    failed: 'The link could not be sent. Try again in a moment.',
+  },
   reset: {
     title: 'Reset your password',
     lead: 'Enter your email and we will send you a link. Open it on this phone or any computer.',
@@ -94,8 +104,8 @@ export const copy = {
     verified: 'Verified',
     notVerified: 'Not verified yet',
     verifiedBy: { INSTITUTIONAL_EMAIL: 'by your college email', TEACHER: 'by a teacher', DOCUMENTS: 'by our team' } as Record<string, string>,
-    verifyLead: 'Verify your account to share, comment and join groups. Until then LearnViaNotes works for you alone.',
-    emailUnverified: 'Confirm your sign-in email: we sent you a link.',
+    verifyLead: 'You can keep notes, study and use your classes. Some features wait until this account is verified.',
+    emailUnverified: 'Confirm your sign-in email. Open the link we send, then come back.',
     minor: 'Some features stay off until a parent, guardian or your school confirms your account.',
     institution: 'College or organisation email',
     status: {
@@ -111,5 +121,6 @@ export const copy = {
     generic: 'Something went wrong. Check your connection and try again.',
     required: 'Required',
     email: 'Enter a valid email address.',
+    inviteOnly: 'LearnViaNotes is invite-only right now. Sign in with the email on your account. Google joins that account when its email is already verified, and does not open a second one.',
   },
 }

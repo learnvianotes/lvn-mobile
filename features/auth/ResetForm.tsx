@@ -29,7 +29,8 @@ export function ResetForm() {
     if (!z.email().safeParse(value).success) return
     try {
       const { data } = await request({ variables: { email: value } })
-      setState(data?.requestPasswordReset.ok ? 'sent' : (data?.requestPasswordReset.userErrors[0]?.message ?? copy.errors.generic))
+      // Always the same sentence. A refusal that names an unknown address would tell the person whether the account exists.
+      setState(data?.requestPasswordReset ? 'sent' : copy.errors.generic)
     } catch {
       setState(copy.errors.generic)
     }
