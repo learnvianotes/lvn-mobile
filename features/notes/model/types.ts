@@ -19,7 +19,8 @@ export interface LocalNote {
   ownerId: string
   ownerName: string
   access: NoteAccess
-  visibility: 'PRIVATE' | 'SHARED' | 'PUBLIC'
+  /** UNLISTED (anyone with the link, left out of lists and search) is set on the web; the phone shows it */
+  visibility: 'PRIVATE' | 'SHARED' | 'UNLISTED' | 'PUBLIC'
   publishedAt: string | null
   deletedAt: string | null
   /** When the draft last changed, here or on the server (ISO) */

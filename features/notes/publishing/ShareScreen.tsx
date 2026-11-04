@@ -23,7 +23,8 @@ import {
 import { env } from '@/lib/env'
 import { syncSoon } from '../sync/engine'
 
-const HINT: Record<Visibility, string> = { PRIVATE: 'Only you.', SHARED: 'You and the people you add below.', PUBLIC: 'Anyone with the link reads the published version.' }
+// UNLISTED is set on the web and not offered here yet; its hint is there for a note that already has it.
+const HINT: Record<Visibility, string> = { PRIVATE: 'Only you.', SHARED: 'You and the people you add below.', UNLISTED: 'Anyone with the link; left out of lists and search.', PUBLIC: 'Anyone with the link reads the published version.' }
 const ROLE: Record<NoteShareRole, string> = { VIEWER: 'Can view', EDITOR: 'Can edit' }
 
 /**
