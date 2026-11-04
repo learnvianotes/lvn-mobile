@@ -1,11 +1,12 @@
 import * as SecureStore from 'expo-secure-store'
 
 /**
- * Accounts are for adults (lvn-backend ADR-0091). The API decides — the forms never name the cut-off — and this module
- * keeps what the app needs:
+ * Accounts are for adults (lvn-backend ADR-0091). The forms ask for an age in whole years (ADR-0104). The API decides,
+ * and the forms never name the cut-off. This module keeps what the app needs:
+ * - which answers are a refusal: `AGE_RESTRICTED`, and `UNDER_MINIMUM_AGE` from an API older than 2026-10-25;
  * - a refusal is remembered on this device for a day, so going back and answering again doesn't reopen sign-up. It
  *   closes the sign-up forms and nothing else: it never deletes or signs out anyone;
- * - the date of birth in words, for the "Is this right?" step every answer goes through.
+ * - the age in words, for the "Is this right?" step every answer goes through.
  */
 
 const KEY = 'lvn.ageRefused'
@@ -34,12 +35,15 @@ export function subscribeAgeRefusal(listener: () => void): () => void {
   return () => void listeners.delete(listener)
 }
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+/**
+ * Whether the API refused an account for its age. Since lvn-backend's 2026-10-25 change it keeps that account on hold
+ * (`AGE_BLOCKED`) with no session, and the code is `AGE_RESTRICTED`.
+ */
+export function isAgeRefusal(problem: { code: string }): boolean {
+  return problem.code === 'AGE_RESTRICTED' || problem.code === 'UNDER_MINIMUM_AGE'
+}
 
-/** "14 March 2001" from `YYYY-MM-DD` — so a mis-typed day, month or year is easy to see. Empty for anything else. */
-export function birthDateInWords(iso: string | null): string {
-  const m = iso?.match(/^(\d{4})-(\d{2})-(\d{2})$/)
-  if (!m) return ''
-  const [, y, mo, d] = m
-  return `${Number(d)} ${MONTHS[Number(mo) - 1] ?? ''} ${y}`
+/** "17 years old" ("1 year old"), so a mis-typed age is easy to see. */
+export function ageInWords(age: number): string {
+  return age === 1 ? '1 year old' : `${age} years old`
 }

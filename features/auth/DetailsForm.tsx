@@ -7,26 +7,26 @@ import type { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
 import { CompleteRegistrationDocument, SignInOptionsDocument, SignOutDocument, ViewerDocument } from '@/graphql/generated/graphql'
-import { markAgeRefused } from '@/lib/auth/age'
-import { applyProblems, dateOfBirth } from '@/lib/auth/forms'
+import { isAgeRefusal, markAgeRefused } from '@/lib/auth/age'
+import { applyProblems, wholeYears } from '@/lib/auth/forms'
 import { registrationCompleted, signedOut } from '@/lib/auth/session'
-import { AgeRefused, birthDateHint, ConfirmBirthDate, useAgeRefused } from './AgeCheck'
+import { AgeField } from './AgeField'
+import { AgeRefused, ConfirmAge, useAgeRefused } from './AgeCheck'
 import { AuthScreen } from './AuthScreen'
 import { CheckRow, TextField } from './Controls'
 import { copy } from './copy'
-import { DateOfBirthField } from './DateOfBirthField'
 import { FormField } from './FormField'
 import { Notice } from './Notice'
 import { currentTerms, detailsSchema } from './SignUpForm'
 
 type Values = z.infer<typeof detailsSchema>
-const FIELDS = ['displayName', 'dob', 'institutionalEmail'] as const
+const FIELDS = ['displayName', 'age', 'institutionalEmail'] as const
 
 /**
- * Registration details for accounts created by a provider sign-in (ADR-0017), given once. The date of birth is
- * confirmed in words before it is sent. An answer under the minimum age (lvn-backend ADR-0091) makes the API erase this
- * unfinished account; the app then signs out and remembers the refusal. A refusal already on this device only closes
- * the form: the account is left alone, and the person may sign out.
+ * Registration details for accounts created by a provider sign-in (ADR-0017), given once. The age, in whole years
+ * (lvn-backend ADR-0104), is confirmed in words before it is sent. An answer under the minimum age (ADR-0091) makes the
+ * API put this account on hold (`AGE_BLOCKED`) and end its sessions; the app then signs out and remembers the refusal.
+ * A refusal already on this device only closes the form: the account is left alone, and the person may sign out.
  */
 export function DetailsForm() {
   const t = copy.details
@@ -42,10 +42,9 @@ export function DetailsForm() {
   const [sending, setSending] = useState(false)
   const form = useForm<Values>({
     resolver: zodResolver(detailsSchema),
-    defaultValues: { displayName: '', dob: { day: '', month: '', year: '' }, institutionalEmail: '', terms: false as unknown as true },
+    defaultValues: { displayName: '', age: '', institutionalEmail: '', terms: false as unknown as true },
   })
   const { errors, isSubmitting } = form.formState
-  const dob = form.watch('dob')
 
   // Provider accounts arrive with a name; offer it.
   const name = viewer?.viewer?.displayName
@@ -64,23 +63,21 @@ export function DetailsForm() {
     await signedOut()
   }
 
-  const send = async ({ terms: _terms, dob, institutionalEmail, ...values }: Values) => {
+  const send = async ({ terms: _terms, age, institutionalEmail, ...values }: Values) => {
     setSending(true)
     try {
       const termsVersion = await currentTerms(options, refetchOptions)
       const { data } = await complete({
-        variables: { input: { ...values, dateOfBirth: dateOfBirth(dob.day, dob.month, dob.year)!, institutionalEmail: institutionalEmail || null, acceptedTermsVersion: termsVersion } },
+        variables: { input: { ...values, age: wholeYears(age)!, institutionalEmail: institutionalEmail || null, acceptedTermsVersion: termsVersion } },
       })
       const payload = data!.completeRegistration
-      if (payload.userErrors.some((p) => p.code === 'UNDER_MINIMUM_AGE')) {
-        // The API erased this unfinished account: sign out here; the welcome screen shows the refusal from now on.
+      if (payload.userErrors.some(isAgeRefusal)) {
+        // The API put this account on hold and ended its sessions: sign out here; the welcome screen shows the refusal.
         await markAgeRefused()
         return await leave()
       }
-      if (!payload.ok) {
-        const problems = payload.userErrors.map((p) => (p.field?.at(-1) === 'dateOfBirth' ? { ...p, field: ['input', 'dob'] } : p))
-        return setGeneral(applyProblems(problems, form.setError, FIELDS))
-      }
+      // An age the API refuses is on `["input", "age"]`, this form's field.
+      if (!payload.ok) return setGeneral(applyProblems(payload.userErrors, form.setError, FIELDS))
       await client.refetchQueries({ include: [ViewerDocument] })
       registrationCompleted(institutionalEmail ? '/verify' : undefined)
     } catch {
@@ -122,10 +119,10 @@ export function DetailsForm() {
         />
         <Controller
           control={form.control}
-          name="dob"
+          name="age"
           render={({ field }) => (
-            <FormField label={ts.dob} hint={birthDateHint(dateOfBirth(dob.day, dob.month, dob.year), ts.dobHint)} error={message('dob', ts.dobInvalid)}>
-              <DateOfBirthField value={field.value} onChange={field.onChange} invalid={!!errors.dob} />
+            <FormField label={ts.age} hint={ts.ageHint} error={errors.age?.message}>
+              <AgeField testID="details-age" value={field.value} onChange={field.onChange} onBlur={field.onBlur} invalid={!!errors.age} />
             </FormField>
           )}
         />
@@ -147,8 +144,8 @@ export function DetailsForm() {
           <Text>{t.signOut}</Text>
         </Button>
       </View>
-      <ConfirmBirthDate
-        value={pending ? dateOfBirth(pending.dob.day, pending.dob.month, pending.dob.year) : null}
+      <ConfirmAge
+        value={pending ? wholeYears(pending.age) : null}
         busy={sending}
         onConfirm={() => pending && void send(pending)}
         onChange={() => setPending(null)}

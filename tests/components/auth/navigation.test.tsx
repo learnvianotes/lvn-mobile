@@ -85,23 +85,21 @@ describe('signed out', () => {
     await fireEvent.changeText(screen.getByLabelText('Your name'), 'Asha Rao')
     await fireEvent.changeText(screen.getByLabelText('Email'), 'asha@example.com')
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Day'), '1')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Month'), '5')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Year'), '2004')
+    await fireEvent.changeText(screen.getByLabelText('Your age'), '22')
     await fireEvent.changeText(screen.getByLabelText('College or organisation email (optional)'), 'asha@iitb.ac.in')
     await press(screen.getByRole('checkbox'))
     await settle()
     expect(screen.getByText('Create account')).toBeEnabled()
     await press(screen.getByText('Create account'))
-    // Every date of birth is confirmed in words before it is sent (lvn-backend ADR-0091).
-    expect(screen.getByText('1 May 2004')).toBeVisible()
+    // Every age is confirmed in words before it is sent (lvn-backend ADR-0091, ADR-0104).
+    expect(screen.getByText('22 years old')).toBeVisible()
     await press(screen.getByText('Yes, that’s right'))
     expect(screen.getByText('We sent a 6-digit code to asha@iitb.ac.in.')).toBeVisible()
     expect(api.calls.find((c) => c.op === 'SignUp')!.variables.input).toEqual({
       displayName: 'Asha Rao',
       email: 'asha@example.com',
       password: 'a long enough passphrase',
-      dateOfBirth: '2004-05-01',
+      age: 22,
       institutionalEmail: 'asha@iitb.ac.in',
       acceptedTermsVersion: '2026-10-08',
     })
@@ -111,16 +109,14 @@ describe('signed out', () => {
     expect(screen.getByLabelText('Code')).toHaveDisplayValue('')
   })
 
-  it('refuses an impossible date of birth and a missing terms acceptance', async () => {
+  it('refuses an age that is not a whole number and a missing terms acceptance', async () => {
     const api = mockApi({ SignInOptions: () => signInOptions })
     await render('./app', { initialUrl: '/sign-up' })
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Day'), '30')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Month'), '2')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Year'), '2004')
+    await fireEvent.changeText(screen.getByLabelText('Your age'), '20.5')
     await settle()
     expect(screen.getByText('Create account')).toBeEnabled()
     await press(screen.getByText('Create account'))
-    expect(screen.getByText('Enter a real date, for example 1 5 2004.')).toBeVisible()
+    expect(screen.getByText('Enter your age as a whole number.')).toBeVisible()
     expect(screen.getByText('Accept the terms to continue.')).toBeVisible()
     expect(api.ops()).not.toContain('SignUp')
   })
@@ -132,9 +128,7 @@ describe('signed out', () => {
     await fireEvent.changeText(screen.getByLabelText('Your name'), 'Asha Rao')
     await fireEvent.changeText(screen.getByLabelText('Email'), 'asha@example.com')
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Day'), '1')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Month'), '5')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Year'), '2004')
+    await fireEvent.changeText(screen.getByLabelText('Your age'), '22')
     await press(screen.getByRole('checkbox'))
     await press(screen.getByText('Create account'))
     await press(screen.getByText('Yes, that’s right'))
@@ -181,7 +175,7 @@ describe('signed out', () => {
 
 describe('signed in', () => {
   it('asks a provider account for its details first, then lets it in', async () => {
-    mockApi({
+    const api = mockApi({
       SignInOptions: () => signInOptions,
       Viewer: () => ({ data: { viewer: viewer({ registrationComplete: false, displayName: 'Asha from GitHub' }) } }),
       CompleteRegistration: () => ({ data: { completeRegistration: ok } }),
@@ -191,9 +185,7 @@ describe('signed in', () => {
     expect(screen.getByText('Almost there, Asha')).toBeVisible()
     await settle()
     expect(screen.getByLabelText('Your name')).toHaveDisplayValue('Asha from GitHub')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Day'), '1')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Month'), '5')
-    await fireEvent.changeText(screen.getByLabelText('Date of birth, Year'), '2004')
+    await fireEvent.changeText(screen.getByLabelText('Your age'), '22')
     await press(screen.getByRole('checkbox'))
     await settle()
     expect(screen.getByText('Continue')).toBeEnabled()
@@ -201,6 +193,13 @@ describe('signed in', () => {
     await press(screen.getByText('Yes, that’s right'))
     await settle()
     expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
+    // Only the age, in whole years (lvn-backend ADR-0104); no date of birth.
+    expect(api.calls.find((c) => c.op === 'CompleteRegistration')!.variables.input).toEqual({
+      displayName: 'Asha from GitHub',
+      age: 22,
+      institutionalEmail: null,
+      acceptedTermsVersion: '2026-10-08',
+    })
   })
 
   it('shows the account in Settings and signs out back to the welcome screen', async () => {

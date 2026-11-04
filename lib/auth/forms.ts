@@ -20,14 +20,27 @@ export function applyProblems<T extends FieldValues>(problems: ProblemLike[], se
   return general
 }
 
+/** The ages the API accepts, in whole years (lvn-backend ADR-0104). The minimum age for an account is the API's alone. */
+export const AGE_MIN = 1
+export const AGE_MAX = 120
+
+/** Why an age field's text is not an age: empty, not a whole number, or outside AGE_MIN to AGE_MAX. */
+export type AgeProblem = 'required' | 'whole' | 'range'
+
 /**
- * Day, month and year typed into three fields (GOV.UK's pattern for a date people know by heart, rather than a
- * picker) as the API's `YYYY-MM-DD`, or null when it is not a real past date.
+ * What is wrong with the age typed into its number field, or null for a whole number from AGE_MIN to AGE_MAX. Digits
+ * only, so "17.5", "1e2" or "18 years" are 'whole'; a whole number outside the range ("0", "-3", "121") is 'range'.
+ * The API checks the same rules again.
  */
-export function dateOfBirth(day: string, month: string, year: string, today = new Date()): string | null {
-  const [d, m, y] = [day, month, year].map((v) => (/^\d+$/.test(v.trim()) ? Number(v.trim()) : NaN)) as [number, number, number]
-  if (!(y >= 1900 && m >= 1 && m <= 12 && d >= 1)) return null
-  const date = new Date(Date.UTC(y, m - 1, d))
-  if (date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d || date.getTime() > today.getTime()) return null
-  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+export function ageProblem(text: string): AgeProblem | null {
+  const value = text.trim()
+  if (!value) return 'required'
+  if (!/^-?\d+$/.test(value)) return 'whole'
+  const age = Number(value)
+  return age < AGE_MIN || age > AGE_MAX ? 'range' : null
+}
+
+/** The age field's text as the API's `age` (whole years), or null when ageProblem finds something wrong with it. */
+export function wholeYears(text: string): number | null {
+  return ageProblem(text) ? null : Number(text.trim())
 }

@@ -1,4 +1,4 @@
-import { ageRefusedAt, birthDateInWords, markAgeRefused, REFUSED_FOR_MS } from '@/lib/auth/age'
+import { ageInWords, ageRefusedAt, isAgeRefusal, markAgeRefused, REFUSED_FOR_MS } from '@/lib/auth/age'
 import { items } from '../../support/secure-store'
 
 describe('the refusal remembered on the device (lvn-backend ADR-0091)', () => {
@@ -20,14 +20,18 @@ describe('the refusal remembered on the device (lvn-backend ADR-0091)', () => {
   })
 })
 
-describe('birthDateInWords', () => {
-  it('spells the date out, so a wrong year stands out', () => {
-    expect(birthDateInWords('2001-03-14')).toBe('14 March 2001')
-    expect(birthDateInWords('2004-05-01')).toBe('1 May 2004')
+describe('isAgeRefusal', () => {
+  it('knows the live code and the one from an API before 2026-10-25', () => {
+    expect(isAgeRefusal({ code: 'AGE_RESTRICTED' })).toBe(true)
+    expect(isAgeRefusal({ code: 'UNDER_MINIMUM_AGE' })).toBe(true)
+    // An age outside 1 to 120 is a typo to correct, not a refusal.
+    expect(isAgeRefusal({ code: 'VALIDATION' })).toBe(false)
   })
+})
 
-  it('is empty without a date', () => {
-    expect(birthDateInWords(null)).toBe('')
-    expect(birthDateInWords('14/03/2001')).toBe('')
+describe('ageInWords', () => {
+  it('spells the age out, so a mis-typed digit stands out', () => {
+    expect(ageInWords(22)).toBe('22 years old')
+    expect(ageInWords(1)).toBe('1 year old')
   })
 })

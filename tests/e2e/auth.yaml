@@ -49,18 +49,8 @@ tags: [auth]
 - runFlow:
     file: subflows/fill.yaml
     env:
-      FIELD: dob-day
-      VALUE: "1"
-- runFlow:
-    file: subflows/fill.yaml
-    env:
-      FIELD: dob-month
-      VALUE: "5"
-- runFlow:
-    file: subflows/fill.yaml
-    env:
-      FIELD: dob-year
-      VALUE: "2004"
+      FIELD: sign-up-age
+      VALUE: "22"
 - runFlow:
     file: subflows/fill.yaml
     env:
@@ -75,13 +65,13 @@ tags: [auth]
 - tapOn:
     id: "sign-up-submit"
 
-# Every date of birth is confirmed in words before it is sent (lvn-backend ADR-0091).
+# Every age is confirmed in words before it is sent (lvn-backend ADR-0091, ADR-0104).
 - extendedWaitUntil:
     visible: "Is this right?"
     timeout: 10000
-- assertVisible: "1 May 2004"
+- assertVisible: ".*22 years old.*"
 - tapOn:
-    id: "dob-confirm"
+    id: "age-confirm"
 
 # The code screen follows; a wrong code is refused, the mailed one is accepted.
 - extendedWaitUntil:

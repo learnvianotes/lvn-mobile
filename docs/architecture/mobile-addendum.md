@@ -114,8 +114,9 @@ screen navigates after sign-in or sign-out itself.
   lvn-web that hands the code to the app's scheme.
 - **Emailed links.** Password reset links open lvn-web (`/reset?token=`). A sign-in verification link that opens the app
   (`/verify?token=`) is accepted with `verifyEmail`; otherwise that link still opens lvn-web.
-- **Forms.** Date of birth is three number fields (day, month, year — GOV.UK's pattern for a date people know, not a
-  picker). Emails are trimmed (keyboards add a trailing space). A wrong code or password is cleared for a fresh try.
+- **Forms.** The age is one number field, whole years from 1 to 120 with the number pad (lvn-backend ADR-0104, which
+  replaced the date of birth). The phone checks it, says it back ("You are 17 years old. Is this right?") before
+  sending, and sends only `age`; the API checks it again. Emails are trimmed (keyboards add a trailing space). A wrong code or password is cleared for a fresh try.
   The API's `userErrors` land on their fields; anything else shows above the form. An invite-only refusal is one
   sentence, and it clears when the email changes. A password reset always shows the same sentence, including when the
   API names an unknown address.
