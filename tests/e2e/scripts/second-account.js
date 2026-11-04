@@ -7,7 +7,7 @@ const stamp = Date.now()
 const name = `Asha ${stamp}`
 const terms = gql('{ termsVersion }').data.termsVersion
 const res = gql('mutation($input: SignUpInput!) { signUp(input: $input) { session { accessToken } userErrors { message } } }', {
-  input: { email: `e2e-other-${stamp}@example.com`, password: `lvn e2e passphrase ${stamp}`, displayName: name, dateOfBirth: '2001-02-03', acceptedTermsVersion: terms },
+  input: { email: `e2e-other-${stamp}@example.com`, password: `lvn e2e passphrase ${stamp}`, displayName: name, age: 25, acceptedTermsVersion: terms },
 })
 if (!res.data || !res.data.signUp.session) throw new Error(`sign-up failed: ${JSON.stringify(res)}`)
 output.otherName = name

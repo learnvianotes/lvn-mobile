@@ -45,7 +45,8 @@ fragment NoteMeta on Note {
     number
     createdAt
   }
-  forkingEnabled
+  # Note.forkingEnabled is Note.allowForks in the API now; the alias keeps the app's name for it.
+  forkingEnabled: allowForks
   moderation {
     state
     reason

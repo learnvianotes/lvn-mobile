@@ -1,25 +1,33 @@
-import { applyProblems, dateOfBirth } from '@/lib/auth/forms'
+import { AGE_MAX, AGE_MIN, ageProblem, applyProblems, wholeYears } from '@/lib/auth/forms'
 import { redirectSystemPath } from '@/app/+native-intent'
 
-describe('dateOfBirth', () => {
-  const today = new Date('2026-10-08T00:00:00Z')
-
-  it('formats day, month and year for the API', () => {
-    expect(dateOfBirth('1', '5', '2004', today)).toBe('2004-05-01')
-    expect(dateOfBirth(' 29 ', '02', '2004', today)).toBe('2004-02-29')
+describe('the age field (lvn-backend ADR-0104)', () => {
+  it('takes a whole number of years from 1 to 120, as the API does', () => {
+    expect([AGE_MIN, AGE_MAX]).toEqual([1, 120])
+    expect(wholeYears('22')).toBe(22)
+    expect(wholeYears(' 17 ')).toBe(17)
+    expect(wholeYears('1')).toBe(1)
+    expect(wholeYears('120')).toBe(120)
+    expect(wholeYears('018')).toBe(18)
+    expect(ageProblem('22')).toBeNull()
   })
 
   it.each([
-    ['30', '2', '2004'],
-    ['29', '2', '2005'],
-    ['31', '4', '2004'],
-    ['0', '1', '2004'],
-    ['1', '13', '2004'],
-    ['1', '1', '1899'],
-    ['1', '1', '2027'],
-    ['', '1', '2004'],
-    ['1a', '1', '2004'],
-  ])('refuses %s/%s/%s', (d, m, y) => expect(dateOfBirth(d, m, y, today)).toBeNull())
+    ['', 'required'],
+    ['   ', 'required'],
+    ['17.5', 'whole'],
+    ['17,5', 'whole'],
+    ['1e2', 'whole'],
+    ['18 years', 'whole'],
+    ['eighteen', 'whole'],
+    ['0', 'range'],
+    ['-3', 'range'],
+    ['121', 'range'],
+    ['999', 'range'],
+  ])('refuses %j as %s', (text, problem) => {
+    expect(ageProblem(text)).toBe(problem)
+    expect(wholeYears(text)).toBeNull()
+  })
 })
 
 describe('applyProblems', () => {

@@ -1,9 +1,9 @@
-import { CalendarCheck } from 'lucide-react-native'
+import { UserCheck } from 'lucide-react-native'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Modal, View } from 'react-native'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
-import { ageRefusedAt, birthDateInWords, subscribeAgeRefusal } from '@/lib/auth/age'
+import { ageInWords, ageRefusedAt, subscribeAgeRefusal } from '@/lib/auth/age'
 import { useColors } from '@/lib/theme'
 import { copy } from './copy'
 
@@ -23,17 +23,11 @@ export function useAgeRefused(): boolean {
   return refused
 }
 
-/** The date of birth field's hint: the typed date in words, then the usual hint. */
-export function birthDateHint(iso: string | null, hint: string): string {
-  const words = birthDateInWords(iso)
-  return words ? `${words} · ${hint}` : hint
-}
-
 /**
- * "Is this right?" — asked before every date of birth is sent, whatever the answer, so no answer stands out and one
- * mis-typed year can't refuse or erase an account (lvn-backend ADR-0091).
+ * "Is this right?" — asked before every age is sent, whatever the answer, so no answer stands out and one mis-typed
+ * digit can't put an account on hold (lvn-backend ADR-0091, ADR-0104).
  */
-export function ConfirmBirthDate({ value, busy, onConfirm, onChange }: { value: string | null; busy: boolean; onConfirm: () => void; onChange: () => void }) {
+export function ConfirmAge({ value, busy, onConfirm, onChange }: { value: number | null; busy: boolean; onConfirm: () => void; onChange: () => void }) {
   const t = copy.age
   const colors = useColors()
   return (
@@ -42,16 +36,16 @@ export function ConfirmBirthDate({ value, busy, onConfirm, onChange }: { value: 
         <View className="bg-card w-full max-w-sm gap-4 rounded-3xl p-6" accessibilityViewIsModal>
           <Text className="text-xl font-bold tracking-tight" accessibilityRole="header">{t.confirmTitle}</Text>
           <View className="flex-row items-center gap-3">
-            <CalendarCheck size={22} color={colors.accent} />
+            <UserCheck size={22} color={colors.accent} />
             <Text className="flex-1 text-base">
-              {t.confirmLead} <Text className="text-base font-bold">{birthDateInWords(value)}</Text>
+              {t.confirmLead} <Text className="text-base font-bold">{value === null ? '' : ageInWords(value)}</Text>.
             </Text>
           </View>
           <View className="flex-row justify-end gap-2">
-            <Button testID="dob-change" variant="outline" disabled={busy} onPress={onChange}>
+            <Button testID="age-change" variant="outline" disabled={busy} onPress={onChange}>
               <Text>{t.change}</Text>
             </Button>
-            <Button testID="dob-confirm" disabled={busy} onPress={onConfirm}>
+            <Button testID="age-confirm" disabled={busy} onPress={onConfirm}>
               <Text>{t.confirm}</Text>
             </Button>
           </View>

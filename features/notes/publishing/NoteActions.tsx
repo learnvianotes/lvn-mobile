@@ -15,7 +15,7 @@ import * as db from '../store/db'
 import { syncNow } from '../sync/engine'
 
 export const KIND_LABEL: Record<LocalNote['kind'], string> = { NOTE: 'Note', PROJECT: 'Project', BLOG: 'Blog post', POST: 'Post' }
-const VISIBILITY: Record<LocalNote['visibility'], string> = { PRIVATE: 'Private', SHARED: 'Shared', PUBLIC: 'Public' }
+const VISIBILITY: Record<LocalNote['visibility'], string> = { PRIVATE: 'Private', SHARED: 'Shared', UNLISTED: 'Unlisted', PUBLIC: 'Public' }
 
 /**
  * The owner's note, beyond writing it (lvn-backend ADR-0052): what it is and where it stands, and a menu to publish,

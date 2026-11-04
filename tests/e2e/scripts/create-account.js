@@ -8,7 +8,7 @@ const email = `e2e-${stamp}@example.com`
 const password = `lvn e2e passphrase ${stamp}`
 const terms = gql('{ termsVersion }').data.termsVersion
 const res = gql('mutation($input: SignUpInput!) { signUp(input: $input) { session { accessToken } userErrors { message } } }', {
-  input: { email, password, displayName: 'Ravi Kumar', dateOfBirth: '2003-08-15', acceptedTermsVersion: terms },
+  input: { email, password, displayName: 'Ravi Kumar', age: 23, acceptedTermsVersion: terms },
 })
 if (!res.data || !res.data.signUp.session) throw new Error(`sign-up failed: ${JSON.stringify(res)}`)
 output.email = email

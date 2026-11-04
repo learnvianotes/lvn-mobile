@@ -1,3 +1,5 @@
+import { AGE_MAX, AGE_MIN, type AgeProblem } from '@/lib/auth/forms'
+
 /** Sign-in and account wording, shared with lvn-web's messages/en.json (auth.*, profile.*) so both say the same. */
 export const copy = {
   welcome: {
@@ -28,12 +30,14 @@ export const copy = {
     email: 'Email',
     password: 'Password',
     passwordHint: 'At least 10 characters. Avoid passwords you use elsewhere.',
-    dob: 'Date of birth',
-    dobHint: 'Only used for age rules; never shown to anyone.',
-    dobInvalid: 'Enter a real date, for example 1 5 2004.',
-    day: 'Day',
-    month: 'Month',
-    year: 'Year',
+    age: 'Your age',
+    ageHint: 'In whole years. Only used for age rules; never shown to anyone.',
+    // The API's words for the same problems (lvn-backend ADR-0104). None names the minimum age.
+    ageProblems: {
+      required: 'Enter your age.',
+      whole: 'Enter your age as a whole number.',
+      range: `Enter an age from ${AGE_MIN} to ${AGE_MAX}.`,
+    } satisfies Record<AgeProblem, string>,
     institutionalEmail: 'College or organisation email (optional)',
     institutionalHint: 'We send it a code to verify you. Without one, a teacher or our team can verify you later.',
     terms: 'I accept the Terms, the Privacy Policy and the licence for content I make public.',
@@ -44,7 +48,7 @@ export const copy = {
   },
   age: {
     confirmTitle: 'Is this right?',
-    confirmLead: 'Your date of birth:',
+    confirmLead: 'You are',
     confirm: 'Yes, that’s right',
     change: 'Change it',
     refusedTitle: 'Sorry, you can’t create an account',

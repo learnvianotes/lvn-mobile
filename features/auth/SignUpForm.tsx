@@ -8,23 +8,26 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
 import { SignInOptionsDocument, SignUpDocument } from '@/graphql/generated/graphql'
-import { markAgeRefused } from '@/lib/auth/age'
-import { dateOfBirth } from '@/lib/auth/forms'
+import { isAgeRefusal, markAgeRefused } from '@/lib/auth/age'
+import { ageProblem, wholeYears } from '@/lib/auth/forms'
 import { presentProblems } from './errors'
-import { AgeRefused, birthDateHint, ConfirmBirthDate, useAgeRefused } from './AgeCheck'
+import { AgeField } from './AgeField'
+import { AgeRefused, ConfirmAge, useAgeRefused } from './AgeCheck'
 import { AuthScreen } from './AuthScreen'
 import { CheckRow, TextField } from './Controls'
 import { copy } from './copy'
-import { DateOfBirthField } from './DateOfBirthField'
 import { FormField } from './FormField'
 import { Notice } from './Notice'
 import { ProviderButtons } from './ProviderButtons'
 import { useFinishSignIn } from './useFinishSignIn'
 
-/** The registration details of ADR-0017, shared with DetailsForm. */
+/** The registration details of ADR-0017, shared with DetailsForm. The age is in whole years (lvn-backend ADR-0104). */
 export const detailsSchema = z.object({
   displayName: z.string().trim().min(1),
-  dob: z.object({ day: z.string(), month: z.string(), year: z.string() }).refine((d) => dateOfBirth(d.day, d.month, d.year) !== null),
+  age: z.string().superRefine((text, ctx) => {
+    const problem = ageProblem(text)
+    if (problem) ctx.addIssue({ code: 'custom', message: copy.signUp.ageProblems[problem] })
+  }),
   // Keyboards often add a space after an autocompleted address; it is not part of the email.
   institutionalEmail: z.string().trim().pipe(z.union([z.literal(''), z.email()])),
   terms: z.literal(true),
@@ -32,7 +35,7 @@ export const detailsSchema = z.object({
 
 const schema = detailsSchema.extend({ email: z.string().trim().pipe(z.email()), password: z.string().min(10) })
 type Values = z.infer<typeof schema>
-const FIELDS = ['displayName', 'email', 'password', 'dob', 'institutionalEmail'] as const
+const FIELDS = ['displayName', 'email', 'password', 'age', 'institutionalEmail'] as const
 
 /** The Terms version to accept (Query.termsVersion), fetched again if the first load failed (offline at launch). */
 export async function currentTerms(loaded: { termsVersion: string } | undefined, refetch: () => Promise<{ data?: { termsVersion: string } }>): Promise<string> {
@@ -42,8 +45,9 @@ export async function currentTerms(loaded: { termsVersion: string } | undefined,
 }
 
 /**
- * Email + password registration; GitHub and LinkedIn above it when configured. The date of birth is confirmed in words
- * before anything is sent; a refusal (lvn-backend ADR-0091) closes this form on the device for a day.
+ * Email + password registration; GitHub and LinkedIn above it when configured. The age is confirmed in words before
+ * anything is sent, and only the age is sent (lvn-backend ADR-0104); a refusal (ADR-0091) closes this form on the
+ * device for a day.
  */
 export function SignUpForm() {
   const t = copy.signUp
@@ -54,22 +58,21 @@ export function SignUpForm() {
   // "Teach" leads to the application to teach after sign-up (lvn-backend ADR-0073).
   const [teaches, setTeaches] = useState(false)
   const refused = useAgeRefused()
-  // The values waiting for "Is this right?" about the date of birth.
+  // The values waiting for "Is this right?" about the age.
   const [pending, setPending] = useState<Values | null>(null)
   const [sending, setSending] = useState(false)
   const form = useForm<Values>({
     resolver: zodResolver(schema),
-    defaultValues: { displayName: '', email: '', password: '', dob: { day: '', month: '', year: '' }, institutionalEmail: '', terms: false as unknown as true },
+    defaultValues: { displayName: '', email: '', password: '', age: '', institutionalEmail: '', terms: false as unknown as true },
   })
   const { errors, isSubmitting } = form.formState
-  const dob = form.watch('dob')
 
   const onSubmit = form.handleSubmit((values) => {
     setGeneral(null)
     setPending(values)
   })
 
-  const send = async ({ terms: _terms, dob, institutionalEmail, email, ...values }: Values) => {
+  const send = async ({ terms: _terms, age, institutionalEmail, email, ...values }: Values) => {
     setSending(true)
     try {
       const termsVersion = await currentTerms(options, refetchOptions)
@@ -78,7 +81,7 @@ export function SignUpForm() {
           input: {
             ...values,
             email,
-            dateOfBirth: dateOfBirth(dob.day, dob.month, dob.year)!,
+            age: wholeYears(age)!,
             institutionalEmail: institutionalEmail || null,
             acceptedTermsVersion: termsVersion,
           },
@@ -86,11 +89,10 @@ export function SignUpForm() {
       })
       const payload = data!.signUp
       if (payload.session) return await finish(payload.session, teaches ? '/teach' : institutionalEmail ? '/verify' : undefined)
-      // Too young for an account: nothing was created; this device keeps the form closed for a day.
-      if (payload.userErrors.some((p) => p.code === 'UNDER_MINIMUM_AGE')) return await markAgeRefused()
-      // The API names `dateOfBirth`; the form's field is `dob`.
-      const problems = payload.userErrors.map((p) => (p.field?.at(-1) === 'dateOfBirth' ? { ...p, field: ['input', 'dob'] } : p))
-      setGeneral(presentProblems(problems, form.setError, FIELDS))
+      // Too young for an account: the API keeps it on hold with no session; this device keeps the form closed for a day.
+      if (payload.userErrors.some(isAgeRefusal)) return await markAgeRefused()
+      // An age the API refuses is on `["input", "age"]`, this form's field.
+      setGeneral(presentProblems(payload.userErrors, form.setError, FIELDS))
     } catch {
       setGeneral(copy.errors.generic)
     } finally {
@@ -173,10 +175,10 @@ export function SignUpForm() {
         />
         <Controller
           control={form.control}
-          name="dob"
+          name="age"
           render={({ field }) => (
-            <FormField label={t.dob} hint={birthDateHint(dateOfBirth(dob.day, dob.month, dob.year), t.dobHint)} error={message('dob', t.dobInvalid)}>
-              <DateOfBirthField value={field.value} onChange={field.onChange} invalid={!!errors.dob} />
+            <FormField label={t.age} hint={t.ageHint} error={errors.age?.message}>
+              <AgeField testID="sign-up-age" value={field.value} onChange={field.onChange} onBlur={field.onBlur} invalid={!!errors.age} />
             </FormField>
           )}
         />
@@ -199,8 +201,8 @@ export function SignUpForm() {
           <Text>{t.submit}</Text>
         </Button>
       </View>
-      <ConfirmBirthDate
-        value={pending ? dateOfBirth(pending.dob.day, pending.dob.month, pending.dob.year) : null}
+      <ConfirmAge
+        value={pending ? wholeYears(pending.age) : null}
         busy={sending}
         onConfirm={() => pending && void send(pending)}
         onChange={() => setPending(null)}

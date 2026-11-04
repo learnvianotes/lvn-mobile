@@ -114,7 +114,7 @@ async function seedCommunity(api, vmScript) {
   const account = async (who, displayName) => {
     const email = `e2e-${who}-${stamp}@example.com`
     const password = `lvn e2e passphrase ${stamp}`
-    const up = await gql('mutation ($input: SignUpInput!) { signUp(input: $input) { session { accessToken user { id } } userErrors { message } } }', { input: { email, password, displayName, dateOfBirth: '2002-04-10', acceptedTermsVersion: termsVersion } })
+    const up = await gql('mutation ($input: SignUpInput!) { signUp(input: $input) { session { accessToken user { id } } userErrors { message } } }', { input: { email, password, displayName, age: 24, acceptedTermsVersion: termsVersion } })
     if (!up.signUp.session) throw new Error(`sign-up failed: ${up.signUp.userErrors[0]?.message}`)
     return { email, password, id: up.signUp.session.user.id, token: up.signUp.session.accessToken }
   }
