@@ -1,13 +1,14 @@
 import { Link, router } from 'expo-router'
 import { BookOpen, CalendarCheck, GraduationCap, MessagesSquare, NotebookPen, Users, type LucideIcon } from 'lucide-react-native'
 import { useRef } from 'react'
-import { Linking, Pressable, ScrollView, View, type ScrollViewInstance } from 'react-native'
+import { Pressable, ScrollView, View, type ScrollViewInstance } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { LandingArt } from '@/features/marketing/LandingArt'
 import { PublicHeader } from '@/features/shell/PublicHeader'
 import { SupportLink } from '@/features/shell/SupportLink'
 import { env } from '@/lib/env'
+import { openInBrowser } from '@/lib/open-external'
 import { useTheme } from '@/lib/theme'
 import { useAgeRefused } from './AgeCheck'
 import { copy } from './copy'
@@ -42,7 +43,7 @@ export function Welcome() {
   const scroll = useRef<ScrollViewInstance>(null)
   const featuresY = useRef(0)
   const brand = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const open = (path: string) => void Linking.openURL(`${env.EXPO_PUBLIC_WEB_URL}${path}`)
+  const open = (path: string) => openInBrowser(new URL(path, env.EXPO_PUBLIC_WEB_URL).toString())
   return (
     <View className="bg-background flex-1">
       <PublicHeader onFeatures={() => scroll.current?.scrollTo({ y: featuresY.current, animated: true })} />

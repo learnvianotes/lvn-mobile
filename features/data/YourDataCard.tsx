@@ -1,5 +1,4 @@
 import { useMutation, useQuery } from '@apollo/client/react'
-import * as WebBrowser from 'expo-web-browser'
 import { Download, FileArchive } from 'lucide-react-native'
 import { useState } from 'react'
 import { ActivityIndicator, View } from 'react-native'
@@ -8,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Text } from '@/components/ui/text'
 import { MyDataExportsDocument, RequestDataExportDocument } from '@/graphql/generated/graphql'
 import { env } from '@/lib/env'
+import { openInBrowser } from '@/lib/open-external'
 
 const size = (n: number) => (n < 1024 ** 2 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1024 ** 2).toFixed(1)} MB`)
 
@@ -32,7 +32,7 @@ export function YourDataCard() {
       </Text>
       <Text className="text-muted-foreground text-sm">Download everything about you: your notes as Markdown and JSON with their pictures, and your account data. One archive a day; we email you when it is ready.</Text>
       {latest?.status === 'READY' && latest.downloadUrl ? (
-        <Button onPress={() => void WebBrowser.openBrowserAsync(latest.downloadUrl!)} className="self-start">
+        <Button onPress={() => openInBrowser(latest.downloadUrl)} className="self-start">
           <Download size={16} color={primaryFg} />
           <Text>Download ({size(latest.sizeBytes ?? 0)})</Text>
         </Button>
@@ -60,7 +60,7 @@ export function YourDataCard() {
           <Text>Prepare my archive</Text>
         </Button>
       ) : null}
-      <Text className="text-muted-foreground text-xs" onPress={() => void WebBrowser.openBrowserAsync(new URL('/profile#your-data', env.EXPO_PUBLIC_WEB_URL).toString())}>
+      <Text className="text-muted-foreground text-xs" onPress={() => openInBrowser(new URL('/profile#your-data', env.EXPO_PUBLIC_WEB_URL).toString())}>
         Importing notes from other apps happens on the web — open your account there.
       </Text>
     </View>

@@ -4,7 +4,6 @@ import * as DocumentPicker from 'expo-document-picker'
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { router } from 'expo-router'
-import * as WebBrowser from 'expo-web-browser'
 import { FileText, X } from 'lucide-react-native'
 import { useEffect, useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
@@ -15,6 +14,8 @@ import { mimeOf, putStoredFile, UploadError, uploadFile } from '@/features/notes
 import { useUploadsEnabled } from '@/features/notes/media/uploads'
 import { Field, Outcome, Pill } from '@/features/shell/Form'
 import { reportClientError } from '@/lib/client-errors'
+import { openInBrowser } from '@/lib/open-external'
+import { httpUrl } from '@/lib/safe-url'
 import {
   CreateStudentIdUploadIntentDocument,
   FindTeachersDocument,
@@ -422,10 +423,10 @@ function RequestCard({ request: r, onDone }: { request: Request; onDone: () => v
   }
   const open = async (fileId: string, fileName: string, mimeType: string) => {
     const res = await client.query({ query: VerificationDocumentUrlDocument, variables: { requestId: r.id, fileId }, fetchPolicy: 'network-only' }).catch(() => null)
-    const url = res?.data?.verificationDocumentUrl.url
+    const url = httpUrl(res?.data?.verificationDocumentUrl.url)
     if (!url) return setError('That did not work. Try again.')
     if (mimeType.startsWith('image/')) setPreview({ url, name: fileName })
-    else await WebBrowser.openBrowserAsync(url)
+    else openInBrowser(url)
   }
   return (
     <View accessibilityLabel={`Request from ${r.requester.displayName}`} className="bg-card border-border gap-2 rounded-2xl border p-4">
@@ -557,7 +558,7 @@ function StudentIdCard({ item, onDone }: { item: Queued; onDone: () => void }) {
   }
   const view = async () => {
     const res = await client.query({ query: StudentIdCardUrlDocument, variables: { requestId: item.id }, fetchPolicy: 'network-only' }).catch(() => null)
-    const url = res?.data?.studentIdCardUrl.url
+    const url = httpUrl(res?.data?.studentIdCardUrl.url)
     if (!url) return setError('That did not work. Try again.')
     setImage(url)
   }

@@ -5,6 +5,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import type { Inline } from '@/lib/contracts/validation'
 import { inlineText } from '@/lib/contracts/validation'
+import { allowDomNavigation } from '@/lib/safe-url'
 import { cn } from '@/lib/utils'
 import { newId } from '../model/ids'
 import type { LocalCard } from '../model/types'
@@ -63,7 +64,12 @@ export function CardEditor({ card, onChange: save }: { card: LocalCard; onChange
             theme={theme}
             autoFocus
             onChange={async (doc) => onChange({ ...c, doc })}
-            dom={{ matchContents: true, scrollEnabled: false }}
+            dom={{
+              matchContents: true,
+              scrollEnabled: false,
+              allowFileAccessFromFileURLs: false,
+              onShouldStartLoadWithRequest: (request: { url: string; navigationType?: string }) => allowDomNavigation(request.url, request.navigationType),
+            }}
           />
           {card.type === 'quote' ? <TextInput accessibilityLabel="Who said it" placeholder="Who said it (optional)" placeholderTextColor={theme.muted} className={field} defaultValue={c.attribution ?? ''} onChangeText={(attribution) => onChange({ ...c, attribution: attribution || undefined })} /> : null}
         </View>

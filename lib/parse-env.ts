@@ -2,6 +2,27 @@ import { z } from 'zod'
 
 const optional = z.string().min(1).optional()
 
+/** A web address with no userinfo. `javascript:` and `intent:` are URLs to Zod, and they are not configuration. */
+const httpAddress = z.url().refine((value) => {
+  try {
+    const url = new URL(value)
+    return (url.protocol === 'http:' || url.protocol === 'https:') && !url.username && !url.password
+  } catch {
+    return false
+  }
+}, 'must be an http(s) URL')
+
+const httpsAddress = httpAddress.refine((value) => value.startsWith('https://'), 'must be https')
+
+const wsAddress = z.url().refine((value) => {
+  try {
+    const url = new URL(value)
+    return (url.protocol === 'ws:' || url.protocol === 'wss:') && !url.username && !url.password
+  } catch {
+    return false
+  }
+}, 'must be a ws(s) URL')
+
 /**
  * Schema for the public app configuration (spec §16.1), validated once at start-up. Mirrors `mobileConfigSchema` in
  * @lvn/contracts/config and is replaced by it once the package is published (lvn-backend ADR-0003, ADR-0006).
@@ -9,15 +30,15 @@ const optional = z.string().min(1).optional()
 const schema = z.object({
   EXPO_PUBLIC_APP_ENV: z.enum(['development', 'sandbox', 'production']),
   /** lvn-web origin, for links into the site (e.g. the study notes at /core). */
-  EXPO_PUBLIC_WEB_URL: z.url(),
+  EXPO_PUBLIC_WEB_URL: httpAddress,
   /** The GraphQL endpoint of lvn-backend (its gateway, `/graphql`). */
-  EXPO_PUBLIC_API_URL: z.url(),
+  EXPO_PUBLIC_API_URL: httpAddress,
   /** Live updates while the app is open, lvn-backend's graphql-ws endpoint (ADR-0042); see `liveUrlFrom`. */
-  EXPO_PUBLIC_LIVE_URL: z.url().refine((u) => /^wss?:\/\//.test(u), 'must be a ws(s) URL').optional(),
+  EXPO_PUBLIC_LIVE_URL: wsAddress.optional(),
   // GitHub sign-in (Authorization Code + PKCE, §7.1): the public client id and GitHub's consent page. LinkedIn does
   // not redirect to app schemes, so it waits for app links (docs/architecture/mobile-addendum.md → Sign-in).
   EXPO_PUBLIC_GITHUB_CLIENT_ID: optional,
-  EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: z.url().optional(),
+  EXPO_PUBLIC_GITHUB_AUTHORIZE_URL: httpsAddress.optional(),
   // Google sign-in (ADR-0007): the Firebase web app's config and the OAuth client ids of that Firebase project's
   // Google provider. Public identifiers, not secrets.
   EXPO_PUBLIC_FIREBASE_API_KEY: optional,
@@ -26,8 +47,17 @@ const schema = z.object({
   EXPO_PUBLIC_FIREBASE_APP_ID: optional,
   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: optional,
   EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID: optional,
-  /** Sentry for crashes and unexpected errors (§16.5); off without it. */
-  EXPO_PUBLIC_SENTRY_DSN: z.url().refine((u) => /^https?:\/\//.test(u), 'must be an http(s) URL').optional(),
+  /** Sentry for crashes and unexpected errors (§16.5); off without it. The DSN's key is the userinfo, which is not a secret. */
+  EXPO_PUBLIC_SENTRY_DSN: z
+    .url()
+    .refine((value) => {
+      try {
+        return new URL(value).protocol === 'https:'
+      } catch {
+        return false
+      }
+    }, 'must be an https URL')
+    .optional(),
 })
 
 export type AppEnv = z.infer<typeof schema>
@@ -38,6 +68,16 @@ export function parseEnv(raw: Record<string, string | undefined>): AppEnv {
   if (!result.success) {
     const names = result.error.issues.map((i) => i.path.join('.')).join(', ')
     throw new Error(`Invalid app configuration: ${names}`)
+  }
+  // Development talks to a machine on the LAN over http. Sandbox and production do not: Android also blocks cleartext
+  // there (app.config.ts), and this refuses a build that was pointed at it.
+  if (result.data.EXPO_PUBLIC_APP_ENV !== 'development') {
+    const cleartext = [
+      result.data.EXPO_PUBLIC_WEB_URL.startsWith('https://') ? null : 'EXPO_PUBLIC_WEB_URL',
+      result.data.EXPO_PUBLIC_API_URL.startsWith('https://') ? null : 'EXPO_PUBLIC_API_URL',
+      !result.data.EXPO_PUBLIC_LIVE_URL || result.data.EXPO_PUBLIC_LIVE_URL.startsWith('wss://') ? null : 'EXPO_PUBLIC_LIVE_URL',
+    ].filter((name) => name != null)
+    if (cleartext.length) throw new Error(`Invalid app configuration: ${cleartext.join(', ')}`)
   }
   return result.data
 }

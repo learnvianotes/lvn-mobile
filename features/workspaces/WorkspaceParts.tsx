@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { Award, ExternalLink, GitBranch, Lightbulb, MessageSquare, Star } from 'lucide-react-native'
 import { useState } from 'react'
-import { Alert, Linking, Pressable, TextInput, View } from 'react-native'
+import { Alert, Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { PostComments } from '@/features/discussion/PostComments'
@@ -27,6 +27,7 @@ import {
   type GroupDetailFragment,
 } from '@/graphql/generated/graphql'
 import type { Doc } from '@/lib/contracts/validation'
+import { openExternal } from '@/lib/open-external'
 
 export const STATUS: Record<DoubtStatus, string> = { OPEN: 'Open', ANSWERED: 'Answered', RESOLVED: 'Resolved' }
 
@@ -72,7 +73,7 @@ export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragme
         </View>
       ) : null}
       {repo ? (
-        <Pressable accessibilityRole="link" accessibilityLabel={`Repository ${repo.name ?? repo.url}`} onPress={() => void Linking.openURL(repo.url)} className="border-border gap-1 rounded-2xl border p-3">
+        <Pressable accessibilityRole="link" accessibilityLabel={`Repository ${repo.name ?? repo.url}`} onPress={() => openExternal(repo.url)} className="border-border gap-1 rounded-2xl border p-3">
           <View className="flex-row items-center gap-2">
             <GitBranch size={16} color={accent} />
             <Text className="flex-1 font-semibold" numberOfLines={1}>
@@ -332,7 +333,7 @@ function RepositoryApp({
       <View className="gap-1.5">
         <Text className="text-muted-foreground text-xs">Install the LearnViaNotes App on this repository to see its commits, pull requests and issues here. Only titles, names and links come: never code.</Text>
         <View className="flex-row">
-          <Pill label="Connect the GitHub App" primary onPress={() => void Linking.openURL(app.installUrl!)} />
+          <Pill label="Connect the GitHub App" primary onPress={() => openExternal(app.installUrl)} />
         </View>
       </View>
     )
@@ -344,7 +345,7 @@ function RepositoryApp({
       </Text>
       {events.length ? (
         events.map((e) => (
-          <Pressable key={e.id} accessibilityRole="link" onPress={() => void Linking.openURL(e.url)} className="gap-0.5">
+          <Pressable key={e.id} accessibilityRole="link" onPress={() => openExternal(e.url)} className="gap-0.5">
             <Text className="font-medium">
               {e.number ? `#${e.number} ` : ''}
               {e.title}

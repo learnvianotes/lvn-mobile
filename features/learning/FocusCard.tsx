@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { useEffect, useState } from 'react'
-import { Linking, Pressable, Switch, TextInput, View } from 'react-native'
+import { Pressable, Switch, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { useLive } from '@/features/notifications/live'
@@ -18,6 +18,7 @@ import {
   type FocusSessionFieldsFragment,
 } from '@/graphql/generated/graphql'
 import { haptic } from '@/lib/haptics'
+import { openExternal } from '@/lib/open-external'
 import { cn } from '@/lib/utils'
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`
@@ -81,7 +82,7 @@ export function FocusCard() {
           </Text>
           <Text className="text-muted-foreground text-sm">{phase.phase === 'FOCUS' ? `Focusing: ${session.plannedMinutes} minutes, then a rest.` : phase.phase === 'BREAK' ? 'Rest: stretch, drink some water.' : 'Done. End the session to count it.'}</Text>
           {session.meetUrl ? (
-            <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(session.meetUrl!)}>
+            <Pressable accessibilityRole="link" onPress={() => openExternal(session.meetUrl)}>
               <Text className="text-primary font-semibold">Open the Meet call</Text>
             </Pressable>
           ) : null}
@@ -183,7 +184,7 @@ export function BuddiesCard({ shared }: { shared: boolean }) {
             </Text>
           </View>
           {b.studyingNow && b.meetUrl ? (
-            <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(b.meetUrl!)}>
+            <Pressable accessibilityRole="link" onPress={() => openExternal(b.meetUrl)}>
               <Text className="text-primary font-semibold">Join</Text>
             </Pressable>
           ) : null}

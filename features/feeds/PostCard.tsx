@@ -8,6 +8,7 @@ import { ago } from '@/features/notifications/describe'
 import { ReactionBar } from '@/features/discussion/Reactions'
 import { SaveNoteToggle } from '@/features/saved/SaveNoteToggle'
 import type { PostCardFieldsFragment } from '@/graphql/generated/graphql'
+import { httpUrl } from '@/lib/safe-url'
 
 const ART = {
   NOTE: { icon: BookOpen, tone: 'brand' as const },
@@ -30,11 +31,12 @@ export function PostCard({ note, topic, onChanged }: { note: PostCardFieldsFragm
   const glyph = palette.brandForeground
   const chip = topic ?? note.topics[0] ?? null
   const comments = note.discussion?.commentCount ?? 0
+  const picture = httpUrl(note.previewPicture?.mediumUrl ?? note.previewPicture?.url)
   return (
     <View className="bg-card border-border overflow-hidden rounded-2xl border">
       <Pressable accessibilityRole="link" accessibilityLabel={note.title || 'Untitled note'} onPress={() => router.push(`/notes/${note.id}`)}>
-        {note.previewPicture ? (
-          <Image source={{ uri: note.previewPicture.mediumUrl ?? note.previewPicture.url }} style={{ height: 150, width: '100%' }} resizeMode="cover" accessibilityIgnoresInvertColors />
+        {picture ? (
+          <Image source={{ uri: picture }} style={{ height: 150, width: '100%' }} resizeMode="cover" accessibilityIgnoresInvertColors />
         ) : (
           <View style={{ height: 72, alignItems: 'center', justifyContent: 'center', backgroundColor: palette[art.tone] }}>
             <Icon size={26} color={glyph} />

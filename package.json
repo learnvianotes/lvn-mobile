@@ -106,7 +106,8 @@
   },
   "pnpm": {
     "overrides": {
-      "@grpc/grpc-js": "^1.13.6"
+      "@grpc/grpc-js": "^1.13.6",
+      "node-forge": "1.4.1"
     },
     "auditConfig": {
       "ignoreGhsas": [

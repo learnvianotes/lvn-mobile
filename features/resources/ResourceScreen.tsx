@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { Image } from 'expo-image'
 import { router } from 'expo-router'
-import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Alert, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -11,6 +10,8 @@ import { ReportLink } from '@/features/moderation/ReportSheet'
 import { ScreenHeader } from '@/features/shell/Form'
 import { LoadState } from '@/features/shell/LoadState'
 import { DeleteResourceDocument, MyResourcesDocument, ResourceDocument } from '@/graphql/generated/graphql'
+import { openInBrowser } from '@/lib/open-external'
+import { httpUrl } from '@/lib/safe-url'
 import { cn } from '@/lib/utils'
 import { savesText, SaveToggle } from './Catalogue'
 import { STATUS_LABEL, TYPE_LABEL } from './copy'
@@ -44,6 +45,7 @@ export function ResourceScreen({ id }: { id: string }) {
       </View>
     )
   }
+  const cover = httpUrl(r.coverUrl)
   const confirmDelete = () =>
     Alert.alert('Delete this resource?', 'This cannot be undone.', [
       { text: 'Cancel', style: 'cancel' },
@@ -69,14 +71,14 @@ export function ResourceScreen({ id }: { id: string }) {
             {r.status === 'REJECTED' && r.reason ? <Text className="text-sm">Why moderators did not approve it: {r.reason}</Text> : null}
           </View>
         ) : null}
-        {r.coverUrl ? <Image source={{ uri: r.coverUrl }} style={{ height: 180, width: 135, borderRadius: 12 }} contentFit="contain" accessibilityIgnoresInvertColors /> : null}
+        {cover ? <Image source={{ uri: cover }} style={{ height: 180, width: 135, borderRadius: 12 }} contentFit="contain" accessibilityIgnoresInvertColors /> : null}
         <Text className="text-primary text-xs font-semibold uppercase">{TYPE_LABEL[r.type]}</Text>
         <Text className="text-2xl font-extrabold" accessibilityRole="header">
           {r.title}
         </Text>
         {r.author ? <Text className="text-muted-foreground text-sm">by {r.author}</Text> : null}
         {/* The link opens in the browser: it is someone's link, not LearnViaNotes' (ADR-0074). */}
-        <Pressable accessibilityRole="link" onPress={() => void WebBrowser.openBrowserAsync(r.url)} className="bg-primary self-start rounded-xl px-4 py-2.5">
+        <Pressable accessibilityRole="link" onPress={() => openInBrowser(r.url)} className="bg-primary self-start rounded-xl px-4 py-2.5">
           <Text className="text-primary-foreground font-semibold">Open {r.host}</Text>
         </Pressable>
         {r.status === 'APPROVED' ? (
