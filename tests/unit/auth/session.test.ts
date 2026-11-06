@@ -100,6 +100,32 @@ describe('signing in and out', () => {
     expect(s.takePendingRoute()).toBeNull()
   })
 
+  it('does not revive a session when the refresh answers after sign-out', async () => {
+    const issued = session()
+    let respond: (value: Response) => void = () => {}
+    const pendingResponse = new Promise<Response>((resolve) => {
+      respond = resolve
+    })
+    let started: () => void = () => {}
+    const startedP = new Promise<void>((resolve) => {
+      started = resolve
+    })
+    globalThis.fetch = jest.fn(() => {
+      started()
+      return pendingResponse
+    }) as unknown as typeof fetch
+    const { s, items } = load({ refresh: 'refresh-1', access: 'access-1' })
+    const refreshing = s.refreshSession()
+    await startedP
+    await s.signedOut()
+    const text = JSON.stringify({ data: { refreshSession: { session: issued } } })
+    respond({ ok: true, status: 200, json: async () => JSON.parse(text) } as Response)
+    await expect(refreshing).resolves.toBe(false)
+    expect(s.getSession().status).toBe('signed-out')
+    expect(items.get('lvn.refreshToken')).toBeUndefined()
+    expect(items.get('lvn.accessToken')).toBeUndefined()
+  })
+
   it('notifies subscribers and clears everything on sign-out', async () => {
     const { s, items } = load()
     const seen: string[] = []

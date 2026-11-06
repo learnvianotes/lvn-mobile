@@ -6,6 +6,8 @@ import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
+import { openExternal } from '@/lib/open-external'
+import { allowDomNavigation } from '@/lib/safe-url'
 import {
   PhoneAddHighlightDocument,
   PhoneConvertPdfDocument,
@@ -316,7 +318,17 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
             }}
             onFind={async (r) => setFound(r)}
             onError={async (kind) => setState(kind === 'password' ? 'password' : 'failed')}
-            dom={{ style: { flex: 1 }, scrollEnabled: false, matchContents: false }}
+            onOpenLink={async (link) => {
+              openExternal(link)
+            }}
+            dom={{
+              style: { flex: 1 },
+              scrollEnabled: false,
+              matchContents: false,
+              // The bundle is a file URL, so file access stays on. Other files, and every click, are refused.
+              allowFileAccessFromFileURLs: false,
+              onShouldStartLoadWithRequest: (request: { url: string; navigationType?: string }) => allowDomNavigation(request.url, request.navigationType),
+            }}
           />
         ) : null}
         {state !== 'ready' || !url ? (

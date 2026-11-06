@@ -1,15 +1,16 @@
 import { useQuery } from '@apollo/client/react'
 import { router, type Href } from 'expo-router'
 import { BookOpen, CircleHelp, FileText, GitBranch, Lightbulb, Megaphone, MessageSquare } from 'lucide-react-native'
-import { Linking, Pressable, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { RichDoc } from '@/features/notes/render/RichText'
 import { ago } from '@/features/notifications/describe'
 import { LoadState } from '@/features/shell/LoadState'
 import { ActivityFeedDocument, FollowingFeedDocument, ForYouFeedDocument, TrendingFeedDocument, type ActivityFeedQuery } from '@/graphql/generated/graphql'
-import { PostCard } from './PostCard'
 import type { Doc } from '@/lib/contracts/validation'
+import { openExternal } from '@/lib/open-external'
+import { PostCard } from './PostCard'
 
 type Item = ActivityFeedQuery['activityFeed']['edges'][number]['node']
 
@@ -61,7 +62,7 @@ function ActivityCard({ item }: { item: Item }) {
   const href = (item.doubt && item.group ? `/groups/${item.group.id}/doubts/${item.doubt.id}` : item.note ? `/notes/${item.note.id}` : item.group ? `/groups/${item.group.id}` : item.classroom ? `/classes/${item.classroom.id}` : null) as Href | null
   const body = item.post?.body ?? item.announcement?.body
   return (
-    <Pressable accessibilityRole="link" disabled={!href && !external} onPress={() => (external ? void Linking.openURL(external) : href && router.push(href))} className="bg-card border-border gap-2 rounded-2xl border p-4">
+    <Pressable accessibilityRole="link" disabled={!href && !external} onPress={() => (external ? openExternal(external) : href && router.push(href))} className="bg-card border-border gap-2 rounded-2xl border p-4">
       <View className="flex-row items-start gap-2">
         <Icon size={16} color={accent} />
         <Text className="flex-1 text-sm">

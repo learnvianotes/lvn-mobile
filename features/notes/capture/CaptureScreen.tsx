@@ -10,6 +10,7 @@ import { Progress } from '@/components/ui/progress'
 import { Text } from '@/components/ui/text'
 import { RunAiTaskDocument } from '@/graphql/generated/graphql'
 import { QuickNoteLimits } from '@/lib/contracts/domain/enums'
+import { localMediaUri } from '@/lib/safe-url'
 import { UploadError, uploadToNote } from '../media/NoteMedia'
 import { appendCard, createNote, deleteCard, setTitle } from '../store/actions'
 import * as db from '../store/db'
@@ -159,26 +160,29 @@ export function CaptureScreen({ start }: { start?: Source }) {
         {busy && 'adding' in busy ? <ActivityIndicator accessibilityLabel="Adding" /> : null}
         {!items.length && !busy ? <Text className="text-muted-foreground text-sm">Nothing added yet.</Text> : null}
         <View className="flex-row flex-wrap gap-3">
-          {items.map((item, i) => (
-            <View key={item.key} className="w-[30%] gap-1" accessibilityLabel={`${i + 1}. ${item.name}, ${sizeLabel(item.size)}`}>
-              <View className="border-border bg-card aspect-[3/4] items-center justify-center overflow-hidden rounded-xl border">
-                {item.kind === 'image' ? <Image source={{ uri: item.uri }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <FileText size={28} color={String(muted ?? '#3d4b63')} />}
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Remove ${item.name}`}
-                  disabled={!!busy}
-                  onPress={() => setItems((all) => all.filter((x) => x.key !== item.key))}
-                  className="bg-background/90 absolute right-1 top-1 rounded-full p-1"
-                >
-                  <X size={14} color={String(fg ?? '#152033')} />
-                </Pressable>
+          {items.map((item, i) => {
+            const preview = item.kind === 'image' ? localMediaUri(item.uri) : null
+            return (
+              <View key={item.key} className="w-[30%] gap-1" accessibilityLabel={`${i + 1}. ${item.name}, ${sizeLabel(item.size)}`}>
+                <View className="border-border bg-card aspect-[3/4] items-center justify-center overflow-hidden rounded-xl border">
+                  {preview ? <Image source={{ uri: preview }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <FileText size={28} color={String(muted ?? '#3d4b63')} />}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove ${item.name}`}
+                    disabled={!!busy}
+                    onPress={() => setItems((all) => all.filter((x) => x.key !== item.key))}
+                    className="bg-background/90 absolute right-1 top-1 rounded-full p-1"
+                  >
+                    <X size={14} color={String(fg ?? '#152033')} />
+                  </Pressable>
+                </View>
+                <Text className="text-xs" numberOfLines={1}>
+                  {item.kind === 'pdf' ? item.name : `Photo ${items.slice(0, i + 1).filter((x) => x.kind === 'image').length}`}
+                </Text>
+                <Text className="text-muted-foreground text-xs">{item.fileId ? 'Uploaded' : sizeLabel(item.size)}</Text>
               </View>
-              <Text className="text-xs" numberOfLines={1}>
-                {item.kind === 'pdf' ? item.name : `Photo ${items.slice(0, i + 1).filter((x) => x.kind === 'image').length}`}
-              </Text>
-              <Text className="text-muted-foreground text-xs">{item.fileId ? 'Uploaded' : sizeLabel(item.size)}</Text>
-            </View>
-          ))}
+            )
+          })}
         </View>
         {problem ? (
           <Text accessibilityRole="alert" className="text-destructive text-sm">

@@ -1,5 +1,5 @@
 import type { ApolloClient } from '@apollo/client'
-import { uploadFile } from '@/features/notes/media/NoteMedia'
+import { UploadError, uploadFile, uploadFileName } from '@/features/notes/media/NoteMedia'
 
 /**
  * The size signed into an upload URL is the bytes sent (storage refuses any other): a picker's reported size is not
@@ -17,4 +17,15 @@ it('declares the size of the bytes it sends, not the size the picker reported', 
   expect(id).toBe('f1')
   expect(mutate.mock.calls[0]![0].variables.input.sizeBytes).toBe(3)
   expect(put).toHaveBeenCalled()
+})
+
+it('uses the file name, not a directory, and refuses an upload that is not http(s) or not a local file', async () => {
+  expect(uploadFileName('../../notes/photo.jpg')).toBe('photo.jpg')
+  expect(uploadFileName('')).toBe('file')
+  const body = new Blob([new Uint8Array([1])], { type: 'image/jpeg' })
+  globalThis.fetch = jest.fn(async () => ({ blob: async () => body, ok: true })) as unknown as typeof fetch
+  const mutate = jest.fn(async () => ({ data: { createUploadIntent: { intent: { fileId: 'f1', uploadUrl: 'file:///data/data/com.learnvianotes/databases/lvn-notes.db', uploadHeaders: [] }, userErrors: [] } } }))
+  await expect(uploadFile({ mutate } as unknown as ApolloClient, { uri: 'file:///photo.jpg', name: 'a/photo.jpg', mimeType: 'image/jpeg' }, { purpose: 'ATTACHMENT' })).rejects.toBeInstanceOf(UploadError)
+  expect(mutate).toHaveBeenCalledWith(expect.objectContaining({ variables: { input: expect.objectContaining({ fileName: 'photo.jpg' }) } }))
+  await expect(uploadFile({ mutate: jest.fn() } as unknown as ApolloClient, { uri: 'https://evil.example/photo.jpg', name: 'photo.jpg', mimeType: 'image/jpeg' }, { purpose: 'ATTACHMENT' })).rejects.toBeInstanceOf(UploadError)
 })

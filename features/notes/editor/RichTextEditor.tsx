@@ -68,6 +68,30 @@ export default function RichTextEditor({
       timer.current = setTimeout(() => void onChange(e.getJSON() as Doc), 300)
     },
   })
+  // The web view allows file access. A link in the document must not navigate it.
+  useEffect(() => {
+    const block = (e: Event) => {
+      if (e.type === 'submit') {
+        e.preventDefault()
+        e.stopPropagation()
+        return
+      }
+      const anchor = (e.target as Element | null)?.closest?.('a')
+      const href = anchor?.getAttribute('href')
+      if (!anchor || href == null || href === '' || href.startsWith('#')) return
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    document.addEventListener('click', block, true)
+    document.addEventListener('submit', block, true)
+    const previousOpen = window.open
+    window.open = () => null
+    return () => {
+      document.removeEventListener('click', block, true)
+      document.removeEventListener('submit', block, true)
+      window.open = previousOpen
+    }
+  }, [])
   // The last change is sent when the editor closes, not lost to the debounce.
   useEffect(
     () => () => {

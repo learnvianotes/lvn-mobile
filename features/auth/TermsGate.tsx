@@ -1,7 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { Portal } from '@rn-primitives/portal'
 import { router, usePathname } from 'expo-router'
-import * as WebBrowser from 'expo-web-browser'
 import { FileText } from 'lucide-react-native'
 import { useState } from 'react'
 import { Pressable, View } from 'react-native'
@@ -10,6 +9,7 @@ import { Text } from '@/components/ui/text'
 import { Outcome, Pill } from '@/features/shell/Form'
 import { AcceptTermsDocument, TermsStatusDocument } from '@/graphql/generated/graphql'
 import { env } from '@/lib/env'
+import { openInBrowser } from '@/lib/open-external'
 
 /** The documents people accept (lvn-web's features/legal/documents.ts): one version covers all three. */
 const DOCUMENTS = [
@@ -45,7 +45,7 @@ export function TermsGate() {
           </Text>
           <Text className="text-muted-foreground text-sm">Please read what changed and accept to keep using LearnViaNotes.</Text>
           {DOCUMENTS.map((d) => (
-            <Pressable key={d.path} accessibilityRole="link" onPress={() => void WebBrowser.openBrowserAsync(new URL(d.path, env.EXPO_PUBLIC_WEB_URL).toString())} className="border-border flex-row items-center gap-2 rounded-xl border px-3 py-2.5">
+            <Pressable key={d.path} accessibilityRole="link" onPress={() => openInBrowser(new URL(d.path, env.EXPO_PUBLIC_WEB_URL).toString())} className="border-border flex-row items-center gap-2 rounded-xl border px-3 py-2.5">
               <FileText size={16} color={accent} />
               <Text className="font-medium">{d.title}</Text>
             </Pressable>

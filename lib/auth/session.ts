@@ -29,6 +29,22 @@ let timer: ReturnType<typeof setTimeout> | undefined
 let inFlight: Promise<boolean> | null = null
 /** A screen to open once the signed-in screens are mounted, e.g. the code entry after sign-up. */
 let pendingRoute: string | null = null
+/**
+ * Bumped on every sign-out. A refresh that started before the sign-out must not write the tokens back: the API
+ * rotates the refresh token, and that answer can arrive after the person has signed out.
+ */
+let generation = 0
+/** Token writes are one at a time, so a sign-out cannot land between saving a session and clearing it. */
+let tokenWrite: Promise<void> = Promise.resolve()
+
+function writeTokens(task: () => Promise<void>): Promise<void> {
+  const run = tokenWrite.then(task, task)
+  tokenWrite = run.then(
+    () => undefined,
+    () => undefined,
+  )
+  return run
+}
 
 function set(next: Partial<SessionState>): void {
   state = { ...state, ...next }
@@ -51,13 +67,29 @@ function schedule(expiresAt: string): void {
   timer = setTimeout(() => void refreshSession(), Math.max(5_000, Date.parse(expiresAt) - Date.now() - EARLY_MS))
 }
 
-/** Stores a session the API just issued (sign-in, sign-up, provider sign-in or refresh). */
-export async function signedIn(session: IssuedSession, then?: string): Promise<void> {
-  if (!session.refreshToken) throw new Error('The API sent no refresh token; is the X-LVN-Client header missing?')
-  await saveTokens({ accessToken: session.accessToken, accessTokenExpiresAt: session.accessTokenExpiresAt, refreshToken: session.refreshToken })
-  pendingRoute = then ?? null
-  schedule(session.accessTokenExpiresAt)
-  set({ status: 'signed-in', accessToken: session.accessToken, registrationComplete: session.user.registrationComplete })
+/**
+ * Stores a session the API just issued (sign-in, sign-up, provider sign-in or refresh). `seen` is the sign-out
+ * generation at the start of a refresh; a newer sign-out wins and the tokens are not put back.
+ */
+export async function signedIn(session: IssuedSession, then?: string, seen = generation): Promise<void> {
+  const refreshToken = session.refreshToken
+  if (!refreshToken) throw new Error('The API sent no refresh token; is the X-LVN-Client header missing?')
+  await writeTokens(async () => {
+    if (seen !== generation) return
+    await saveTokens({ accessToken: session.accessToken, accessTokenExpiresAt: session.accessTokenExpiresAt, refreshToken })
+    if (seen !== generation) {
+      await clearTokens()
+      return
+    }
+    pendingRoute = then ?? null
+    schedule(session.accessTokenExpiresAt)
+    if (seen !== generation) {
+      clearTimeout(timer)
+      await clearTokens()
+      return
+    }
+    set({ status: 'signed-in', accessToken: session.accessToken, registrationComplete: session.user.registrationComplete })
+  })
 }
 
 /** The registration details were saved (provider sign-ups, ADR-0017). */
@@ -74,10 +106,15 @@ export function takePendingRoute(): string | null {
 }
 
 export async function signedOut(): Promise<void> {
+  const seen = ++generation
   clearTimeout(timer)
   pendingRoute = null
-  await clearTokens()
-  set({ status: 'signed-out', accessToken: null, registrationComplete: null })
+  await writeTokens(async () => {
+    clearTimeout(timer)
+    await clearTokens()
+    if (seen !== generation) return
+    set({ status: 'signed-out', accessToken: null, registrationComplete: null })
+  })
 }
 
 const REFRESH = `mutation Refresh($refreshToken: String!) {
@@ -92,9 +129,11 @@ const REFRESH = `mutation Refresh($refreshToken: String!) {
  * Offline, the session is kept and the next request tries again; a refusal from the API signs the person out.
  */
 export function refreshSession(): Promise<boolean> {
+  const seen = generation
   inFlight ??= (async () => {
     try {
       const stored = await loadTokens()
+      if (seen !== generation) return false
       if (!stored) {
         await signedOut()
         return false
@@ -108,9 +147,11 @@ export function refreshSession(): Promise<boolean> {
         })
         body = (await res.json()) as typeof body
       } catch {
+        if (seen !== generation) return false
         if (state.status === 'restoring') set({ status: 'signed-in', accessToken: stored.accessToken || null })
         return true
       }
+      if (seen !== generation) return false
       const session = body.data?.refreshSession?.session
       if (!session) {
         // Only the API's refusal ends the session; a server fault is treated like being offline.
@@ -121,8 +162,8 @@ export function refreshSession(): Promise<boolean> {
         if (state.status === 'restoring') set({ status: 'signed-in', accessToken: stored.accessToken || null })
         return state.status === 'signed-in'
       }
-      await signedIn(session, pendingRoute ?? undefined)
-      return true
+      await signedIn(session, pendingRoute ?? undefined, seen)
+      return seen === generation && state.status === 'signed-in'
     } finally {
       inFlight = null
     }

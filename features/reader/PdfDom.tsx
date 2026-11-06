@@ -8,6 +8,7 @@ import 'pdfjs-dist/legacy/build/pdf.worker.mjs'
 import * as ui from 'pdfjs-dist/legacy/web/pdf_viewer.mjs'
 import { useEffect, useRef } from 'react'
 import type { DOMProps } from 'expo/dom'
+import { externalUrl } from '@/lib/safe-url'
 import { hits, quoteOf, selectionRects, type PageRect } from './geometry'
 import { pdfSource } from './ranges'
 
@@ -62,6 +63,7 @@ export default function PdfDom({
   onMark,
   onFind,
   onError,
+  onOpenLink,
 }: {
   url: string
   /** A new URL for the same file when the old one has expired (lvn-backend ADR-0090) */
@@ -78,6 +80,8 @@ export default function PdfDom({
   onMark: (id: string) => Promise<void>
   onFind: (result: { current: number; total: number } | null) => Promise<void>
   onError: (kind: 'load' | 'password') => Promise<void>
+  /** A link inside the PDF. This page does not navigate to it. */
+  onOpenLink: (url: string) => Promise<void>
   dom?: DOMProps
 }) {
   const container = useRef<HTMLDivElement>(null)
@@ -87,8 +91,8 @@ export default function PdfDom({
   const marksRef = useRef(marks)
   marksRef.current = marks
   const flash = useRef<{ page: number; rects: PageRect[]; until: number } | null>(null)
-  const callbacks = useRef({ onReady, onPage, onSelection, onMark, onFind, onError, refreshUrl, url })
-  callbacks.current = { onReady, onPage, onSelection, onMark, onFind, onError, refreshUrl, url }
+  const callbacks = useRef({ onReady, onPage, onSelection, onMark, onFind, onError, onOpenLink, refreshUrl, url })
+  callbacks.current = { onReady, onPage, onSelection, onMark, onFind, onError, onOpenLink, refreshUrl, url }
   // The file, not its URL: a fresh URL for the same file (its signature renewed) must not reload the document.
   const fileKey = url.split('?')[0]
 
@@ -121,7 +125,7 @@ export default function PdfDom({
     if (!box || !pages) return
     let cancelled = false
     const bus = new ui.EventBus()
-    const links = new ui.PDFLinkService({ eventBus: bus, externalLinkTarget: ui.LinkTarget.BLANK, externalLinkRel: 'noopener noreferrer nofollow' })
+    const links = new ui.PDFLinkService({ eventBus: bus, externalLinkTarget: ui.LinkTarget.NONE, externalLinkRel: 'noopener noreferrer nofollow' })
     const finder = new ui.PDFFindController({ eventBus: bus, linkService: links })
     const viewer = new ui.PDFViewer({ container: box, viewer: pages, eventBus: bus, linkService: links, findController: finder, textLayerMode: 1, annotationMode: pdfjs.AnnotationMode.ENABLE, annotationEditorMode: pdfjs.AnnotationEditorType.DISABLE })
     links.setViewer(viewer)
@@ -203,10 +207,35 @@ export default function PdfDom({
     }
     box.addEventListener('click', onClick)
 
+    // This web view allows file access and keeps a message bridge to the native props, so a link or form inside the
+    // PDF must not load here. A web or mail link opens outside the app; anything else is ignored.
+    const blockNavigation = (e: Event) => {
+      if (e.type === 'submit') {
+        e.preventDefault()
+        e.stopPropagation()
+        return
+      }
+      const anchor = (e.target as Element | null)?.closest?.('a')
+      if (!anchor) return
+      const href = anchor.getAttribute('href')
+      if (href == null || href === '' || href.startsWith('#')) return
+      e.preventDefault()
+      e.stopPropagation()
+      const safe = externalUrl(href)
+      if (safe) void callbacks.current.onOpenLink(safe)
+    }
+    document.addEventListener('click', blockNavigation, true)
+    document.addEventListener('submit', blockNavigation, true)
+    const previousOpen = window.open
+    window.open = () => null
+
     return () => {
       cancelled = true
       clearTimeout(timer)
       document.removeEventListener('selectionchange', soon)
+      document.removeEventListener('click', blockNavigation, true)
+      document.removeEventListener('submit', blockNavigation, true)
+      window.open = previousOpen
       box.removeEventListener('click', onClick)
       void loading?.destroy()
       viewer.cleanup()

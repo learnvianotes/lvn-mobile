@@ -1,7 +1,6 @@
 import { CombinedGraphQLErrors } from '@apollo/client/errors'
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import * as WebBrowser from 'expo-web-browser'
 import { useState } from 'react'
 import { Pressable, TextInput, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
@@ -10,6 +9,7 @@ import { attempt } from '@/features/groups/shared'
 import { ago } from '@/features/notifications/describe'
 import { ModerateContentDocument, ModerationQueueDocument, MuteGroupMemberDocument, type ModerationActionType, type ModerationQueueQuery } from '@/graphql/generated/graphql'
 import { TYPE_LABEL } from '@/features/resources/copy'
+import { openInBrowser } from '@/lib/open-external'
 import { ENTITY, REASON_LABEL, STATE } from './copy'
 
 type Case = ModerationQueueQuery['moderationQueue']['edges'][number]['node']
@@ -198,7 +198,7 @@ function ResourceCase({ resource: r }: { resource: NonNullable<Case['resource']>
         {r.author ? ` · ${r.author}` : ''}
         {r.isbn ? ` · ISBN ${r.isbn}` : ''} · by {r.submittedBy.displayName}
       </Text>
-      <Pressable accessibilityRole="link" onPress={() => void WebBrowser.openBrowserAsync(r.url)}>
+      <Pressable accessibilityRole="link" onPress={() => openInBrowser(r.url)}>
         <Text className="text-primary text-sm font-semibold">{r.url}</Text>
       </Pressable>
       {r.description ? (

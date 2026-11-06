@@ -1,7 +1,8 @@
 import { router } from 'expo-router'
 import type { ReactNode } from 'react'
-import { Linking, View, type TextStyle } from 'react-native'
+import { View, type TextStyle } from 'react-native'
 import { Text } from '@/components/ui/text'
+import { openExternal } from '@/lib/open-external'
 import { getTheme } from '@/lib/theme/store'
 import type { BlockNode, Doc, Inline, Mark } from '@/lib/contracts/validation'
 
@@ -61,7 +62,7 @@ export function InlineText({ content, className, mentions = false }: { content: 
         const link = n.marks?.find((m) => m.type === 'link') as { attrs?: { href?: string } } | undefined
         const plain = mentions && !link && !n.marks?.some((m) => m.type === 'code')
         return (
-          <Text key={i} style={markStyle(n.marks)} className={link ? 'text-primary underline' : undefined} onPress={link?.attrs?.href ? () => void Linking.openURL(link.attrs!.href!) : undefined}>
+          <Text key={i} style={markStyle(n.marks)} className={link ? 'text-primary underline' : undefined} onPress={link?.attrs?.href ? () => openExternal(link.attrs!.href) : undefined}>
             {plain ? withMentions(n.text, i) : n.text}
           </Text>
         )

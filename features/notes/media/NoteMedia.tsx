@@ -3,6 +3,7 @@ import { useApolloClient, useQuery } from '@apollo/client/react'
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { CompleteNoteUploadDocument, CreateNoteUploadDocument, PhoneNoteMediaDocument, type PhoneMediaFieldsFragment, type PhoneNoteMediaQuery } from '@/graphql/generated/graphql'
 import { reportClientError } from '@/lib/client-errors'
+import { httpUrl, localMediaUri } from '@/lib/safe-url'
 
 /**
  * A note's pictures, video, audio and files on the phone (lvn-backend §8.1, ADR-0041). Media cards hold only a file id;
@@ -101,17 +102,39 @@ export function cardTypeFor(mime: string): 'image' | 'video' | 'audio' | 'file' 
 export class UploadError extends Error {}
 
 const UPLOAD_FAILED = 'The file could not be uploaded. Try again.'
+const HEADER_NAME = /^[A-Za-z0-9-]{1,64}$/
+
+/** The last path segment, with control characters removed. A picker name can contain directories. */
+export function uploadFileName(name: string): string {
+  const base = name.replace(/[\u0000-\u001f]/g, '').split(/[/\\]/).pop()?.trim() ?? ''
+  return base.slice(0, 200) || 'file'
+}
+
+/** Headers storage asked for, minus Content-Length (the body sets that) and anything that is not a header name. */
+function signedHeaders(uploadHeaders: { name: string; value: string }[]): Record<string, string> | null {
+  const headers: Record<string, string> = {}
+  for (const h of uploadHeaders) {
+    if (!HEADER_NAME.test(h.name) || /[\r\n]/.test(h.value)) return null
+    if (h.name.toLowerCase() === 'content-length') continue
+    headers[h.name] = h.value
+  }
+  return headers
+}
 
 /** PUT bytes to a signed upload URL. A failure is reported with no file name, address or email. */
 export async function putStoredFile(client: ApolloClient, upload: { uploadUrl: string; uploadHeaders: { name: string; value: string }[] }, body: Blob, mimeType: string): Promise<void> {
-  const headers: Record<string, string> = {}
-  for (const h of upload.uploadHeaders) if (h.name.toLowerCase() !== 'content-length') headers[h.name] = h.value
+  const uploadUrl = httpUrl(upload.uploadUrl)
+  const headers = uploadUrl ? signedHeaders(upload.uploadHeaders) : null
+  if (!uploadUrl || !headers) {
+    reportClientError(client, { code: 'upload', message: UPLOAD_FAILED })
+    throw new UploadError(UPLOAD_FAILED)
+  }
   // Android sends a blob with the blob's own type (guessed from the file's extension) whatever Content-Type is given,
   // and storage checks the type signed into the URL: the body takes the type the upload was asked for.
   const typed = body.type === mimeType ? body : body.slice(0, body.size, mimeType)
   let put: Response
   try {
-    put = await fetch(upload.uploadUrl, { method: 'PUT', headers, body: typed })
+    put = await fetch(uploadUrl, { method: 'PUT', headers, body: typed })
   } catch {
     reportClientError(client, { code: 'upload', message: UPLOAD_FAILED })
     throw new UploadError(UPLOAD_FAILED)
@@ -127,10 +150,13 @@ export async function putStoredFile(client: ApolloClient, upload: { uploadUrl: s
  * it asked for, then the API checks the file. Returns the file id.
  */
 export async function uploadFile(client: ApolloClient, picked: { uri: string; name: string; mimeType: string; size?: number | null }, purpose: { purpose: 'ATTACHMENT' | 'IMPORT' | 'VERIFICATION_DOCUMENT' | 'COVER' | 'GROUP_PICTURE'; parentId?: string }): Promise<string> {
-  const body = await (await fetch(picked.uri)).blob()
+  // Only a file the phone just picked. A remote address here would be downloaded and then sent on.
+  const uri = localMediaUri(picked.uri)
+  if (!uri) throw new UploadError(UPLOAD_FAILED)
+  const body = await (await fetch(uri)).blob()
   // The size signed into the upload URL must be the bytes sent: a picker's reported size can differ (a camera photo is
   // compressed after the picker measures it), and storage then refuses the upload.
-  const res = await client.mutate({ mutation: CreateNoteUploadDocument, variables: { input: { fileName: picked.name || 'file', mimeType: picked.mimeType, sizeBytes: body.size, purpose: purpose.purpose, ...(purpose.parentId ? { parentId: purpose.parentId } : {}) } } })
+  const res = await client.mutate({ mutation: CreateNoteUploadDocument, variables: { input: { fileName: uploadFileName(picked.name), mimeType: picked.mimeType, sizeBytes: body.size, purpose: purpose.purpose, ...(purpose.parentId ? { parentId: purpose.parentId } : {}) } } })
   const intent = res.data?.createUploadIntent.intent
   if (!intent) throw new UploadError(res.data?.createUploadIntent.userErrors[0]?.message ?? 'The file could not be uploaded.')
   await putStoredFile(client, intent, body, picked.mimeType)

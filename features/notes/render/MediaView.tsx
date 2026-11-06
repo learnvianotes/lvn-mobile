@@ -2,10 +2,12 @@ import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio'
 import { Image } from 'expo-image'
 import { useVideoPlayer, VideoView } from 'expo-video'
 import { FileText, ImageIcon, Pause, Play } from 'lucide-react-native'
-import { Linking, Pressable, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import type { Inline } from '@/lib/contracts/validation'
+import { openExternal } from '@/lib/open-external'
+import { httpUrl, mediaUri } from '@/lib/safe-url'
 import { useTheme } from '@/lib/theme'
 import { useMediaFile } from '../media/NoteMedia'
 import { InlineText } from './RichText'
@@ -21,8 +23,9 @@ const LABEL = { image: 'picture', video: 'video', audio: 'recording', file: 'fil
 export function MediaView({ type, content }: { type: 'image' | 'video' | 'audio' | 'file'; content: MediaContent }) {
   const { file, localUri } = useMediaFile(content.fileId)
   const caption = content.caption?.length ? <InlineText content={content.caption} className="text-muted-foreground text-sm" /> : null
-  if (!file && !localUri) return <Placeholder type={type} />
-  const uri = type === 'image' ? (file?.mediumUrl ?? file?.url ?? localUri!) : (file?.playbackUrl ?? file?.url ?? localUri!)
+  const remote = httpUrl(type === 'image' ? (file?.mediumUrl ?? file?.url) : (file?.playbackUrl ?? file?.url))
+  const uri = remote ?? mediaUri(localUri)
+  if (!uri) return <Placeholder type={type} />
   return (
     <View className="gap-1.5">
       {type === 'image' ? (
@@ -100,7 +103,7 @@ function Audio({ uri, name }: { uri: string; name: string }) {
 function FileLink({ url, name }: { url: string | null; name: string }) {
   const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
   return (
-    <Pressable accessibilityRole="link" accessibilityLabel={`Open ${name}`} disabled={!url} onPress={() => url && void Linking.openURL(url)} className="border-border flex-row items-center gap-3 rounded-2xl border p-3">
+    <Pressable accessibilityRole="link" accessibilityLabel={`Open ${name}`} disabled={!httpUrl(url)} onPress={() => openExternal(url)} className="border-border flex-row items-center gap-3 rounded-2xl border p-3">
       <FileText size={20} color={accent} />
       <Text className="flex-1 font-semibold" numberOfLines={1}>
         {name}
