@@ -31,8 +31,8 @@ export const copy = {
     password: 'Password',
     passwordHint: 'At least 10 characters. Avoid passwords you use elsewhere.',
     age: 'Your age',
-    ageHint: 'In whole years. Only used for age rules; never shown to anyone.',
-    // The API's words for the same problems (lvn-backend ADR-0104). None names the minimum age.
+    ageHint: 'In whole years, at least 8. Only used for age rules; never shown to anyone.',
+    // The same problems the API reports (lvn-backend ADR-0104). The range names the account floor of 8.
     ageProblems: {
       required: 'Enter your age.',
       whole: 'Enter your age as a whole number.',
@@ -52,7 +52,7 @@ export const copy = {
     confirm: 'Yes, that’s right',
     change: 'Change it',
     refusedTitle: 'Sorry, you can’t create an account',
-    refusedLead: 'LearnViaNotes accounts are only for adults. If you already have an account, you can still sign in.',
+    refusedLead: 'LearnViaNotes accounts are for ages 8 and up. If you already have an account, you can still sign in.',
   },
   details: {
     title: (firstName?: string) => (firstName ? `Almost there, ${firstName}` : 'Almost there'),
@@ -110,7 +110,7 @@ export const copy = {
     verifiedBy: { INSTITUTIONAL_EMAIL: 'by your college email', TEACHER: 'by a teacher', DOCUMENTS: 'by our team' } as Record<string, string>,
     verifyLead: 'You can keep notes, study and use your classes. Some features wait until this account is verified.',
     emailUnverified: 'Confirm your sign-in email. Open the link we send, then come back.',
-    minor: 'Some features stay off until a parent, guardian or your school confirms your account.',
+    minor: 'This is a restricted account. Some features stay off.',
     institution: 'College or organisation email',
     status: {
       CODE_SENT: (email: string) => `Code sent to ${email}`,

@@ -3,7 +3,7 @@
 
 Normative values live in [`tokens.json`](./tokens.json). Web maps them to CSS variables in `app/globals.css` (product) and `core-app/src/shared/styles/base.css` (reader). Mobile should read `tokens.json` and this document, not Tailwind class names.
 
-The product is a study tool for college and interview preparation, 18+, global audience. One navy, ink, and paper. No purple, violet, indigo, lavender, pink gradients, sparkle marks, dummy testimonials, or invented statistics.
+The product is a study tool for college and interview preparation, ages 8 and up, global audience. One navy, ink, and paper. No purple, violet, indigo, lavender, pink gradients, sparkle marks, dummy testimonials, or invented statistics.
 
 ## Themes
 

@@ -46,8 +46,8 @@ export async function currentTerms(loaded: { termsVersion: string } | undefined,
 
 /**
  * Email + password registration; GitHub and LinkedIn above it when configured. The age is confirmed in words before
- * anything is sent, and only the age is sent (lvn-backend ADR-0104); a refusal (ADR-0091) closes this form on the
- * device for a day.
+ * anything is sent, and only the age is sent (lvn-backend ADR-0104). Ages 8 to 17 join as a restricted account, with
+ * no parent or guardian step. A refusal under that floor (ADR-0091) closes this form on the device for a day.
  */
 export function SignUpForm() {
   const t = copy.signUp

@@ -72,6 +72,17 @@ it('every row opens its screen, and the gear opens Settings', async () => {
   expect(router.push).toHaveBeenLastCalledWith('/settings')
 })
 
+it('a restricted account says some features stay off, and does not ask a parent or guardian to confirm', async () => {
+  mockApi({
+    Viewer: () => ({ data: { viewer: viewer({ restrictedMinor: true }) } }),
+    MyStanding: () => standing,
+    MyDataExports: () => ({ data: { myDataExports: [] } }),
+  })
+  await inApp(<AccountScreen />)
+  expect(await screen.findByText('This is a restricted account. Some features stay off.')).toBeOnTheScreen()
+  expect(screen.queryByText(/parent|guardian/i)).toBeNull()
+})
+
 it('Settings holds the account: notification settings, sign-out, and the way back', async () => {
   await inApp(<AccountScreen />)
   expect(await screen.findByRole('header', { name: 'Your account' })).toBeOnTheScreen()
