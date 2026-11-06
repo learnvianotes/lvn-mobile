@@ -75,7 +75,9 @@ it('every row opens its screen, and the gear opens Settings', async () => {
 it('Settings holds the account: notification settings, sign-out, and the way back', async () => {
   await inApp(<AccountScreen />)
   expect(await screen.findByRole('header', { name: 'Your account' })).toBeOnTheScreen()
-  await fireEvent.press(await screen.findByRole('link', { name: 'Notification settings' }))
+  expect(await screen.findByRole('link', { name: 'Contact support' })).toBeOnTheScreen()
+  expect(screen.getByText('support@learnvianotes.in')).toBeOnTheScreen()
+  await fireEvent.press(screen.getByRole('link', { name: 'Notification settings' }))
   expect(router.push).toHaveBeenLastCalledWith('/notification-settings')
   expect(screen.getByTestId('sign-out')).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('button', { name: 'Back' }))

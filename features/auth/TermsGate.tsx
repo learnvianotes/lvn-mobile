@@ -8,6 +8,7 @@ import { Pressable, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { Outcome, Pill } from '@/features/shell/Form'
+import { SupportLink } from '@/features/shell/SupportLink'
 import { AcceptTermsDocument, TermsStatusDocument } from '@/graphql/generated/graphql'
 import { env } from '@/lib/env'
 
@@ -50,6 +51,7 @@ export function TermsGate() {
               <Text className="font-medium">{d.title}</Text>
             </Pressable>
           ))}
+          <SupportLink className="min-h-10 justify-center self-start" />
           <Outcome message={error ? { ok: false, text: error } : null} />
           <View className="flex-row flex-wrap items-center justify-between gap-2">
             <Pressable accessibilityRole="link" onPress={() => router.navigate('/settings')} className="py-2">

@@ -1,6 +1,6 @@
 import { parseEnv } from '@/lib/parse-env'
 
-const base = { EXPO_PUBLIC_APP_ENV: 'production', EXPO_PUBLIC_WEB_URL: 'https://www.learnvianotes.in', EXPO_PUBLIC_API_URL: 'https://api.learnvianotes.in/graphql' }
+const base = { EXPO_PUBLIC_APP_ENV: 'production', EXPO_PUBLIC_WEB_URL: 'https://app.learnvianotes.in', EXPO_PUBLIC_API_URL: 'https://api.learnvianotes.in/graphql' }
 
 describe('parseEnv', () => {
   it('accepts the three environments', () => {
