@@ -6,6 +6,7 @@ import { useCSSVariable } from 'uniwind'
 import { Text } from '@/components/ui/text'
 import { LandingArt } from '@/features/marketing/LandingArt'
 import { PublicHeader } from '@/features/shell/PublicHeader'
+import { SupportLink } from '@/features/shell/SupportLink'
 import { env } from '@/lib/env'
 import { useTheme } from '@/lib/theme'
 import { useAgeRefused } from './AgeCheck'
@@ -104,6 +105,7 @@ export function Welcome() {
                 <Text className="text-muted-foreground text-sm">{item.label}</Text>
               </Pressable>
             ))}
+            <SupportLink />
           </View>
         </View>
       </ScrollView>

@@ -1,6 +1,6 @@
 import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { ArrowLeft, BadgeCheck, Bell, ChevronRight } from 'lucide-react-native'
+import { ArrowLeft, BadgeCheck, Bell, ChevronRight, Mail } from 'lucide-react-native'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -21,6 +21,8 @@ import { VerifyEmailBanner } from './VerifyEmailBanner'
 import { forgetPushToken } from '@/features/push/push'
 import { AiAccountCard } from '@/features/ai/AiScreen'
 import { AppearanceCard } from '@/features/settings/AppearanceCard'
+import { SupportLink } from '@/features/shell/SupportLink'
+import { SUPPORT_EMAIL } from '@/lib/support'
 import { InterestsCard } from './Interests'
 
 const card = 'bg-card border-border gap-3 rounded-2xl border p-5'
@@ -54,6 +56,7 @@ export function AccountScreen() {
         {viewer ? <LegacyDataCard /> : null}
         {viewer ? <AiAccountCard className={card} /> : null}
         {viewer ? <NotificationSettingsLink /> : null}
+        {viewer ? <SupportRow /> : null}
         {viewer ? <YourDataCard /> : null}
         {/* Importing uploads the file: only while uploads are on (lvn-backend ADR-0097). */}
         {viewer && uploadsOn ? <ImportCard /> : null}
@@ -61,6 +64,19 @@ export function AccountScreen() {
         {viewer ? <DeleteAccountCard /> : null}
       </ScrollView>
     </View>
+  )
+}
+
+function SupportRow() {
+  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  return (
+    <SupportLink label="Contact support" className="bg-card border-border min-h-0 flex-row items-center gap-3 rounded-2xl border px-5 py-4">
+      <Mail size={20} color={primary} />
+      <View className="flex-1">
+        <Text className="font-semibold">Contact support</Text>
+        <Text className="text-muted-foreground text-sm">{SUPPORT_EMAIL}</Text>
+      </View>
+    </SupportLink>
   )
 }
 

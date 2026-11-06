@@ -23,7 +23,7 @@ this file and the spec disagree, the spec wins unless an accepted ADR says other
 | Bundle id / package | `com.learnvianotes.dev` | `com.learnvianotes.sandbox` | `com.learnvianotes` |
 | Run / build | `pnpm android`, `pnpm build:android development` | `pnpm build:android sandbox` | `pnpm build:android production` |
 | URL scheme | `learnvianotes-dev` | `learnvianotes-sandbox` | `learnvianotes` |
-| `EXPO_PUBLIC_WEB_URL` | `http://100.70.234.41:3000` (dev machine) | `https://sandbox.learnvianotes.in` | `https://www.learnvianotes.in` |
+| `EXPO_PUBLIC_WEB_URL` | `http://100.70.234.41:3000` (dev machine) | `https://sandbox.learnvianotes.in` | `https://app.learnvianotes.in` |
 | `EXPO_PUBLIC_API_URL` | `http://100.70.234.41:4000/graphql` | `https://api.sandbox.learnvianotes.in/graphql` | `https://api.learnvianotes.in/graphql` |
 | `EXPO_PUBLIC_FIREBASE_*`, `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` | optional; empty hides the Google button | same | same |
 | `EXPO_PUBLIC_GITHUB_CLIENT_ID` | optional; empty hides the button | same | same |
