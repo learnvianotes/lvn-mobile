@@ -2,13 +2,16 @@ import { AGE_MAX, AGE_MIN, ageProblem, applyProblems, wholeYears } from '@/lib/a
 import { redirectSystemPath } from '@/app/+native-intent'
 
 describe('the age field (lvn-backend ADR-0104)', () => {
-  it('takes a whole number of years from 1 to 120, as the API does', () => {
-    expect([AGE_MIN, AGE_MAX]).toEqual([1, 120])
+  it('takes a whole number of years from 8 to 120', () => {
+    expect([AGE_MIN, AGE_MAX]).toEqual([8, 120])
     expect(wholeYears('22')).toBe(22)
     expect(wholeYears(' 17 ')).toBe(17)
-    expect(wholeYears('1')).toBe(1)
+    expect(wholeYears('8')).toBe(8)
     expect(wholeYears('120')).toBe(120)
     expect(wholeYears('018')).toBe(18)
+    expect(wholeYears('1')).toBeNull()
+    expect(wholeYears('7')).toBeNull()
+    expect(ageProblem('8')).toBeNull()
     expect(ageProblem('22')).toBeNull()
   })
 
@@ -21,6 +24,8 @@ describe('the age field (lvn-backend ADR-0104)', () => {
     ['18 years', 'whole'],
     ['eighteen', 'whole'],
     ['0', 'range'],
+    ['1', 'range'],
+    ['7', 'range'],
     ['-3', 'range'],
     ['121', 'range'],
     ['999', 'range'],

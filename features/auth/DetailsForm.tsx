@@ -24,8 +24,9 @@ const FIELDS = ['displayName', 'age', 'institutionalEmail'] as const
 
 /**
  * Registration details for accounts created by a provider sign-in (ADR-0017), given once. The age, in whole years
- * (lvn-backend ADR-0104), is confirmed in words before it is sent. An answer under the minimum age (ADR-0091) makes the
+ * (lvn-backend ADR-0104), is confirmed in words before it is sent. An answer under 8 (ADR-0091) makes the
  * API put this account on hold (`AGE_BLOCKED`) and end its sessions; the app then signs out and remembers the refusal.
+ * Ages 8 to 17 are sent and join as a restricted account, with no parent or guardian step.
  * A refusal already on this device only closes the form: the account is left alone, and the person may sign out.
  */
 export function DetailsForm() {
