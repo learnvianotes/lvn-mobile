@@ -172,7 +172,7 @@ export function AiScreen({ id }: { id: string }) {
   return (
     <View className="bg-background flex-1">
       <ScreenHeader title="AI tasks" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 40 }}>
+      <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 40 }}>
         {list.error && !list.data ? <Text className="text-muted-foreground py-16 text-center">Connect to the internet to use AI on this note.</Text> : null}
         {note ? (
           <Text className="text-muted-foreground text-sm">

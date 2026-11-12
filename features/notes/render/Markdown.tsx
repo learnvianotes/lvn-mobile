@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
-import { ScrollView, View } from 'react-native'
+import { View } from 'react-native'
 import { Text } from '@/components/ui/text'
 import { parseMarkdown, type MdBlock, type MdInline } from '@/lib/markdown'
+import { CodeBlock } from './CodeBlock'
 
 /** Markdown (AI results, Markdown cards) as native views; nothing in it becomes markup (see lib/markdown). */
 
@@ -69,13 +70,7 @@ function Block({ block, depth, cite }: { block: MdBlock; depth: number; cite?: C
         </Text>
       )
     case 'code':
-      return (
-        <View className="bg-secondary overflow-hidden rounded-2xl">
-          <ScrollView horizontal>
-            <Text className="p-3 font-mono text-sm leading-5">{block.text}</Text>
-          </ScrollView>
-        </View>
-      )
+      return <CodeBlock code={block.text} />
     case 'list':
       return (
         <View className="gap-1" style={{ paddingLeft: depth ? 16 : 4 }}>

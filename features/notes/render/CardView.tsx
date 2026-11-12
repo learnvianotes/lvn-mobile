@@ -8,6 +8,7 @@ import { cardAnchor, type CardAnchor, type Doc, type Inline } from '@/lib/contra
 import { track } from '@/lib/learning'
 import { useTheme } from '@/lib/theme'
 import { cn } from '@/lib/utils'
+import { CodeBlock } from './CodeBlock'
 import { Markdown } from './Markdown'
 import { MediaView } from './MediaView'
 import { InlineText, RichDoc } from './RichText'
@@ -69,15 +70,11 @@ export function CardView({ id, type, content, highlighted, onOpenFile, onAnchor 
       case 'markdown':
         return <Markdown source={c.source as string} />
       case 'code':
-      case 'diagram':
-        return (
-          <View className="bg-secondary overflow-hidden rounded-2xl">
-            {type === 'code' && (c.filename || c.language) ? <Text className="text-muted-foreground border-border border-b px-3 py-1.5 font-mono text-xs">{c.filename || c.language}</Text> : null}
-            <ScrollView horizontal>
-              <Text className="p-3 font-mono text-sm leading-5">{type === 'code' ? c.code : c.source}</Text>
-            </ScrollView>
-          </View>
-        )
+      case 'diagram': {
+        const text = type === 'code' ? c.code : c.source
+        const label = type === 'code' && (c.filename || c.language) ? String(c.filename || c.language) : undefined
+        return <CodeBlock code={typeof text === 'string' ? text : ''} label={label} />
+      }
       case 'table': {
         const rows = c.rows as Inline[][]
         return (

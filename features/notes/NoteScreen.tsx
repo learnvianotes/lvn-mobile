@@ -221,7 +221,8 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
         {note.access === 'OWNER' ? owner.button : null}
       </Header>
       {note.access === 'OWNER' ? owner.sheet : null}
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120, gap: 12 }} keyboardShouldPersistTaps="handled">
+      {/* nestedScrollEnabled: a sideways swipe on a code block scrolls the code; a vertical drag still scrolls the note (Android). */}
+      <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 120, gap: 12 }} keyboardShouldPersistTaps="handled">
         <TextInput
           accessibilityLabel="Title"
           value={title}
@@ -320,7 +321,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
         {!note.deletedAt && cards.some((c) => c.type === 'flashcard') ? <StudyCardsButton noteId={note.id} /> : null}
         <ReadAloudButton reader={reader} />
       </Header>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40, gap: 14 }}>
+      <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, paddingBottom: insets.bottom + 40, gap: 14 }}>
         {note.deletedAt && note.access === 'OWNER' ? (
           <View className="bg-secondary flex-row items-center gap-3 rounded-2xl p-3">
             <Text className="flex-1 text-sm">This note is in the trash.</Text>
