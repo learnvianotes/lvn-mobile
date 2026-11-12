@@ -45,7 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name,
     slug: 'learnvianotes',
-    version: '0.1.0',
+    version: '0.1.3',
     scheme,
     orientation: 'portrait',
     icon: './assets/icon.png',
@@ -67,6 +67,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         monochromeImage: './assets/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
+      // versionCode 5 is the Play release of 0.1.3. blockedPermissions writes tools:node="remove" so the merged
+      // manifest drops what the Expo template and libraries add: the overlay permission, legacy storage, and the
+      // media foreground service (also kept off by expo-audio below). RECORD_AUDIO stays for voice notes.
+      versionCode: 5,
+      blockedPermissions: [
+        'android.permission.FOREGROUND_SERVICE',
+        'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+        'android.permission.SYSTEM_ALERT_WINDOW',
+        'android.permission.READ_EXTERNAL_STORAGE',
+        'android.permission.WRITE_EXTERNAL_STORAGE',
+      ],
       // The app draws edge to edge, so the keyboard cannot shrink the window: Android slides it up instead, keeping the
       // text box being typed in above the keyboard on every screen and sheet.
       softwareKeyboardLayoutMode: 'pan',
@@ -94,10 +105,11 @@ export default ({ config }: ConfigContext): ExpoConfig => {
       // Its microphone permission must not be `false`: that removes RECORD_AUDIO from the manifest, which voice notes
       // need (tests/unit/app-config.test.ts).
       ['expo-image-picker', { photosPermission: 'LearnViaNotes adds the photos you choose to your notes.', cameraPermission: 'LearnViaNotes takes photos for your notes.', microphonePermission: 'LearnViaNotes records your voice notes with the microphone.' }],
-      // Video and audio cards play in the note; voice notes are recorded (lvn-backend ADR-0062), so expo-audio asks for the
-      // microphone the first time someone records.
+      // Video and audio cards play in the note; voice notes are recorded and played while the app is open (lvn-backend
+      // ADR-0062). Background playback stays off: the default would declare a media foreground service, which this Play
+      // release does not use. The microphone string must not be `false` or RECORD_AUDIO is removed (tests/unit/config/app-config.test.ts).
       ['expo-video', { supportsPictureInPicture: false }],
-      ['expo-audio', { microphonePermission: 'LearnViaNotes records your voice notes with the microphone.' }],
+      ['expo-audio', { microphonePermission: 'LearnViaNotes records your voice notes with the microphone.', enableBackgroundPlayback: false }],
       // Sentry RN 8: native init before JS (useNativeInit) with the same serializable options as Sentry.init.
       // Source-map upload stays off until a Sentry org, project, and SENTRY_AUTH_TOKEN exist (the Gradle step needs the token).
       [

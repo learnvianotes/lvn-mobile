@@ -4,10 +4,10 @@ import { mockApi, ok, session, signInOptions, viewer } from '../../support/api'
 import { items } from '../../support/secure-store'
 
 /**
- * Accounts from age 8 (lvn-backend ADR-0091; the floor moved from 18), asked as an age in whole years (ADR-0104):
- * every age confirmed in words, only `age` sent, ages 8 to 17 join with no parent or guardian step, a refusal under
- * that floor remembered on the device for a day, and nothing deleted or signed out because of a refusal that was
- * already there.
+ * Accounts from age 13 (AGE_MIN; lvn-backend ADR-0091; the floor moved from 8, and before that from 18), asked as an
+ * age in whole years (ADR-0104): every age confirmed in words, only `age` sent, ages 13 to 17 join with no parent or
+ * guardian step, a refusal under that floor remembered on the device for a day, and nothing deleted or signed out
+ * because of a refusal that was already there.
  */
 jest.setTimeout(15_000)
 
@@ -60,13 +60,14 @@ it('asks for the age as one number, says it back in words and asks before sendin
   await press(screen.getByText('Change it'))
   expect(screen.queryByText('Is this right?')).toBeNull()
   expect(api.ops()).not.toContain('SignUp')
-  // The form names 8, and does not still say 18.
-  expect(screen.getByText(/at least 8/)).toBeVisible()
+  // The form names 13, and does not still say 8 or 18.
+  expect(screen.getByText(/at least 13/)).toBeVisible()
+  expect(screen.queryByText(/at least 8/)).toBeNull()
   expect(screen.queryByText(/18/)).toBeNull()
   expect(screen.queryByText(/parent|guardian|only for adults/i)).toBeNull()
 })
 
-it('checks the age on the phone: a whole number from 8 to 120', async () => {
+it('checks the age on the phone: a whole number from 13 to 120', async () => {
   const api = mockApi({ SignInOptions: () => signInOptions })
   await render('./app', { initialUrl: '/sign-up' })
   await fillSignUp()
@@ -78,13 +79,17 @@ it('checks the age on the phone: a whole number from 8 to 120', async () => {
   expect(screen.getByText('Enter your age as a whole number.')).toBeVisible()
   await typeAge('0')
   await settle()
-  expect(screen.getByText('Enter an age from 8 to 120.')).toBeVisible()
-  await typeAge('7')
+  expect(screen.getByText('Enter an age from 13 to 120.')).toBeVisible()
+  await typeAge('8')
   await settle()
-  expect(screen.getByText('Enter an age from 8 to 120.')).toBeVisible()
+  expect(screen.getByText('Enter an age from 13 to 120.')).toBeVisible()
+  await typeAge('12')
+  await press(screen.getByText('Create account'))
+  expect(screen.getByText('Enter an age from 13 to 120.')).toBeVisible()
+  expect(screen.queryByText('Is this right?')).toBeNull()
   await typeAge('121')
   await press(screen.getByText('Create account'))
-  expect(screen.getByText('Enter an age from 8 to 120.')).toBeVisible()
+  expect(screen.getByText('Enter an age from 13 to 120.')).toBeVisible()
   expect(screen.queryByText('Is this right?')).toBeNull()
   expect(api.ops()).not.toContain('SignUp')
 })
@@ -108,18 +113,18 @@ it.each(['AGE_RESTRICTED', 'UNDER_MINIMUM_AGE'] as const)('a refusal (%s) closes
   const api = mockApi({ SignInOptions: () => signInOptions, SignUp: () => ({ data: { signUp: { __typename: 'AuthPayload', session: null, userErrors: [refusal('signUp', code)] } } }) })
   await render('./app', { initialUrl: '/sign-up' })
   await fillSignUp()
-  await typeAge('12')
+  await typeAge('16')
   await press(screen.getByText('Create account'))
-  expect(screen.getByText('12 years old')).toBeVisible()
+  expect(screen.getByText('16 years old')).toBeVisible()
   await press(screen.getByText('Yes, that’s right'))
   expect(screen.getByText('Sorry, you can’t create an account')).toBeVisible()
-  expect(screen.getByText('LearnViaNotes accounts are for ages 8 and up. If you already have an account, you can still sign in.')).toBeVisible()
+  expect(screen.getByText('LearnViaNotes accounts are for ages 13 and up. If you already have an account, you can still sign in.')).toBeVisible()
   expect(screen.queryByText(/only for adults|parent|guardian/i)).toBeNull()
   expect(screen.queryByLabelText('Your age')).toBeNull()
   expect(Number(items.get('lvn.ageRefused'))).toBeGreaterThan(0)
   expect(api.ops().filter((op) => op !== 'SignInOptions')).toEqual(['SignUp'])
   const input = api.calls.find((c) => c.op === 'SignUp')!.variables.input as Record<string, unknown>
-  expect(input.age).toBe(12)
+  expect(input.age).toBe(16)
   expect(input).not.toHaveProperty('dateOfBirth')
 })
 
@@ -131,7 +136,7 @@ it('the refusal is gone after a day', async () => {
   expect(items.has('lvn.ageRefused')).toBe(false)
 })
 
-it.each(['8', '17'])('age %s is sent and joins, with no parent or guardian step', async (age) => {
+it.each(['13', '17'])('age %s is sent and joins, with no parent or guardian step', async (age) => {
   const created = viewer({ restrictedMinor: true })
   const api = mockApi({
     SignInOptions: () => signInOptions,
@@ -173,7 +178,7 @@ it('an age the API refuses on a new provider account signs out, and the welcome 
   expect(input).not.toHaveProperty('dateOfBirth')
   expect(api.ops()).toContain('SignOut')
   expect(screen.getByText(/Sorry, you can’t create an account/)).toBeVisible()
-  expect(screen.getByText(/accounts are for ages 8 and up/)).toBeVisible()
+  expect(screen.getByText(/accounts are for ages 13 and up/)).toBeVisible()
   // Email sign-up is closed on this device; signing in to an existing account still works.
   expect(screen.queryByTestId('welcome-email')).toBeNull()
   expect(screen.getByTestId('welcome-sign-in')).toBeVisible()
