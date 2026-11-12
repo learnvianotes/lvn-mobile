@@ -2,17 +2,21 @@ import { AGE_MAX, AGE_MIN, ageProblem, applyProblems, wholeYears } from '@/lib/a
 import { redirectSystemPath } from '@/app/+native-intent'
 
 describe('the age field (lvn-backend ADR-0104)', () => {
-  it('takes a whole number of years from 8 to 120', () => {
-    expect([AGE_MIN, AGE_MAX]).toEqual([8, 120])
+  it('takes a whole number of years from 13 to 120', () => {
+    expect([AGE_MIN, AGE_MAX]).toEqual([13, 120])
     expect(wholeYears('22')).toBe(22)
     expect(wholeYears(' 17 ')).toBe(17)
-    expect(wholeYears('8')).toBe(8)
+    expect(wholeYears('13')).toBe(13)
     expect(wholeYears('120')).toBe(120)
     expect(wholeYears('018')).toBe(18)
+    expect(wholeYears('8')).toBeNull()
+    expect(wholeYears('12')).toBeNull()
     expect(wholeYears('1')).toBeNull()
     expect(wholeYears('7')).toBeNull()
-    expect(ageProblem('8')).toBeNull()
+    expect(ageProblem('13')).toBeNull()
     expect(ageProblem('22')).toBeNull()
+    expect(ageProblem('8')).toBe('range')
+    expect(ageProblem('12')).toBe('range')
   })
 
   it.each([
@@ -26,6 +30,8 @@ describe('the age field (lvn-backend ADR-0104)', () => {
     ['0', 'range'],
     ['1', 'range'],
     ['7', 'range'],
+    ['8', 'range'],
+    ['12', 'range'],
     ['-3', 'range'],
     ['121', 'range'],
     ['999', 'range'],

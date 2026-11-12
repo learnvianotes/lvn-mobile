@@ -31,8 +31,8 @@ export const copy = {
     password: 'Password',
     passwordHint: 'At least 10 characters. Avoid passwords you use elsewhere.',
     age: 'Your age',
-    ageHint: 'In whole years, at least 8. Only used for age rules; never shown to anyone.',
-    // The same problems the API reports (lvn-backend ADR-0104). The range names the account floor of 8.
+    ageHint: `In whole years, at least ${AGE_MIN}. Only used for age rules; never shown to anyone.`,
+    // The same problems the API reports (lvn-backend ADR-0104). The range names AGE_MIN, the account floor the API enforces.
     ageProblems: {
       required: 'Enter your age.',
       whole: 'Enter your age as a whole number.',
@@ -52,7 +52,7 @@ export const copy = {
     confirm: 'Yes, that’s right',
     change: 'Change it',
     refusedTitle: 'Sorry, you can’t create an account',
-    refusedLead: 'LearnViaNotes accounts are for ages 8 and up. If you already have an account, you can still sign in.',
+    refusedLead: `LearnViaNotes accounts are for ages ${AGE_MIN} and up. If you already have an account, you can still sign in.`,
   },
   details: {
     title: (firstName?: string) => (firstName ? `Almost there, ${firstName}` : 'Almost there'),

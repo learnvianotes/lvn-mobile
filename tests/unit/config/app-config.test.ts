@@ -19,3 +19,17 @@ it('keeps the microphone permission voice notes record with (lvn-backend ADR-006
   // A plugin given `microphonePermission: false` writes RECORD_AUDIO tools:node="remove", which strips it for every plugin.
   expect(all.filter(([, options]) => options?.microphonePermission === false).map(([name]) => name)).toEqual([])
 })
+
+it('ships 0.1.3 (versionCode 5) without background playback or the Play-blocked permissions', () => {
+  const config = appConfig({ config: {} } as never)
+  expect(config.version).toBe('0.1.3')
+  expect(config.android?.versionCode).toBe(5)
+  expect(plugins().find(([name]) => name === 'expo-audio')?.[1]?.enableBackgroundPlayback).toBe(false)
+  expect(config.android?.blockedPermissions).toEqual([
+    'android.permission.FOREGROUND_SERVICE',
+    'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+    'android.permission.SYSTEM_ALERT_WINDOW',
+    'android.permission.READ_EXTERNAL_STORAGE',
+    'android.permission.WRITE_EXTERNAL_STORAGE',
+  ])
+})

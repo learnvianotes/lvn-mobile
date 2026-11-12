@@ -28,7 +28,7 @@ pnpm export:check              # bundle JS for Android and iOS
 pnpm android                                   # debug build on a connected phone/emulator, live reload
 pnpm build:android sandbox                     # standalone APK → dist/LearnViaNotes-sandbox-<version>.apk
 pnpm build:android development --abi arm64-v8a # faster: one CPU architecture
-adb install -r dist/LearnViaNotes-sandbox-0.1.0.apk
+adb install -r dist/LearnViaNotes-sandbox-0.1.3.apk
 ```
 
 Needs the Android SDK and JDK 17+. iOS builds need a Mac with Xcode (`pnpm ios`). Details and signing:
