@@ -438,7 +438,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
               <X size={20} color={fg} />
             </Pressable>
           </View>
-          <ScrollView contentContainerStyle={{ padding: 16, gap: 14 }}>
+          <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, gap: 14 }}>
             {!editable ? (
               <View className="bg-primary/10 gap-2 rounded-2xl p-3">
                 <Text className="text-sm">You can read this note. To highlight and make notes on this PDF, start notes of your own.</Text>

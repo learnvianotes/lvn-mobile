@@ -1,6 +1,6 @@
 {
   "name": "lvn-mobile",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "expo-router/entry",
   "dependencies": {
     "@apollo/client": "^4.3.2",

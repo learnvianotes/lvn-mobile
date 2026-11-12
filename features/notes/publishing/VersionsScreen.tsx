@@ -39,7 +39,7 @@ export function VersionsScreen({ id }: { id: string }) {
   return (
     <View className="bg-background flex-1">
       <ScreenHeader title="Version history" />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 32 }}>
+      <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 32 }}>
         <Outcome message={message} />
         {error && !data ? <Text className="text-muted-foreground py-16 text-center">Connect to the internet to see this note&apos;s versions.</Text> : null}
         {data && !versions.length ? <Text className="text-muted-foreground py-16 text-center">No versions yet. Publishing creates one.</Text> : null}

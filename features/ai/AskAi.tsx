@@ -184,7 +184,7 @@ export function AskScreen() {
   return (
     <View className="bg-background flex-1">
       <ScreenHeader title="Ask AI" right={<Sparkles size={20} color={primary} />} />
-      <ScrollView contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
+      <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
         <Text className="text-muted-foreground text-sm">Ask a question and get an answer from notes you can read, with the notes it came from.</Text>
         <View accessibilityRole="radiogroup" accessibilityLabel="Where to look" className="flex-row flex-wrap gap-2">
           {SCOPES.map(({ scope: s, label, icon: Icon }) => (
