@@ -7,11 +7,12 @@ export type Picked = { uri: string; name: string; mimeType: string; size: number
 
 /**
  * One file from the phone for a note: a picture or video from the photos, a photo from the camera, or a PDF,
- * recording, video or picture from the files. Null when the person cancels or refuses the permission.
+ * Word or PowerPoint file, plain text, recording, video or picture from the files. Null when the person cancels or
+ * refuses the permission.
  */
 export async function pickMedia(source: MediaSource): Promise<Picked | 'denied' | null> {
   if (source === 'files') {
-    const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'image/*', 'video/*', 'audio/*'], copyToCacheDirectory: true, multiple: false })
+    const res = await DocumentPicker.getDocumentAsync({ type: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation', 'text/plain', 'image/*', 'video/*', 'audio/*'], copyToCacheDirectory: true, multiple: false })
     const a = res.canceled ? null : res.assets[0]
     return a ? { uri: a.uri, name: a.name, mimeType: mimeOf(a.name, a.mimeType), size: a.size ?? null } : null
   }

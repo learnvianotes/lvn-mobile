@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Share photos, PDFs, Word and PowerPoint files, text files and plain text into a note from other apps.
 - A versioning policy, so everyday changes are written down and the app version stays put until a release ([#40](https://github.com/learnvianotes/lvn-mobile/pull/40)).
 
 ## [0.1.4] - 2026-11-12

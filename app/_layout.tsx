@@ -14,6 +14,8 @@ import { createApolloClient } from '@/lib/apollo'
 import { watchTimeZone } from '@/lib/learning'
 import { restoreSession, retryRestore, useSession } from '@/lib/auth/session'
 import { startErrorReporting } from '@/lib/observability'
+import { ShareIntentProvider } from 'expo-share-intent'
+import { ShareIncoming } from '@/features/share/ShareIncoming'
 import { TermsGate } from '@/features/auth/TermsGate'
 import { PushSetup } from '@/features/push/push'
 import { LoadFailed, Loading } from '@/features/shell/LoadState'
@@ -83,6 +85,7 @@ export default function RootLayout() {
 
   const signedIn = status === 'signed-in'
   return (
+    <ShareIntentProvider options={{ resetOnBackground: false }}>
     <ApolloProvider client={client}>
       <SafeAreaProvider>
         <ThemeRoot>
@@ -139,6 +142,7 @@ export default function RootLayout() {
                   <Stack.Screen name="classes/[id]" />
                   <Stack.Screen name="classes/join/[code]" />
                   <Stack.Screen name="verify" options={{ presentation: 'modal' }} />
+                  <Stack.Screen name="share" options={{ animation: 'slide_from_bottom' }} />
                 </Stack.Protected>
                 <Stack.Protected guard={signedIn && !registered} redirectTo={signedIn ? '/' : '/welcome'}>
                   <Stack.Screen name="details" />
@@ -154,10 +158,12 @@ export default function RootLayout() {
             {signedIn && registered ? <NotesSync /> : null}
             {signedIn && registered ? <PushSetup /> : null}
             {signedIn && registered ? <TermsGate /> : null}
+            <ShareIncoming />
           </View>
         </ThemeProvider>
         </ThemeRoot>
       </SafeAreaProvider>
     </ApolloProvider>
+    </ShareIntentProvider>
   )
 }

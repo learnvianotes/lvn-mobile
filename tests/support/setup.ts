@@ -91,3 +91,35 @@ jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn(async () => ({ canceled: true, assets: null })),
 }))
 jest.mock('expo-document-picker', () => ({ getDocumentAsync: jest.fn(async () => ({ canceled: true, assets: null })) }))
+
+// Share target: no native share sheet, cache, or image converter in Node. Navigation tests render the root layout,
+// which mounts the share listener.
+jest.mock('expo-share-intent', () => {
+  const resetShareIntent = jest.fn()
+  const shareIntent = { files: null, type: null, webUrl: null, text: null }
+  return {
+    ShareIntentProvider: ({ children }: { children: unknown }) => children,
+    useShareIntentContext: () => ({ isReady: true, hasShareIntent: false, shareIntent, resetShareIntent, error: null }),
+    getShareExtensionKey: () => 'testShareKey',
+  }
+})
+jest.mock('expo-file-system', () => ({
+  File: class {
+    uri: string
+    exists = false
+    constructor(...parts: string[]) {
+      this.uri = parts.join('/')
+    }
+    copy = jest.fn(async () => undefined)
+    delete = jest.fn()
+  },
+  Directory: class {
+    exists = true
+    create() {}
+  },
+  Paths: { cache: 'file:///cache' },
+}))
+jest.mock('expo-image-manipulator', () => ({
+  manipulateAsync: jest.fn(async (uri: string) => ({ uri: `${uri}.jpg`, width: 1, height: 1 })),
+  SaveFormat: { JPEG: 'jpeg' },
+}))

@@ -3,6 +3,10 @@ import type { ConfigContext, ExpoConfig } from 'expo/config'
 // This file runs in Node, but the project's types are the app's (no Node globals), so fs is typed here.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { existsSync } = require('node:fs') as { existsSync: (path: string) => boolean }
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { shareIntentPlugin } = require('./plugins/share-intent') as {
+  shareIntentPlugin: (bundleId: string) => [string, Record<string, unknown>]
+}
 
 /**
  * One app, three side-by-side installs (spec §13.1, §16.1). APP_VARIANT comes from env/<variant>.env via
@@ -84,6 +88,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     },
     plugins: [
       'expo-router',
+      shareIntentPlugin(id),
       // SDK 58 registers these package plugins. With no options, font/asset/status-bar are no-ops and sqlite keeps its defaults.
       'expo-asset',
       'expo-font',

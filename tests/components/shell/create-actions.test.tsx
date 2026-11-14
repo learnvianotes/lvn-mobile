@@ -98,10 +98,10 @@ describe('the create sheet', () => {
 
   it('Upload says so when a file is not for notes, and when the upload fails', async () => {
     const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => undefined)
-    jest.mocked(pickMedia).mockResolvedValueOnce(picked('slides.pptx', 'application/vnd.ms-powerpoint'))
+    jest.mocked(pickMedia).mockResolvedValueOnce(picked('archive.zip', 'application/zip'))
     await renderInApp(<CreateSheet open onClose={jest.fn()} />)
     await fireEvent.press(screen.getByRole('button', { name: 'Upload' }))
-    await waitFor(() => expect(alert).toHaveBeenCalledWith('Not for notes', 'Notes take pictures, videos, recordings and PDFs.'))
+    await waitFor(() => expect(alert).toHaveBeenCalledWith('Not for notes', 'Notes take pictures, videos, recordings, PDFs and documents.'))
     expect(createNote).not.toHaveBeenCalled()
 
     jest.mocked(pickMedia).mockResolvedValueOnce(picked('notes.pdf', 'application/pdf'))

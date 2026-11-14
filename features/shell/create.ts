@@ -55,7 +55,7 @@ export function useCreate() {
       const picked = await pickMedia('files')
       if (!picked || picked === 'denied') return
       const type = cardTypeFor(picked.mimeType)
-      if (!type) return Alert.alert('Not for notes', 'Notes take pictures, videos, recordings and PDFs.')
+      if (!type) return Alert.alert('Not for notes', 'Notes take pictures, videos, recordings, PDFs and documents.')
       const id = await newNote(titleFromFileName(picked.name) || `Upload, ${stamp()}`)
       try {
         if ((await db.getNote(id))?.localOnly) throw new UploadError('Connect to the internet to upload a file into a note.')
