@@ -75,15 +75,35 @@ export function useMediaFile(fileId: string | undefined): { file: MediaFile | nu
   return { file: m.byFile.get(fileId) ?? null, localUri: m.local.get(fileId) ?? null }
 }
 
-/** What notes take, by card type (as lvn-web's media.tsx); a file card takes PDFs. */
+/**
+ * What notes take, by card type (as lvn-web's media.tsx). A file card takes a PDF, a Word or PowerPoint file, or plain
+ * text. HEIC stays off this list: a share converts it to JPEG before upload, and the server does not store HEIC.
+ */
 export const ACCEPT = {
   image: ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
   video: ['video/mp4', 'video/webm', 'video/quicktime'],
   audio: ['audio/mpeg', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/webm'],
-  file: ['application/pdf'],
+  file: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain',
+  ],
 } as const
 
-const BY_EXTENSION: Record<string, string> = { mov: 'video/quicktime', m4a: 'audio/mp4', mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg', pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', mp4: 'video/mp4', webm: 'video/webm' }
+const BY_EXTENSION: Record<string, string> = {
+  mov: 'video/quicktime', m4a: 'audio/mp4', mp3: 'audio/mpeg', wav: 'audio/wav', ogg: 'audio/ogg',
+  pdf: 'application/pdf', doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ppt: 'application/vnd.ms-powerpoint',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  txt: 'text/plain',
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif',
+  heic: 'image/heic', heif: 'image/heif',
+  mp4: 'video/mp4', webm: 'video/webm',
+}
 
 /** The type the API wants for a picked file: what the picker said, or its extension. */
 export function mimeOf(name: string, given: string | null | undefined): string {

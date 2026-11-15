@@ -42,7 +42,8 @@ describe('in-app paths', () => {
 
 describe('system deep links', () => {
   it('keeps the provider redirect away from the router and passes an in-app path through', () => {
-    expect(fromIntent).toBe(redirectSystemPath)
+    expect(fromIntent({ path: '/explore', initial: false })).toBe('/explore')
+    expect(fromIntent({ path: 'learnvianotes-dev://dataUrl=testShareKey', initial: true })).toBe('/share')
     expect(redirectSystemPath({ path: 'learnvianotes-dev://oauth/callback?code=abc&state=xyz', initial: false })).toBeNull()
     expect(redirectSystemPath({ path: '/oauth/callback?code=abc', initial: true })).toBeNull()
     expect(redirectSystemPath({ path: '/explore', initial: false })).toBe('/explore')

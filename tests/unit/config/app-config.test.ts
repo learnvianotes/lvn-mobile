@@ -20,6 +20,22 @@ it('keeps the microphone permission voice notes record with (lvn-backend ADR-006
   expect(all.filter(([, options]) => options?.microphonePermission === false).map(([name]) => name)).toEqual([])
 })
 
+it('registers the share target for this variant, without changing the app version', () => {
+  const plugin = plugins().find(([name]) => name === 'expo-share-intent')
+  expect(plugin?.[1]).toEqual(expect.objectContaining({
+    iosAppGroupIdentifier: 'group.com.learnvianotes.dev',
+    iosShareExtensionBundleIdentifier: 'com.learnvianotes.dev.share-extension',
+    androidMainActivityAttributes: { 'android:launchMode': 'singleTask' },
+  }))
+  const filters = plugin?.[1]?.androidIntentFilters as string[]
+  expect(filters).toEqual(expect.arrayContaining(['image/*', 'application/pdf', 'text/plain', 'application/msword']))
+  expect(plugin?.[1]?.iosActivationRules).toEqual(expect.stringContaining('public.image'))
+  expect(plugin?.[1]?.iosActivationRules).toEqual(expect.stringContaining('com.adobe.pdf'))
+  const config = appConfig({ config: {} } as never)
+  expect(config.version).toBe('0.1.4')
+  expect(config.android?.versionCode).toBe(6)
+})
+
 it('ships 0.1.4 (versionCode 6) without background playback or the Play-blocked permissions', () => {
   const config = appConfig({ config: {} } as never)
   expect(config.version).toBe('0.1.4')
