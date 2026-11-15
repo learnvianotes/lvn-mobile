@@ -49,7 +49,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     ...config,
     name,
     slug: 'learnvianotes',
-    version: '0.1.4',
+    version: '0.2.0',
     scheme,
     orientation: 'portrait',
     icon: './assets/icon.png',
@@ -71,10 +71,10 @@ export default ({ config }: ConfigContext): ExpoConfig => {
         monochromeImage: './assets/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
-      // versionCode 6 is the Play release of 0.1.4. blockedPermissions writes tools:node="remove" so the merged
+      // versionCode 7 is the Play release of 0.2.0. blockedPermissions writes tools:node="remove" so the merged
       // manifest drops what the Expo template and libraries add: the overlay permission, legacy storage, and the
       // media foreground service (also kept off by expo-audio below). RECORD_AUDIO stays for voice notes.
-      versionCode: 6,
+      versionCode: 7,
       blockedPermissions: [
         'android.permission.FOREGROUND_SERVICE',
         'android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK',
