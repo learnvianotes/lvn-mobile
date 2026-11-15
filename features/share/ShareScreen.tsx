@@ -14,12 +14,11 @@ import { useGatedActions } from '@/features/auth/gates'
 import { sizeLabel } from '@/features/notes/capture/tray'
 import { useLocal } from '@/features/notes/hooks'
 import * as db from '@/features/notes/store/db'
-import { syncNow } from '@/features/notes/sync/engine'
 import { UploadsEnabledDocument } from '@/graphql/generated/graphql'
 import { noteTitleForShare, verificationBlocksUpload } from './classify'
 import { deleteShareFile } from './files'
 import { pendingShares, type PendingItem, type PendingShare } from './pending'
-import { appendShareText, openShareNote, uploadSharedFile } from './save'
+import { saveShareAttempt } from './save'
 
 function titleOf(share: PendingShare | null): string {
   if (!share) return ''
@@ -94,32 +93,21 @@ export function ShareScreen() {
     setBusy(true)
     setProblem(null)
     try {
-      const noteId = await openShareNote(client, title.trim() || 'Shared note', mode === 'existing' ? chosen : null)
-      let textSaved = share.textSaved === true
-      if (share.text && !textSaved) {
-        await appendShareText(noteId, share.text)
-        textSaved = true
-      }
-      pendingShares.update((current) => ({ ...current, noteId, textSaved }))
-      const latest = pendingShares.read().share
-      const items = latest?.items ?? share.items
-      let failed = 0
-      for (const item of items) {
-        if (item.kind === 'unsupported' || item.fileId) continue
-        setRows((prev) => ({ ...prev, [item.key]: 'uploading' }))
-        try {
-          const fileId = await uploadSharedFile(client, noteId, item)
-          setRows((prev) => ({ ...prev, [item.key]: 'done' }))
-          pendingShares.update((current) => ({ ...current, items: current.items.map((entry) => (entry.key === item.key ? { ...entry, fileId, message: null } : entry)) }))
-          deleteShareFile(item.uri)
-        } catch (error) {
-          failed += 1
-          const message = error instanceof Error ? error.message : 'The file could not be uploaded. Try again.'
-          setRows((prev) => ({ ...prev, [item.key]: 'failed' }))
-          pendingShares.update((current) => ({ ...current, items: current.items.map((entry) => (entry.key === item.key ? { ...entry, message } : entry)) }))
-        }
-      }
-      await syncNow(client)
+      const { noteId, failed } = await saveShareAttempt(client, share, { mode, title: title.trim() || 'Shared note', chosen }, {
+        onNote: (id) => pendingShares.update((current) => ({ ...current, noteId: id })),
+        onTextSaved: (id) => pendingShares.update((current) => (current.noteId === id ? { ...current, textSaved: true } : current)),
+        onUploading: (key) => setRows((prev) => ({ ...prev, [key]: 'uploading' })),
+        onUploaded: (key, fileId) => {
+          setRows((prev) => ({ ...prev, [key]: 'done' }))
+          const uri = pendingShares.read().share?.items.find((entry) => entry.key === key)?.uri
+          pendingShares.update((current) => ({ ...current, items: current.items.map((entry) => (entry.key === key ? { ...entry, fileId, message: null } : entry)) }))
+          if (uri) deleteShareFile(uri)
+        },
+        onFailed: (key, message) => {
+          setRows((prev) => ({ ...prev, [key]: 'failed' }))
+          pendingShares.update((current) => ({ ...current, items: current.items.map((entry) => (entry.key === key ? { ...entry, message } : entry)) }))
+        },
+      })
       if (failed > 0) {
         setProblem(failed === 1 ? 'One file was not saved. You can try it again.' : `${failed} files were not saved. You can try them again.`)
         return
