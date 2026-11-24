@@ -38,5 +38,8 @@ export function cssVariables(p: Palette): Record<string, string> {
     '--color-info': p.info,
     '--color-warning': p.warning,
     '--color-highlight': p.highlight,
+    '--color-spark': p.spark,
+    '--color-spark-soft': p.sparkSoft,
+    '--color-spark-ink': p.sparkInk,
   }
 }

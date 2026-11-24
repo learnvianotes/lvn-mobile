@@ -127,12 +127,16 @@ tags: [auth]
     id: "sign-in-email"
 - inputText: ${output.email}
 - tapOn:
+    id: "sign-in-mode"
+- tapOn:
     id: "sign-in-password"
 - inputText: "not the password"
 - hideKeyboard
 - tapOn:
     id: "sign-in-submit"
 - assertVisible: "Email or password is incorrect."
+- tapOn:
+    id: "sign-in-mode"
 - tapOn:
     id: "sign-in-password"
 - inputText: ${output.password}

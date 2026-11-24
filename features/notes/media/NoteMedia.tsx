@@ -152,16 +152,38 @@ export async function putStoredFile(client: ApolloClient, upload: { uploadUrl: s
   // Android sends a blob with the blob's own type (guessed from the file's extension) whatever Content-Type is given,
   // and storage checks the type signed into the URL: the body takes the type the upload was asked for.
   const typed = body.type === mimeType ? body : body.slice(0, body.size, mimeType)
-  let put: Response
-  try {
-    put = await fetch(uploadUrl, { method: 'PUT', headers, body: typed })
-  } catch {
-    reportClientError(client, { code: 'upload', message: UPLOAD_FAILED })
-    throw new UploadError(UPLOAD_FAILED)
+  // A phone on a weak network can stall mid-upload and never error. Each try gets a time limit sized to the file, and a
+  // dropped connection or a storage hiccup (5xx) is tried again, up to PUT_TRIES times, on the same signed URL.
+  for (let attempt = 1; ; attempt++) {
+    const outcome = await putOnce(uploadUrl, headers, typed)
+    if (outcome === 'ok') return
+    if (outcome === 'refused' || attempt >= PUT_TRIES) {
+      reportClientError(client, { code: 'upload', message: UPLOAD_FAILED })
+      throw new UploadError(UPLOAD_FAILED)
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1_000 * attempt))
   }
-  if (!put.ok) {
-    reportClientError(client, { code: 'upload', message: UPLOAD_FAILED })
-    throw new UploadError(UPLOAD_FAILED)
+}
+
+/** Tries for one upload: the first, and two more after a dropped connection or a 5xx from storage. */
+export const PUT_TRIES = 3
+
+/** Time for one try: a minute, plus a second for every 64 KB (a slow 2G line), at most ten minutes (the URL's life). */
+export function putTimeoutMs(bytes: number): number {
+  return Math.min(10 * 60_000, 60_000 + Math.ceil(bytes / 65_536) * 1_000)
+}
+
+async function putOnce(url: string, headers: Record<string, string>, body: Blob): Promise<'ok' | 'retry' | 'refused'> {
+  const abort = typeof AbortController === 'function' ? new AbortController() : null
+  const timer = abort ? setTimeout(() => abort.abort(), putTimeoutMs(body.size)) : null
+  try {
+    const put = await fetch(url, { method: 'PUT', headers, body, ...(abort ? { signal: abort.signal } : {}) })
+    if (put.ok) return 'ok'
+    return put.status >= 500 ? 'retry' : 'refused'
+  } catch {
+    return 'retry'
+  } finally {
+    if (timer) clearTimeout(timer)
   }
 }
 

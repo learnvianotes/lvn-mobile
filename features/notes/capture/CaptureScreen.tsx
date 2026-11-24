@@ -17,6 +17,7 @@ import * as db from '../store/db'
 import { syncNow } from '../sync/engine'
 import { pickForTray, type Source } from './prepare'
 import { addToTray, sizeLabel, type TrayItem } from './tray'
+import { StudyLoader } from '@/components/ui/study-loader'
 
 type Busy = { adding: true } | { upload: number; of: number } | { making: true } | null
 
@@ -98,12 +99,18 @@ export function CaptureScreen({ start }: { start?: Source }) {
       const { noteId } = made.current
       if ((await db.getNote(noteId))?.localOnly) throw new UploadError('Connect to the internet to make notes from photos.')
       const list = [...items]
-      for (const [i, item] of list.entries()) {
-        if (item.fileId) continue
-        setBusy({ upload: i + 1, of: list.length })
-        list[i] = { ...item, fileId: await uploadToNote(client, noteId, item) }
-        setItems([...list])
-      }
+      // Two at a time: a quick note of ten photos is not ten waits in a row, and the server's scan keeps up (ADR-0102).
+      let done = list.filter((item) => item.fileId).length
+      setBusy({ upload: Math.min(done + 1, list.length), of: list.length })
+      await inPairs(
+        list.map((item, i) => ({ item, i })).filter(({ item }) => !item.fileId),
+        async ({ item, i }) => {
+          list[i] = { ...item, fileId: await uploadToNote(client, noteId, item) }
+          done += 1
+          setItems([...list])
+          setBusy({ upload: Math.min(done + 1, list.length), of: list.length })
+        },
+      )
       for (const item of list) {
         if (made.current.carded.has(item.key)) continue
         await appendCard(noteId, item.kind === 'pdf' ? 'file' : 'image', item.kind === 'pdf' ? { fileId: item.fileId } : { fileId: item.fileId, alt: '' })
@@ -129,14 +136,14 @@ export function CaptureScreen({ start }: { start?: Source }) {
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={leave} className="size-10 items-center justify-center rounded-full">
-          <ArrowLeft size={22} color={String(fg ?? '#152033')} />
+          <ArrowLeft size={22} color={String(fg ?? '#1c1b18')} />
         </Pressable>
-        <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
+        <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">
           Notes from photos
         </Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }}>
-        <Text className="text-muted-foreground text-sm">{`Add up to ${QuickNoteLimits.files} photos or PDFs (pages of notes, slides, a whiteboard), then AI makes one note from them all. Photos are made smaller so they upload quickly; a PDF can be up to ${QuickNoteLimits.pdfBytes / 1024 ** 2} MB.`}</Text>
+        <Text className="text-muted-foreground text-sm">{`Add up to ${QuickNoteLimits.files} photos or PDFs (pages of notes, slides, a whiteboard), then Nova makes one note from them all. Photos are made smaller so they upload quickly; a PDF can be up to ${QuickNoteLimits.pdfBytes / 1024 ** 2} MB.`}</Text>
         <View className="flex-row gap-2">
           {SOURCES.map(({ source, label, icon: Icon }) => (
             <Pressable
@@ -148,7 +155,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
               onPress={() => void add(source)}
               className={`border-border bg-card flex-1 items-center gap-1 rounded-2xl border py-3 ${full || busy ? 'opacity-50' : ''}`}
             >
-              <Icon size={22} color={String(fg ?? '#152033')} />
+              <Icon size={22} color={String(fg ?? '#1c1b18')} />
               <Text className="text-sm font-semibold">{label}</Text>
             </Pressable>
           ))}
@@ -165,7 +172,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
             return (
               <View key={item.key} className="w-[30%] gap-1" accessibilityLabel={`${i + 1}. ${item.name}, ${sizeLabel(item.size)}`}>
                 <View className="border-border bg-card aspect-[3/4] items-center justify-center overflow-hidden rounded-xl border">
-                  {preview ? <Image source={{ uri: preview }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <FileText size={28} color={String(muted ?? '#3d4b63')} />}
+                  {preview ? <Image source={{ uri: preview }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <FileText size={28} color={String(muted ?? '#66625b')} />}
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`Remove ${item.name}`}
@@ -173,7 +180,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
                     onPress={() => setItems((all) => all.filter((x) => x.key !== item.key))}
                     className="bg-background/90 absolute right-1 top-1 rounded-full p-1"
                   >
-                    <X size={14} color={String(fg ?? '#152033')} />
+                    <X size={14} color={String(fg ?? '#1c1b18')} />
                   </Pressable>
                 </View>
                 <Text className="text-xs" numberOfLines={1}>
@@ -190,12 +197,14 @@ export function CaptureScreen({ start }: { start?: Source }) {
           </Text>
         ) : null}
         {busy && 'upload' in busy ? (
-          <View className="gap-2">
-            <Text className="text-sm">{busy.upload ? `Uploading ${busy.upload} of ${busy.of}…` : 'Making the note…'}</Text>
-            <Progress value={busy.of ? (Math.max(0, busy.upload - 1) / busy.of) * 100 : 0} />
-          </View>
+          <StudyLoader
+            kind="upload"
+            label={busy.upload ? `Uploading ${busy.upload} of ${busy.of}…` : 'Making the note…'}
+            progress={busy.of ? Math.max(0, busy.upload - 1) / busy.of : null}
+            className="py-2"
+          />
         ) : null}
-        {busy && 'making' in busy ? <Text className="text-sm">Asking AI to make notes…</Text> : null}
+        {busy && 'making' in busy ? <StudyLoader kind="nova" label="Asking Nova to make notes…" className="py-2" /> : null}
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ disabled: !items.length || !!busy }}
@@ -208,4 +217,13 @@ export function CaptureScreen({ start }: { start?: Source }) {
       </ScrollView>
     </View>
   )
+}
+
+/** Runs `work` over `items`, at most two at once, and stops at the first failure (the rest are not started). */
+async function inPairs<T>(items: T[], work: (item: T) => Promise<void>): Promise<void> {
+  let next = 0
+  const lane = async () => {
+    while (next < items.length) await work(items[next++]!)
+  }
+  await Promise.all([lane(), lane()])
 }

@@ -92,7 +92,7 @@ it('runs a task, says it is working, then shows the result as Markdown', async (
     AiArtifact: () => ({ data: { aiArtifact: ++polls < 2 ? artifact({ status: 'RUNNING' }) : artifact({ markdown: 'Binary search **halves** the range.\n\n- Needs sorted input\n- Takes O(log n) steps' }) } }),
   })
   expect(await screen.findByText('Nothing yet. Pick a task above; results take a few seconds.')).toBeOnTheScreen()
-  expect(screen.getByText(/Today’s AI allowance: 10% used/)).toBeOnTheScreen()
+  expect(screen.getByText(/Today’s Nova allowance: 10% used/)).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('button', { name: 'Summarise' }))
   expect(await screen.findByText(/Waiting its turn…|Working on it…/)).toBeOnTheScreen()
   await waitFor(() => expect(screen.getByText('Needs sorted input')).toBeOnTheScreen(), { timeout: 6000 })
@@ -172,25 +172,25 @@ it('a failed result says why and runs again; translating sends the language; a r
 it('AI that is off says why and its tasks wait', async () => {
   mockApi({ AiState: () => aiState({ available: false, reason: 'PROVIDER_DOWN' }), NoteAiArtifacts: () => noteAi([]) })
   await inApollo(<AiScreen id={NOTE} />)
-  expect(await screen.findByText('The AI model isn’t answering right now. Try again in a minute.')).toBeOnTheScreen()
+  expect(await screen.findByText('Nova isn’t answering right now. Try again in a minute.')).toBeOnTheScreen()
   expect(screen.getByRole('button', { name: 'Summarise' })).toBeDisabled()
 })
 
 it('a spent allowance stops new tasks, and the server’s refusal is shown in its words', async () => {
   const api = mockApi({ AiState: () => aiState({ usedToday: 200_000 }), NoteAiArtifacts: () => noteAi([]) })
   const view = await inApollo(<AiScreen id={NOTE} />)
-  expect(await screen.findByText(/You’ve used today’s AI allowance/)).toBeOnTheScreen()
+  expect(await screen.findByText(/You’ve used today’s Nova allowance/)).toBeOnTheScreen()
   expect(screen.getByRole('button', { name: 'Quiz' })).toBeDisabled()
   await view.unmount()
 
   mockApi({
     AiState: () => aiState({ usedToday: 199_000 }),
     NoteAiArtifacts: () => noteAi([]),
-    RunAiTask: () => ({ data: { runAiTask: { __typename: 'RunAiTaskPayload', artifact: null, userErrors: [{ __typename: 'UserError', field: null, message: 'You’ve used today’s AI allowance; it comes back at midnight UTC.', code: 'RATE_LIMITED' }] } } }),
+    RunAiTask: () => ({ data: { runAiTask: { __typename: 'RunAiTaskPayload', artifact: null, userErrors: [{ __typename: 'UserError', field: null, message: 'You’ve used today’s Nova allowance; it comes back at midnight UTC.', code: 'RATE_LIMITED' }] } } }),
   })
   await inApollo(<AiScreen id={NOTE} />)
   await fireEvent.press(await screen.findByRole('button', { name: 'Quiz' }))
-  expect(await screen.findByText('You’ve used today’s AI allowance; it comes back at midnight UTC.')).toBeOnTheScreen()
+  expect(await screen.findByText('You’ve used today’s Nova allowance; it comes back at midnight UTC.')).toBeOnTheScreen()
   expect(api.ops()).not.toContain('RunAiTask')
 })
 
@@ -199,29 +199,29 @@ it('a note opens its AI tasks from its header; one made here waits until it has 
   mockApi({ PhoneNoteMeta: () => ({ data: { note: null } }) })
   mockNotes = [note({})]
   const view = await inApollo(<NoteScreen id={NOTE} />)
-  await fireEvent.press(await screen.findByRole('button', { name: 'AI tasks' }))
+  await fireEvent.press(await screen.findByRole('button', { name: 'Nova tasks' }))
   expect(router.push).toHaveBeenCalledWith(`/notes/ai/${NOTE}`)
   await view.unmount()
 
   const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {})
   mockNotes = [note({ localOnly: true })]
   await inApollo(<NoteScreen id={NOTE} />)
-  await fireEvent.press(await screen.findByRole('button', { name: 'AI tasks' }))
-  expect(alert).toHaveBeenCalledWith('Not sent yet', 'The note is still only on this phone. Once it has been sent, AI can read it.')
+  await fireEvent.press(await screen.findByRole('button', { name: 'Nova tasks' }))
+  expect(alert).toHaveBeenCalledWith('Not sent yet', 'The note is still only on this phone. Once it has been sent, Nova can read it.')
   expect(router.push).toHaveBeenCalledTimes(1)
 })
 
-it('the account screen shows today’s AI allowance, or why AI is off', async () => {
+it('the account screen shows today’s Nova allowance, or why AI is off', async () => {
   const account = { Viewer: () => ({ data: { viewer: viewer() } }), MyDataExports: () => ({ data: { myDataExports: [] } }), MyStanding: () => ({ data: { myStanding: { __typename: 'AccountStanding', suspendedUntil: null, suspensionReason: null, canAppeal: false, warnings: [] } } }) }
   mockApi({ ...account, AiState: () => aiState({ usedToday: 150_000 }) })
   const view = await inApollo(<AccountScreen />)
-  expect(await screen.findByText(/Today’s AI allowance: 75% used/)).toBeOnTheScreen()
-  expect(screen.getByRole('progressbar', { name: 'Today’s AI allowance' })).toHaveAccessibilityValue({ min: 0, max: 200_000, now: 150_000 })
+  expect(await screen.findByText(/Today’s Nova allowance: 75% used/)).toBeOnTheScreen()
+  expect(screen.getByRole('progressbar', { name: 'Today’s Nova allowance' })).toHaveAccessibilityValue({ min: 0, max: 200_000, now: 150_000 })
   await view.unmount()
 
   mockApi({ ...account, AiState: () => aiState({ available: false, reason: 'BUDGET' }) })
   await inApollo(<AccountScreen />)
-  expect(await screen.findByText('AI is resting until next month: this month’s AI budget is used up.')).toBeOnTheScreen()
+  expect(await screen.findByText('Nova is resting until next month: this month’s budget is used up.')).toBeOnTheScreen()
 })
 
 it('stays on the note when another query of it is refused (a refused answer is not cached over the note)', async () => {
@@ -249,7 +249,7 @@ it('stays on the note when another query of it is refused (a refused answer is n
   await view.rerender(ui('c1,c2'))
   await waitFor(() => expect(mediaCalls).toBeGreaterThan(1))
   expect(screen.getByText('A heap keeps the smallest item on top.')).toBeOnTheScreen()
-  expect(screen.getByText(/Ask AI about/)).toBeOnTheScreen()
+  expect(screen.getByText(/Ask Nova about/)).toBeOnTheScreen()
 })
 
 it('cleans up a converted note: checks each change, drops one, applies the rest and pulls the mended cards (ADR-0063)', async () => {

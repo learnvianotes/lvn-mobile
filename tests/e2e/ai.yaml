@@ -27,8 +27,8 @@ env:
                 visible: "Heaps"
                 timeout: 10000
       - tapOn: "Heaps"
-      - tapOn: "AI tasks"
-      # Ask AI about this note (ADR-0060): the draft is the source, cited by number.
+      - tapOn: "Nova tasks"
+      # Ask Nova about this note (ADR-0060): the draft is the source, cited by number.
       - tapOn: "Ask about this note"
       - inputText: "What does a min-heap keep at the root?"
       - hideKeyboard

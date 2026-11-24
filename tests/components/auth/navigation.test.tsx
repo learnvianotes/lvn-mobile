@@ -37,7 +37,7 @@ describe('signed out', () => {
   it('opens on the welcome screen, whatever link the app was opened with', async () => {
     mockApi({})
     await render('./app', { initialUrl: '/explore' })
-    expect(screen.getByRole('header', { name: /Your Learning Community for a Brighter Tomorrow/ })).toBeVisible()
+    expect(screen.getByRole('header', { name: /Learn from your own notes and PDFs/ })).toBeVisible()
     // Without Google in this build, email sign-up is the first action.
     expect(screen.queryByTestId('welcome-google')).toBeNull()
     expect(screen.getByText('Get Started Free')).toBeVisible()
@@ -48,11 +48,12 @@ describe('signed out', () => {
     const api = mockApi({ SignInOptions: () => signInOptions, SignIn: () => ({ data: { signIn: { __typename: 'AuthPayload', session: session(), userErrors: [] } } }) })
     await render('./app', { initialUrl: '/' })
     await press(screen.getByTestId('welcome-sign-in'))
+    await press(screen.getByTestId('sign-in-mode'))
     await fireEvent.changeText(screen.getByLabelText('Email'), ' asha@example.com ')
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
     await press(screen.getByRole('button', { name: 'Sign in' }))
     await settle()
-    expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
+    expect(screen.getByLabelText('Search or ask Nova')).toBeVisible()
     expect(api.calls.find((c) => c.op === 'SignIn')!.variables).toEqual({ input: { email: 'asha@example.com', password: 'a long enough passphrase' } })
   })
 
@@ -62,6 +63,7 @@ describe('signed out', () => {
       SignIn: () => ({ data: { signIn: { __typename: 'AuthPayload', session: null, userErrors: [{ __typename: 'UserError', field: null, message: 'Email or password is incorrect.', code: 'VALIDATION' }] } } }),
     })
     await render('./app', { initialUrl: '/sign-in' })
+    await press(screen.getByTestId('sign-in-mode'))
     await press(screen.getByRole('button', { name: 'Sign in' }))
     expect(screen.getByText('Enter a valid email address.')).toBeVisible()
     expect(api.ops()).not.toContain('SignIn')
@@ -163,6 +165,7 @@ describe('signed out', () => {
       SignIn: () => ({ data: { signIn: { __typename: 'AuthPayload', session: null, userErrors: [problem(null, 'Registration is invite-only.', 'FORBIDDEN')] } } }),
     })
     await render('./app', { initialUrl: '/sign-in' })
+    await press(screen.getByTestId('sign-in-mode'))
     await fireEvent.changeText(screen.getByLabelText('Email'), 'asha@example.com')
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
     await press(screen.getByRole('button', { name: 'Sign in' }))
@@ -192,7 +195,7 @@ describe('signed in', () => {
     await press(screen.getByText('Continue'))
     await press(screen.getByText('Yes, that’s right'))
     await settle()
-    expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
+    expect(screen.getByLabelText('Search or ask Nova')).toBeVisible()
     // Only the age, in whole years (lvn-backend ADR-0104); no date of birth.
     expect(api.calls.find((c) => c.op === 'CompleteRegistration')!.variables.input).toEqual({
       displayName: 'Asha from GitHub',

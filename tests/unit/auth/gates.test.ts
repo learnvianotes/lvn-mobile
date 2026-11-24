@@ -5,7 +5,7 @@ it('names only the dotted actions the API says are gated', () => {
   expect(accountGateCopy([])).toBeNull()
   expect(accountGateCopy(['note.publish', 'note.share'])).toBe('You can keep notes, study and use your classes. Publishing a note and sharing a note waits until this account is verified.')
   expect(accountGateCopy(['note.publish', 'note.share', 'contest.enter', 'payout.request', 'ai.bulk', 'resource.submit'])).toBe(
-    'You can keep notes, study and use your classes. Publishing a note, sharing a note, entering a contest, requesting a payout, running bulk AI and submitting a resource waits until this account is verified.',
+    'You can keep notes, study and use your classes. Publishing a note, sharing a note, entering a contest, requesting a payout, running bulk Nova requests and submitting a resource waits until this account is verified.',
   )
   expect(accountGateCopy(['CHANGE_NOTE_VISIBILITY'])).toBe('Some features wait until this account is verified. You can keep notes, study and use your classes.')
   expect(accountGateCopy(['UNKNOWN'])).toBe('Some features wait until this account is verified. You can keep notes, study and use your classes.')

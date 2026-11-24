@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client/react'
 import { router, type Href } from 'expo-router'
-import { Activity, Bookmark, CalendarDays, ChevronRight, GraduationCap, History, Layers, Library, NotebookPen, Settings, ShieldCheck, Sparkles, UserRound, Users, type LucideIcon } from 'lucide-react-native'
+import { Activity, Bookmark, CalendarDays, ChevronRight, GraduationCap, History, Layers, Library, NotebookPen, Settings, ShieldCheck, TextQuote, UserRound, Users, type LucideIcon } from 'lucide-react-native'
 import { ActivityIndicator, Pressable, ScrollView, View } from 'react-native'
 import { useCSSVariable } from 'uniwind'
 import { SafeAreaView } from '@/components/ui/safe-area-view'
@@ -44,12 +44,12 @@ const ROWS: Row[] = [
 export function ProfileTab() {
   const { data, loading } = useQuery(ViewerDocument)
   const viewer = data?.viewer
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   return (
     <SafeAreaView className="bg-background flex-1">
       <ScrollView contentContainerClassName="gap-5 px-5 pb-32 pt-4">
         <View className="flex-row items-center justify-between">
-          <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">
+          <Text className="text-2xl font-semibold" accessibilityRole="header">
             Profile
           </Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Settings" hitSlop={8} onPress={() => router.push('/settings')} className="size-10 items-center justify-center rounded-full">
@@ -79,11 +79,11 @@ function Header({ viewer }: { viewer: ViewerFieldsFragment }) {
     <View className="bg-card border-border gap-4 rounded-3xl border p-5">
       <View className="flex-row items-center gap-4">
         <View className="bg-secondary size-16 items-center justify-center rounded-full" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-          <Text className="text-secondary-foreground text-2xl font-bold">{viewer.displayName.slice(0, 1).toUpperCase()}</Text>
+          <Text className="text-secondary-foreground text-2xl font-semibold">{viewer.displayName.slice(0, 1).toUpperCase()}</Text>
         </View>
         <View className="flex-1 gap-0.5">
           <View className="flex-row items-center gap-1.5">
-            <Text className="text-lg font-bold">{viewer.displayName}</Text>
+            <Text className="text-lg font-semibold">{viewer.displayName}</Text>
             {viewer.verified ? <ShieldCheck size={16} color="#0f6b45" accessibilityLabel="Verified" /> : null}
           </View>
           <Text className="text-muted-foreground text-sm">@{viewer.handle}</Text>
@@ -102,7 +102,7 @@ function Header({ viewer }: { viewer: ViewerFieldsFragment }) {
 function Stat({ label, value, onPress }: { label: string; value: number | undefined; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={value === undefined ? label : `${value} ${label.toLowerCase()}`} onPress={onPress} className="flex-1 items-center gap-0.5">
-      <Text className="text-xl font-extrabold">{value ?? '–'}</Text>
+      <Text className="text-xl font-semibold">{value ?? '–'}</Text>
       <Text className="text-muted-foreground text-xs">{label}</Text>
     </Pressable>
   )
@@ -115,7 +115,7 @@ function Achievements() {
   return (
     <View className="gap-3">
       <View className="flex-row items-center justify-between">
-        <Text className="flex-1 text-base font-bold" accessibilityRole="header">
+        <Text className="flex-1 text-base font-semibold" accessibilityRole="header">
           Achievements
         </Text>
         <Pressable accessibilityRole="link" accessibilityLabel="See all achievements" hitSlop={8} onPress={() => router.push('/achievements')}>
@@ -135,8 +135,8 @@ function Achievements() {
 
 /** The rows, then a teacher's Skills tab, the way to teach for students, and the queues of platform admins. */
 function Links({ viewer }: { viewer: ViewerFieldsFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const rows: Row[] = [
     ...ROWS.map((r) => (r.href === '/u/me' ? { ...r, href: `/u/${viewer.handle}` as Href } : r)),
     {
@@ -145,7 +145,7 @@ function Links({ viewer }: { viewer: ViewerFieldsFragment }) {
       href: '/teach',
       show: (v) => v.globalRole === 'STUDENT' && !v.restrictedMinor,
     },
-    { label: 'Your Skills tab', icon: Sparkles, href: '/skills', show: (v) => v.globalRole === 'TEACHER' || v.teacherStatus === 'PENDING' },
+    { label: 'Your Skills tab', icon: TextQuote, href: '/skills', show: (v) => v.globalRole === 'TEACHER' || v.teacherStatus === 'PENDING' },
     { label: 'Verification to review', icon: ShieldCheck, href: '/admin/verification', show: (v) => v.globalRole === 'PLATFORM_ADMIN' || (v.globalRole === 'TEACHER' && v.verified) },
     { label: 'Moderation queue', icon: ShieldCheck, href: '/admin/moderation', show: (v) => v.globalRole === 'PLATFORM_ADMIN' },
   ]

@@ -26,7 +26,7 @@ const STATUS: Record<string, string> = { QUEUED: 'Waiting its turn', RUNNING: 'B
 
 export function StudyAids({ noteId }: { noteId: string }) {
   const client = useApolloClient()
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const { data, refetch } = useQuery(NoteInsightsDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network' })
   const [keepCards, keeping] = useMutation(KeepAiCardsDocument)
   const [setHidden, hiding] = useMutation(SetAiInsightHiddenDocument)
@@ -63,9 +63,9 @@ export function StudyAids({ noteId }: { noteId: string }) {
     <View accessibilityLabel="Study aids" className="border-primary/30 bg-card gap-3 rounded-3xl border p-4">
       <View className="flex-row items-center gap-2" accessible accessibilityRole="header">
         <BookOpenCheck size={18} color={primary} />
-        <Text className="text-lg font-bold">Study aids</Text>
+        <Text className="text-lg font-semibold">Study aids</Text>
       </View>
-      <Text className="text-muted-foreground text-sm">{owner ? 'Made by AI from your published note for its readers. Hide any you don’t want them to see.' : 'Made by AI from this note: a summary, key concepts, questions to practise with, a quiz and flashcards.'}</Text>
+      <Text className="text-muted-foreground text-sm">{owner ? 'Made by Nova from your published note for its readers. Hide any you don’t want them to see.' : 'Made by Nova from this note: a summary, key concepts, questions to practise with, a quiz and flashcards.'}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }} accessibilityRole="tablist">
         {aids.map((a, i) => {
           const selected = a.id === aid.id

@@ -17,8 +17,8 @@ import { attempt, textToDoc } from './shared'
  */
 export function NewPostSheet({ groupId, open, onClose }: { groupId: string; open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const [text, setText] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [create, creating] = useMutation(CreateGroupPostDocument, { refetchQueries: [{ query: GroupPostsDocument, variables: { id: groupId } }], awaitRefetchQueries: true })
@@ -48,7 +48,7 @@ export function NewPostSheet({ groupId, open, onClose }: { groupId: string; open
             <Pressable accessibilityRole="button" accessibilityLabel="Close" onPress={onClose} className="rounded-full p-2">
               <X size={22} color={fg} />
             </Pressable>
-            <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
+            <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">
               New post
             </Text>
             <Pressable accessibilityRole="button" accessibilityState={{ disabled: !ready }} disabled={!ready} onPress={() => void post()} className={`bg-primary rounded-full px-5 py-2 ${ready ? '' : 'opacity-40'}`}>

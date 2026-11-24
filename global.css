@@ -1,6 +1,7 @@
 /*
- * LearnViaNotes tokens (docs/ui-revamp/tokens.json, version 2). Navy is the stylesheet default:
- * color.base plus color.themes.navy. lib/theme/persist.ts applies the saved accent before the first screen.
+ * LearnViaNotes tokens (docs/ui-revamp/tokens.json, version 2). Ink is the stylesheet default:
+ * color.base plus color.themes.ink (ADR-0114, unslop: warm-paper neutrals, ink accent, highlighter spark).
+ * lib/theme/persist.ts applies the saved accent before the first screen.
  * No purple, violet, indigo, lavender or pink. --color-rose is danger, so older class names are not pink.
  */
 @import 'tailwindcss';
@@ -9,27 +10,27 @@
 @layer theme {
   :root {
     @variant light {
-      --color-background: #f4f6f8;
-      --color-foreground: #152033;
+      --color-background: #f8f7f4;
+      --color-foreground: #1c1b18;
       --color-card: #ffffff;
-      --color-card-foreground: #152033;
+      --color-card-foreground: #1c1b18;
       --color-popover: #ffffff;
-      --color-popover-foreground: #152033;
-      --color-primary: #1e4d8c;
+      --color-popover-foreground: #1c1b18;
+      --color-primary: #2847a8;
       --color-primary-foreground: #ffffff;
-      --color-secondary: #e7f0fa;
-      --color-secondary-foreground: #1e4d8c;
-      --color-muted: #e8edf3;
-      --color-muted-foreground: #3d4b63;
-      --color-accent: #e7f0fa;
-      --color-accent-foreground: #1e4d8c;
+      --color-secondary: #e9edf8;
+      --color-secondary-foreground: #2847a8;
+      --color-muted: #f0eee9;
+      --color-muted-foreground: #66625b;
+      --color-accent: #e9edf8;
+      --color-accent-foreground: #2847a8;
       --color-destructive: #9f1d1d;
-      --color-border: #d5dde8;
-      --color-input: #d5dde8;
-      --color-ring: #1e4d8c;
-      --color-hero: #152033;
-      --color-hero-foreground: #f4f7fb;
-      --color-hero-muted: #c5d4e8;
+      --color-border: #e4e1da;
+      --color-input: #e4e1da;
+      --color-ring: #2847a8;
+      --color-hero: #1c1b18;
+      --color-hero-foreground: #f8f7f4;
+      --color-hero-muted: #cbc7be;
       --color-success: #0f6b45;
       --color-success-soft: #e7f6ee;
       --color-warm: #8a4b08;
@@ -40,30 +41,33 @@
       --color-sky-soft: #e6f4f6;
       --color-info: #0f5f6b;
       --color-warning: #8a4b08;
-      --color-highlight: #f5e6b8;
+      --color-highlight: #fbe7a1;
+      --color-spark: #f2c230;
+      --color-spark-soft: #fcf1c7;
+      --color-spark-ink: #6b4c00;
     }
     @variant dark {
-      --color-background: #0e1520;
-      --color-foreground: #f4f7fb;
-      --color-card: #171e28;
-      --color-card-foreground: #f4f7fb;
-      --color-popover: #171e28;
-      --color-popover-foreground: #f4f7fb;
-      --color-primary: #9dc0ea;
-      --color-primary-foreground: #0e1520;
-      --color-secondary: #1a2c44;
-      --color-secondary-foreground: #9dc0ea;
-      --color-muted: #212a36;
-      --color-muted-foreground: #b7c3d4;
-      --color-accent: #1a2c44;
-      --color-accent-foreground: #9dc0ea;
+      --color-background: #141413;
+      --color-foreground: #ecebe6;
+      --color-card: #1b1a18;
+      --color-card-foreground: #ecebe6;
+      --color-popover: #1b1a18;
+      --color-popover-foreground: #ecebe6;
+      --color-primary: #a9bbf2;
+      --color-primary-foreground: #141413;
+      --color-secondary: #1f2640;
+      --color-secondary-foreground: #a9bbf2;
+      --color-muted: #252421;
+      --color-muted-foreground: #9a968d;
+      --color-accent: #1f2640;
+      --color-accent-foreground: #a9bbf2;
       --color-destructive: #f0a0a0;
-      --color-border: #2e3a4a;
-      --color-input: #2e3a4a;
-      --color-ring: #9dc0ea;
-      --color-hero: #0a1018;
-      --color-hero-foreground: #f4f7fb;
-      --color-hero-muted: #c5d4e8;
+      --color-border: #2e2c29;
+      --color-input: #2e2c29;
+      --color-ring: #a9bbf2;
+      --color-hero: #0e0e0d;
+      --color-hero-foreground: #ecebe6;
+      --color-hero-muted: #c4c1b8;
       --color-success: #6ee7a8;
       --color-success-soft: #123226;
       --color-warm: #f5c16c;
@@ -74,13 +78,16 @@
       --color-sky-soft: #123033;
       --color-info: #7fd4d0;
       --color-warning: #f5c16c;
-      --color-highlight: #5c4a1e;
+      --color-highlight: #4d3f12;
+      --color-spark: #e6b72e;
+      --color-spark-soft: #352c10;
+      --color-spark-ink: #f3d27a;
     }
   }
 }
 
 @theme {
-  --font-sans: 'Inter_400Regular', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'IBMPlexSans_400Regular', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrainsMono_400Regular', ui-monospace, SFMono-Regular, Menlo, monospace;
   --radius-sm: 6px;
   --radius-md: 10px;

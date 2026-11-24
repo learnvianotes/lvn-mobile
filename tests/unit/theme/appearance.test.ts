@@ -35,7 +35,7 @@ describe('device appearance on RN 0.88', () => {
     expect(setTheme).not.toHaveBeenCalledWith('light')
     expect(setTheme).not.toHaveBeenCalledWith('dark')
     expect(getTheme()).toMatchObject({ mode: 'system', scheme: 'dark' })
-    expect(getTheme().palette.paper).toBe('#0e1520')
+    expect(getTheme().palette.paper).toBe('#141413')
   })
 
   it('locks an explicit Light or Dark choice', () => {
@@ -44,18 +44,18 @@ describe('device appearance on RN 0.88', () => {
     applyTheme()
     expect(setTheme).toHaveBeenCalledWith('light')
     expect(getTheme()).toMatchObject({ mode: 'light', scheme: 'light' })
-    expect(getTheme().palette.paper).toBe('#f4f6f8')
+    expect(getTheme().palette.paper).toBe('#f8f7f4')
   })
 
   it('keeps asking Uniwind for system when the device scheme changes', () => {
     getColorScheme.mockReturnValue('light')
     const stop = watchTheme()
     chooseMode('system')
-    expect(getTheme().palette.paper).toBe('#f4f6f8')
+    expect(getTheme().palette.paper).toBe('#f8f7f4')
     getColorScheme.mockReturnValue('dark')
     setSystemScheme('dark')
     expect(getTheme()).toMatchObject({ mode: 'system', scheme: 'dark' })
-    expect(getTheme().palette.paper).toBe('#0e1520')
+    expect(getTheme().palette.paper).toBe('#141413')
     expect(setTheme.mock.calls.at(-1)).toEqual(['system'])
     stop()
   })

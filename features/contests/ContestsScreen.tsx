@@ -20,7 +20,7 @@ const when = (iso: string) => new Date(iso).toLocaleString('en-IN', { weekday: '
  */
 export function ContestsScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const query = useQuery(ContestsDocument, { fetchPolicy: 'cache-and-network' })
   const { data } = query
   const list = data?.contests ?? []
@@ -30,7 +30,7 @@ export function ContestsScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Contests
         </Text>
       </View>
@@ -55,10 +55,10 @@ export function ContestCard({ contest: c }: { contest: Item }) {
       <View className="gap-3 p-5 pt-4">
       <View className="flex-row items-start gap-3">
         <View className="flex-1 gap-1">
-          <Text className="text-xs font-semibold uppercase" style={{ color: palette.inverseMuted }}>
+          <Text className="text-xs font-semibold" style={{ color: palette.inverseMuted }}>
             Weekly
           </Text>
-          <Text className="text-xl font-bold" accessibilityRole="header" style={{ color: palette.inverseInk }}>
+          <Text className="text-xl font-semibold" accessibilityRole="header" style={{ color: palette.inverseInk }}>
             {c.title}
           </Text>
           <Text className="text-sm" style={{ color: palette.inverseMuted }}>

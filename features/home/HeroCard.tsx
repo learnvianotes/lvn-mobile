@@ -31,7 +31,7 @@ export function HeroCard({ firstName }: { firstName: string }) {
     <View testID="home-hero" className="bg-hero overflow-hidden rounded-3xl">
       <View className="bg-primary h-1" />
       <View className="gap-1.5 px-5 py-5">
-        <Text className="text-hero-foreground text-2xl font-bold" accessibilityRole="header">
+        <Text className="text-hero-foreground text-2xl font-semibold" accessibilityRole="header">
           {greeting}
         </Text>
         {today ? (

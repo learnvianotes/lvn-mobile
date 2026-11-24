@@ -24,7 +24,7 @@ const KIND: Record<string, string> = { NOTE: 'Note', BLOG: 'Blog', POST: 'Post',
  * Explore; a reaction is the person's own (others see milestones, ADR-0027).
  */
 export function PostCard({ note, topic, onChanged }: { note: PostCardFieldsFragment; topic?: { id: string; title: string } | null; onChanged: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const { palette } = useTheme()
   const art = ART[note.kind] ?? ART.NOTE
   const Icon = art.icon
@@ -48,7 +48,7 @@ export function PostCard({ note, topic, onChanged }: { note: PostCardFieldsFragm
             {note.owner.profile?.department ? ` · ${note.owner.profile.department}` : ''}
             {note.publishedAt ? ` · ${ago(note.publishedAt)}` : ''} · {KIND[note.kind] ?? 'Note'}
           </Text>
-          <Text className="text-lg font-bold">{note.title || 'Untitled note'}</Text>
+          <Text className="text-lg font-semibold">{note.title || 'Untitled note'}</Text>
           {note.excerpt ? (
             <Text className="text-muted-foreground text-sm" numberOfLines={2}>
               {note.excerpt}

@@ -14,6 +14,6 @@ export const APP_NAV: { label: string; href: Href }[] = [
   { label: 'Rhythm', href: '/rhythm' },
   { label: 'Resources', href: '/resources' },
   { label: 'Community', href: '/community' },
-  { label: 'AI Assistant', href: '/ask' },
+  { label: 'Nova', href: '/ask' },
   { label: 'Bookmarks', href: '/saved' },
 ]

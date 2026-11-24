@@ -18,7 +18,7 @@ import { SHEET_IN, SHEET_OUT } from '@/features/shell/sheet-motion'
  * the author. `icon` is a flag for a row of small buttons.
  */
 export function ReportLink({ entityType, entityId, authorId, icon }: { entityType: ReportEntityType; entityId: string; authorId: string; icon?: boolean }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const viewer = useQuery(ViewerDocument)
   const [open, setOpen] = useState(false)
   if (!viewer.data?.viewer || viewer.data.viewer.id === authorId) return null
@@ -35,7 +35,7 @@ export function ReportLink({ entityType, entityId, authorId, icon }: { entityTyp
 /** The report form in a sheet over the screen, for a trigger of one's own (a profile's actions). */
 export function ReportSheet({ entityType, entityId, open, onClose }: { entityType: ReportEntityType; entityId: string; open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [reason, setReason] = useState<ReportReason | null>(null)
   const [details, setDetails] = useState('')
   const [sent, setSent] = useState(false)
@@ -77,7 +77,7 @@ export function ReportSheet({ entityType, entityId, open, onClose }: { entityTyp
                 <View className="size-12 items-center justify-center rounded-full bg-success-soft">
                   <Check size={24} color="#0f6b45" />
                 </View>
-                <Text className="text-lg font-bold">Thank you for telling us</Text>
+                <Text className="text-lg font-semibold">Thank you for telling us</Text>
                 <Text className="text-muted-foreground text-center">A moderator will look at it.</Text>
                 <Pressable accessibilityRole="button" onPress={close} className="bg-primary mt-2 rounded-full px-6 py-2.5">
                   <Text className="text-primary-foreground font-semibold">Done</Text>
@@ -85,7 +85,7 @@ export function ReportSheet({ entityType, entityId, open, onClose }: { entityTyp
               </View>
             ) : (
               <ScrollView contentContainerStyle={{ gap: 12 }} keyboardShouldPersistTaps="handled">
-                <Text className="text-lg font-bold" accessibilityRole="header">
+                <Text className="text-lg font-semibold" accessibilityRole="header">
                   {REPORT_TITLE[entityType]}
                 </Text>
                 <Text className="text-muted-foreground text-sm">What is wrong with it? Moderators look at every report; the author is not told who sent it.</Text>

@@ -35,6 +35,10 @@ export interface Palette {
   inverseInk: string
   inverseMuted: string
   highlight: string
+  /** The highlighter: signature marker stroke, streaks and progress. Never a fill behind body text. */
+  spark: string
+  sparkSoft: string
+  sparkInk: string
   codeKeyword: string
   codeString: string
   codeNumber: string
@@ -77,7 +81,7 @@ export function listAccents(source: TokensFile = bundled): { id: string; label: 
   const table = themeTable(source)
   const named = source.appearance?.accents?.filter((id) => table[id])
   const ids = named?.length ? named : Object.keys(table)
-  if (!ids.length) return [{ id: 'navy', label: 'Navy' }]
+  if (!ids.length) return [{ id: 'ink', label: 'Ink' }]
   return ids.map((id) => ({ id, label: table[id]?.name?.trim() || table[id]?.label?.trim() || labelize(id) }))
 }
 
@@ -85,7 +89,7 @@ export function defaultAccentId(source: TokensFile = bundled): string {
   const listed = listAccents(source)
   const asked = source.appearance?.defaultAccent ?? source.accent?.default
   if (asked && listed.some((a) => a.id === asked)) return asked
-  return listed[0]?.id ?? 'navy'
+  return listed[0]?.id ?? 'ink'
 }
 
 /** Base palette for `appearance`, with the named accent's brand overrides merged on top. Unknown ids use the default accent. */

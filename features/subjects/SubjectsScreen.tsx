@@ -20,8 +20,8 @@ const openTopic = (t: { id: string; title: string }) => router.push({ pathname: 
  */
 export function SubjectsScreen() {
   const insets = useSafeAreaInsets()
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const { slug } = useLocalSearchParams<{ slug?: string }>()
   const query = useQuery(SubjectsDocument, { fetchPolicy: 'cache-and-network' })
   const { data, error, refetch } = query
@@ -37,7 +37,7 @@ export function SubjectsScreen() {
         {!data && error ? <LoadFailed message="Subjects could not load just now. Try again in a moment." onRetry={() => void refetch()} /> : null}
         {missing ? (
           <View className="gap-3 py-6">
-            <Text className="text-2xl font-bold" accessibilityRole="header">Page not found.</Text>
+            <Text className="text-2xl font-semibold" accessibilityRole="header">Page not found.</Text>
             <Text className="text-muted-foreground">This page does not exist or is no longer public.</Text>
             <Pressable accessibilityRole="link" accessibilityLabel="Go home" onPress={() => router.replace('/')} className="min-h-11 justify-center">
               <Text className="text-primary font-semibold">Go home</Text>
@@ -64,7 +64,7 @@ export function SubjectsScreen() {
         {subject ? (
           <View className="gap-3">
             <Text className="text-muted-foreground text-sm">Subjects › {subject.title}</Text>
-            <Text className="text-lg font-bold" accessibilityRole="header">Topics</Text>
+            <Text className="text-lg font-semibold" accessibilityRole="header">Topics</Text>
             {subject.topics.map((t) => (
               <View key={t.id} className="bg-card border-border gap-2 rounded-2xl border p-4">
                 <Pressable accessibilityRole="link" accessibilityLabel={`Notes on ${t.title}`} onPress={() => openTopic(t)} className="min-h-10 justify-center">

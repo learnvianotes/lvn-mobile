@@ -111,8 +111,8 @@ export function ExploreScreen() {
   // The last results stay while the next load; a failed search shows what failed, not an earlier search's results.
   const found = ready ? (data ?? (error ? undefined : previousData))?.search : undefined
   const searching = loading && !data
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const toggle = <T,>(list: T[], value: T) => (list.includes(value) ? list.filter((v) => v !== value) : [...list, value])
   /** Opens a result, remembering what was searched for it. */
   const open = (path: string) => {
@@ -139,7 +139,7 @@ export function ExploreScreen() {
   /** On All, a section's heading leads to its tab. */
   const heading = (label: string, x: Tab) => (
     <View className="flex-row items-center justify-between">
-      <Text className="flex-1 text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
+      <Text className="flex-1 text-muted-foreground text-xs font-semibold" accessibilityRole="header">
         {label}
       </Text>
       {tab === 'all' ? (
@@ -169,10 +169,10 @@ export function ExploreScreen() {
                 className="bg-card border-border flex-row items-center gap-2 rounded-full border py-1 pl-1 pr-3"
               >
                 <View className="bg-secondary size-7 items-center justify-center rounded-full">
-                  <Text className="text-secondary-foreground text-xs font-bold">{p.displayName.slice(0, 1).toUpperCase()}</Text>
+                  <Text className="text-secondary-foreground text-xs font-semibold">{p.displayName.slice(0, 1).toUpperCase()}</Text>
                 </View>
                 <Text className="text-sm font-semibold">{p.displayName}</Text>
-                {p.globalRole === 'TEACHER' ? <Text className="text-primary text-[10px] font-bold uppercase">Teacher</Text> : null}
+                {p.globalRole === 'TEACHER' ? <Text className="text-primary text-[10px] font-semibold">Teacher</Text> : null}
               </Pressable>
             ))}
           </View>
@@ -242,7 +242,7 @@ export function ExploreScreen() {
       ) : null}
       {!narrows && found && !count && !searching ? <Text className="text-muted-foreground py-8 text-center text-sm">{`Nothing found for “${settled}”.`}</Text> : null}
       {narrows && found ? (
-        <Text className="text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
+        <Text className="text-muted-foreground text-xs font-semibold" accessibilityRole="header">
           {settled.length < 2 && filtering ? 'Notes, newest first' : 'Notes'}
         </Text>
       ) : null}
@@ -252,7 +252,7 @@ export function ExploreScreen() {
   return (
     <View className="bg-background flex-1" style={{ paddingTop: insets.top + 12 }}>
       <View className="gap-3 px-4 pb-2">
-        <Text className="text-2xl font-extrabold" accessibilityRole="header">
+        <Text className="text-2xl font-semibold" accessibilityRole="header">
           Explore
         </Text>
         <View className="bg-card border-border flex-row items-center gap-2 rounded-2xl border px-3">
@@ -320,7 +320,7 @@ export function ExploreScreen() {
           {recent.length ? (
             <>
               <View className="flex-row items-center justify-between">
-                <Text className="flex-1 text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
+                <Text className="flex-1 text-muted-foreground text-xs font-semibold" accessibilityRole="header">
                   Recent searches
                 </Text>
                 <Pressable accessibilityRole="button" accessibilityLabel="Clear recent searches" onPress={() => void forget(null).then(setRecent)}>

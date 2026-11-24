@@ -27,8 +27,8 @@ export function TodayRing({ done, dayBar, full, size = 112, label, centre }: Pro
   const c = 2 * Math.PI * r
   const reduced = useReducedMotion()
   const progress = useSharedValue(0)
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const track = String(useCSSVariable('--color-secondary') ?? '#e7f0fa')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const track = String(useCSSVariable('--color-secondary') ?? '#e9edf8')
   const success = String(useCSSVariable('--color-success') ?? '#0f6b45')
 
   useEffect(() => {
@@ -68,7 +68,7 @@ export function TodayRing({ done, dayBar, full, size = 112, label, centre }: Pro
         <Circle cx={mx} cy={my} r={3.5} fill={counted ? success : primary} opacity={counted ? 0 : 0.9} />
       </Svg>
       <View className="absolute inset-0 items-center justify-center">
-        <Text className="text-2xl font-bold">{centre?.value ?? done}</Text>
+        <Text className="text-2xl font-semibold">{centre?.value ?? done}</Text>
         <Text className="text-muted-foreground text-xs">{centre?.caption ?? `of ${full}`}</Text>
       </View>
     </View>

@@ -20,8 +20,8 @@ import { ReportLink } from '@/features/moderation/ReportSheet'
  * may do with each, editing one's own included. Read with its own query, so threads stay within the depth limit.
  */
 export function Discussion({ target, compact }: { target: { type: CommentTargetType; id: string }; compact?: boolean }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const thread = useQuery(DiscussionDocument, { variables: { target }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = thread
   const [add] = useMutation(AddCommentDocument)
@@ -47,7 +47,7 @@ export function Discussion({ target, compact }: { target: { type: CommentTargetT
       {compact ? null : (
         <View className="flex-row items-center gap-2">
           <MessageSquare size={18} color={accent} />
-          <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
+          <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">
             Discussion
           </Text>
           {d.commentCount ? <Text className="text-muted-foreground text-sm">{d.commentCount === 1 ? '1 comment' : `${d.commentCount} comments`}</Text> : null}
@@ -111,7 +111,7 @@ export function Discussion({ target, compact }: { target: { type: CommentTargetT
 }
 
 function CommentView({ comment: c, onChanged, onReply }: { comment: CommentFieldsFragment; onChanged: () => void; onReply?: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [remove] = useMutation(DeleteCommentDocument)
   const [approve] = useMutation(ApproveCommentDocument)
   const [edit] = useMutation(EditCommentDocument)

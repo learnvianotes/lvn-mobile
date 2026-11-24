@@ -26,7 +26,7 @@ const field = 'border-border bg-card text-foreground rounded-xl border px-3 py-2
  */
 export function TeachScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const client = useApolloClient()
   const me = useQuery(ViewerDocument)
   const viewer = me.data?.viewer
@@ -39,7 +39,7 @@ export function TeachScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Teach on LearnViaNotes
         </Text>
       </View>
@@ -75,7 +75,7 @@ export function TeachScreen() {
 function Card({ title, lead }: { title: string; lead: string }) {
   return (
     <View accessibilityRole="summary" className="bg-secondary gap-2 rounded-2xl p-4">
-      <Text className="text-lg font-bold">{title}</Text>
+      <Text className="text-lg font-semibold">{title}</Text>
       <Text className="text-sm">{lead}</Text>
       <Pressable accessibilityRole="link" onPress={() => router.push('/classes/new')}>
         <Text className="text-primary font-semibold">Set up a class →</Text>
@@ -87,7 +87,7 @@ function Card({ title, lead }: { title: string; lead: string }) {
 function ApplyForm({ onSent }: { onSent: () => void }) {
   const uploadsOn = useUploadsEnabled()
   const client = useApolloClient()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [institution, setInstitution] = useState('')
   const [subjects, setSubjects] = useState('')
   const [message, setMessage] = useState('')

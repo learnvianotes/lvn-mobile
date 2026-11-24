@@ -7,7 +7,7 @@ import { Discussion } from './Discussion'
 
 /** Under a group post or class announcement: its comment count, opening its discussion (lvn-backend ADR-0047). */
 export function PostComments({ type, id, count }: { type: 'GROUP_POST' | 'CLASSROOM_POST'; id: string; count: number }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [open, setOpen] = useState(false)
   const label = open ? 'Hide comments' : count ? (count === 1 ? '1 comment' : `${count} comments`) : 'Comment'
   return (

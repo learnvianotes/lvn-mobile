@@ -52,7 +52,7 @@ it('the owner sees an aid being made until it is ready, and hides one from reade
     SetAiInsightHidden: (v) => ((hidden = v.hidden as boolean), { data: { setAiInsightHidden: { __typename: 'OkPayload', ok: true, userErrors: [] } } }),
   })
   await inApollo(<StudyAids noteId={NOTE} />)
-  expect(await screen.findByText(/Made by AI from your published note/)).toBeOnTheScreen()
+  expect(await screen.findByText(/Made by Nova from your published note/)).toBeOnTheScreen()
   await fireEvent.press(screen.getByRole('tab', { name: 'Flashcards' }))
   expect(screen.getByText('Being made…')).toBeOnTheScreen()
   await waitFor(() => expect(screen.getByText('Halve what?')).toBeOnTheScreen(), { timeout: 8000 })

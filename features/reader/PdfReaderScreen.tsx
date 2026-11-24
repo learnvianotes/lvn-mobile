@@ -2,6 +2,7 @@ import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, ChevronDown, ChevronUp, NotebookPen, Search, Trash2, Wand2, X, ZoomIn, ZoomOut } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { StudyLoader } from '@/components/ui/study-loader'
 import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
@@ -47,7 +48,7 @@ const COLORS: { color: HighlightColor; swatch: string; label: string }[] = [
 const pageKey = (fileId: string) => `reader.page.${fileId}`
 /** The pages the vision model read again (lvn-backend ADR-0063), as a sentence for the conversion's banner. */
 const aiRead = (pages: number | null | undefined, rejected: number | null | undefined) =>
-  pages ? ` AI read ${pages} unclear page${pages === 1 ? '' : 's'} again${rejected ? `; ${rejected} reading${rejected === 1 ? '' : 's'} disagreed with the scan and ${rejected === 1 ? 'was' : 'were'} set aside` : ''}.` : ''
+  pages ? ` Nova read ${pages} unclear page${pages === 1 ? '' : 's'} again${rejected ? `; ${rejected} reading${rejected === 1 ? '' : 's'} disagreed with the scan and ${rejected === 1 ? 'was' : 'were'} set aside` : ''}.` : ''
 
 type Card = { id: string; type: CardType; content: unknown }
 /** A command for the PDF before it is numbered */
@@ -62,9 +63,9 @@ type NewCommand = { [K in DomCommand['kind']]: Omit<Extract<DomCommand, { kind: 
 export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCard }: { noteId: string; fileId: string; page?: number; card?: string }) {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const background = String(useCSSVariable('--color-secondary') ?? '#e7f0fa')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const background = String(useCSSVariable('--color-secondary') ?? '#e9edf8')
   const onBrand = useTheme().palette.brandForeground
 
   const note = useLocal(() => db.getNote(noteId), [noteId])
@@ -220,6 +221,24 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
 
   const url = file.data?.noteFile?.url
   const fileName = file.data?.noteFile?.fileName ?? ''
+  // A PDF uploaded a moment ago is served only after its virus scan (ADR-0102). Ask again every few seconds for up to
+  // SCAN_WAIT_MS instead of saying it is not there; the reader opens by itself when the scan is done.
+  const [scanWaitOver, setScanWaitOver] = useState(false)
+  const waitingForScan = !url && !file.error && !file.loading && file.data !== undefined && !scanWaitOver
+  useEffect(() => {
+    if (!waitingForScan) return
+    const started = Date.now()
+    const tick = setInterval(() => {
+      if (Date.now() - started > SCAN_WAIT_MS) {
+        clearInterval(tick)
+        setScanWaitOver(true)
+        return
+      }
+      void file.refetch().catch(() => undefined)
+    }, SCAN_POLL_MS)
+    return () => clearInterval(tick)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one loop per wait, not per refetch
+  }, [waitingForScan])
   const assets = env.EXPO_PUBLIC_WEB_URL ? `${env.EXPO_PUBLIC_WEB_URL.replace(/\/$/, '')}/pdfjs/${PDFJS_VERSION}/` : null
 
   return (
@@ -257,7 +276,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
             {working
               ? `${{ QUEUED: 'Waiting to start…', TRIAGE: 'Counting the pages…', PARSING: 'Reading the PDF…', MAPPING: 'Making your cards…' }[conversion.status as 'QUEUED'] ?? 'Converting…'} ${conversion.progress}%`
               : conversion.status === 'DONE'
-                ? `Made ${conversion.cards ?? 0} cards from ${conversion.pages ?? 0} pages. Check them beside the PDF.${aiRead(conversion.aiPages, conversion.aiRejected)}${conversion.scannedPages ? ' To mend words the conversion broke, use Clean up the text in AI tasks.' : ''}`
+                ? `Made ${conversion.cards ?? 0} cards from ${conversion.pages ?? 0} pages. Check them beside the PDF.${aiRead(conversion.aiPages, conversion.aiRejected)}${conversion.scannedPages ? ' To mend words the conversion broke, use Clean up the text in Nova tasks.' : ''}`
                 : (conversion.error ?? 'The conversion failed.')}
           </Text>
           {!working ? (
@@ -333,10 +352,12 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
         ) : null}
         {state !== 'ready' || !url ? (
           <View className="absolute inset-0 items-center justify-center gap-2 p-6" pointerEvents="none">
-            {file.loading || (url && state === 'loading') ? <ActivityIndicator /> : null}
-            <Text className="text-muted-foreground text-center text-sm">
+            {waitingForScan ? <StudyLoader kind="scan" detail="It opens here by itself in a moment." /> : file.loading || (url && state === 'loading') ? <StudyLoader kind="pdf" /> : null}
+            {waitingForScan || file.loading || (url && state === 'loading') ? null : <Text className="text-muted-foreground text-center text-sm">
               {file.error
                 ? 'Connect to the internet to open this PDF.'
+                : waitingForScan
+                  ? 'Checking your PDF for viruses. It opens here by itself in a moment.'
                 : !file.loading && !url
                   ? 'This PDF is not in the note, or you cannot open it.'
                   : state === 'password'
@@ -344,7 +365,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
                     : state === 'failed'
                       ? 'This PDF could not be opened. Go back and open it again.'
                       : 'Opening the PDF…'}
-            </Text>
+            </Text>}
           </View>
         ) : null}
       </View>
@@ -426,7 +447,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
       {sheet ? (
         <View className="bg-background border-border absolute inset-x-0 bottom-0 rounded-t-3xl border-t" style={{ height: '72%', paddingBottom: insets.bottom }} accessibilityLabel="Notes beside the PDF">
           <View className="border-border flex-row items-center gap-2 border-b px-4 py-3">
-            <Text className="flex-1 text-lg font-bold" numberOfLines={1}>
+            <Text className="flex-1 text-lg font-semibold" numberOfLines={1}>
               {title || 'Untitled note'}
             </Text>
             {note ? (
@@ -471,3 +492,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
     </View>
   )
 }
+
+/** How often the reader asks again for a PDF that is still being scanned, and for how long. */
+export const SCAN_POLL_MS = 3_000
+export const SCAN_WAIT_MS = 3 * 60_000

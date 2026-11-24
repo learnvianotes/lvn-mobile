@@ -20,7 +20,7 @@ export function AuthScreen({ title, lead, children }: { title: string; lead?: st
         <ScrollView contentContainerClassName="pb-10" keyboardShouldPersistTaps="handled">
           <View className="bg-hero gap-3 px-6 pb-12 pt-8">
             <View className="bg-primary absolute left-0 right-0 top-0 h-1" />
-            <Text className="text-hero-foreground text-3xl font-extrabold leading-9 tracking-tight">
+            <Text className="text-hero-foreground text-3xl font-semibold leading-9 tracking-tight">
               {copy.welcome.headline}
             </Text>
             <Text className="text-hero-muted text-base leading-6">{copy.welcome.lead}</Text>
@@ -36,7 +36,7 @@ export function AuthScreen({ title, lead, children }: { title: string; lead?: st
           </View>
           <View className="bg-card border-border -mt-6 gap-5 rounded-t-3xl border px-5 pb-8 pt-6">
             <View className="gap-1">
-              <Text className="text-2xl font-bold tracking-tight" accessibilityRole="header">{title}</Text>
+              <Text className="text-2xl font-semibold" accessibilityRole="header">{title}</Text>
               {lead ? <Text className="text-muted-foreground text-sm">{lead}</Text> : null}
             </View>
             {children}

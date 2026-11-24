@@ -16,8 +16,8 @@ import { cleanCode } from './shared'
  */
 export function JoinClassScreen({ code: raw, via }: { code: string; via: 'CODE' | 'LINK' }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const code = cleanCode(raw)
   const { data, loading, error: lookup, refetch } = useQuery(ClassroomByCodeDocument, { variables: { code }, fetchPolicy: 'network-only' })
   const [request] = useMutation(RequestToJoinClassroomDocument)
@@ -34,7 +34,7 @@ export function JoinClassScreen({ code: raw, via }: { code: string; via: 'CODE' 
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Join a class
         </Text>
       </View>
@@ -49,9 +49,9 @@ export function JoinClassScreen({ code: raw, via }: { code: string; via: 'CODE' 
           <View className="bg-card border-border gap-3 rounded-3xl border p-5">
             <View className="flex-row items-center gap-2">
               <GraduationCap size={16} color={accent} />
-              <Text className="text-muted-foreground font-mono tracking-widest">{code}</Text>
+              <Text className="text-muted-foreground font-mono">{code}</Text>
             </View>
-            <Text className="text-2xl font-extrabold">{found.name}</Text>
+            <Text className="text-2xl font-semibold">{found.name}</Text>
             <Text className="text-muted-foreground">Teacher: {found.teacher.displayName}</Text>
             {found.viewerRole ? (
               <Pressable accessibilityRole="button" onPress={() => router.replace(`/classes/${found.id}`)} className="bg-primary self-start rounded-full px-4 py-2.5">

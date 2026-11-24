@@ -80,7 +80,7 @@ export function ModerationQueue({ scope, groupId }: { scope?: { scope: 'GROUP' |
 }
 
 function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?: string; platform?: boolean; onDone: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [moderate, deciding] = useMutation(ModerateContentDocument)
   const [mute] = useMutation(MuteGroupMemberDocument)
   const [reason, setReason] = useState('')
@@ -105,7 +105,7 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
   return (
     <View accessibilityLabel={`${ENTITY[c.entityType]} case`} className="bg-card border-border gap-3 rounded-2xl border p-4">
       <View className="flex-row flex-wrap items-center gap-2">
-        <Text className="text-muted-foreground text-xs font-semibold uppercase">{ENTITY[c.entityType]}</Text>
+        <Text className="text-muted-foreground text-xs font-semibold">{ENTITY[c.entityType]}</Text>
         {platform && c.scope !== 'PLATFORM' ? <Text className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs font-semibold">{WHERE[c.scope]}</Text> : null}
         {state ? <Text className="bg-secondary rounded-full px-2 py-0.5 text-xs">{STATE[state]}</Text> : null}
         {c.suspendedUntil ? <Text className="rounded-full bg-rose-soft px-2 py-0.5 text-xs font-semibold text-destructive">Suspended until {new Date(c.suspendedUntil).toLocaleDateString()}</Text> : null}
@@ -115,10 +115,10 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
       {title ? (
         c.group ? (
           <Pressable accessibilityRole="link" onPress={() => router.push(`/groups/${c.group!.id}`)}>
-            <Text className="text-lg font-bold">{title}</Text>
+            <Text className="text-lg font-semibold">{title}</Text>
           </Pressable>
         ) : (
-          <Text className="text-lg font-bold">{title}</Text>
+          <Text className="text-lg font-semibold">{title}</Text>
         )
       ) : null}
       {author ? (
@@ -151,7 +151,7 @@ function CaseCard({ item: c, groupId, platform, onDone }: { item: Case; groupId?
       ))}
       {c.appeal ? (
         <View className="border-primary bg-primary/10 rounded-xl border-l-4 px-3 py-2">
-          <Text className="text-primary text-xs font-semibold uppercase">The author’s appeal</Text>
+          <Text className="text-primary text-xs font-semibold">The author’s appeal</Text>
           <Text className="text-sm">{c.appeal.message}</Text>
         </View>
       ) : null}

@@ -19,7 +19,7 @@ const BAND = { TOP_10: 'You’re in the top 10% of adults who took it.', TOP_25:
 export function ContestScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const query = useQuery(ContestDocument, { variables: { id: String(id) }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [start, starting] = useMutation(StartContestDocument)
@@ -32,7 +32,7 @@ export function ContestScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/contests'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="flex-1 text-lg font-bold" accessibilityRole="header" numberOfLines={1}>
+        <Text className="flex-1 text-lg font-semibold" accessibilityRole="header" numberOfLines={1}>
           {c?.title ?? 'Contest'}
         </Text>
       </View>
@@ -95,7 +95,7 @@ function Attempt({ attempt: a, onOver }: { attempt: ContestAttemptFieldsFragment
     <View className="gap-4">
       <View className="bg-card border-border flex-row items-center justify-between rounded-2xl border px-4 py-3">
         <Text className="text-muted-foreground text-sm">{`${Object.keys(chosen).length} of ${a.questions.length} answered`}</Text>
-        <Text accessibilityLabel="Time left" className={`text-lg font-bold ${left < 60 ? 'text-destructive' : ''}`}>
+        <Text accessibilityLabel="Time left" className={`text-lg font-semibold ${left < 60 ? 'text-destructive' : ''}`}>
           {`${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`}
         </Text>
       </View>
@@ -143,7 +143,7 @@ function Results({ attempt: a, subject, settings }: { attempt: ContestAttemptFie
   return (
     <View className="gap-4">
       <View className="bg-card border-border gap-2 rounded-3xl border p-5">
-        <Text className="text-3xl font-extrabold">{`${a.score ?? 0} of ${a.total}`}</Text>
+        <Text className="text-3xl font-semibold">{`${a.score ?? 0} of ${a.total}`}</Text>
         {a.personalBest !== null && a.personalBest !== undefined ? <Text className="text-muted-foreground text-sm">{subject ? `Your best on ${subject}: ${a.personalBest}%` : `Your best in contests: ${a.personalBest}%`}</Text> : null}
         {a.band ? <Text className="text-primary text-sm font-semibold">{BAND[a.band]}</Text> : null}
         {settings.canShowBands ? (

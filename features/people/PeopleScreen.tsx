@@ -32,7 +32,7 @@ const TABS: Record<Tab, { label: string; undo: string; empty: string }> = {
 /** The person's people (lvn-backend ADR-0043): followers (young learners counted, not named), following, blocked, restricted. */
 export function PeopleScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const [tab, setTab] = useState<Tab>('followers')
   const query = useQuery(MyPeopleDocument, { variables: { first: 100 }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
@@ -85,7 +85,7 @@ export function PeopleScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="flex-1 text-xl font-extrabold" accessibilityRole="header">
+        <Text className="flex-1 text-xl font-semibold" accessibilityRole="header">
           Your people
         </Text>
       </View>
@@ -110,7 +110,7 @@ export function PeopleScreen() {
           <View className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">
             <Pressable accessibilityRole="link" onPress={() => router.push(`/u/${item.handle}`)} className="flex-1 flex-row items-center gap-3">
               <View className="bg-secondary size-10 items-center justify-center rounded-full">
-                <Text className="text-secondary-foreground font-bold">{item.displayName.slice(0, 1).toUpperCase()}</Text>
+                <Text className="text-secondary-foreground font-semibold">{item.displayName.slice(0, 1).toUpperCase()}</Text>
               </View>
               <View className="flex-1">
                 <Text className="font-semibold">{item.displayName}</Text>

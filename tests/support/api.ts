@@ -87,4 +87,4 @@ export const session = (user = viewer(), minutes = 15) => {
 
 export const problem = (field: string[] | null, message: string, code = 'VALIDATION') => ({ __typename: 'UserError', field, message, code })
 export const ok = { __typename: 'OkPayload', ok: true, userErrors: [] }
-export const signInOptions = { data: { signInOptions: { __typename: 'SignInOptions', emailPassword: true, google: false, github: false, linkedin: false }, termsVersion: '2026-10-08' } }
+export const signInOptions = { data: { signInOptions: { __typename: 'SignInOptions', emailPassword: true, google: false, emailCode: true, github: false, linkedin: false }, termsVersion: '2026-10-08' } }

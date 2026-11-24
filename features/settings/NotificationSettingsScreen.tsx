@@ -17,8 +17,8 @@ const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/
 /** Notification settings on the phone (lvn-backend ADR-0050): the same choices as the web, saved as they change. */
 export function NotificationSettingsScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const query = useQuery(NotificationSettingsDocument, { fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [update] = useMutation(UpdateNotificationSettingsDocument)
@@ -34,7 +34,7 @@ export function NotificationSettingsScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Notification settings
         </Text>
       </View>
@@ -46,7 +46,7 @@ export function NotificationSettingsScreen() {
               {error}
             </Text>
           ) : null}
-          <Text className="font-bold">What reaches your phone</Text>
+          <Text className="font-semibold">What reaches your phone</Text>
           {s.categories.map((c) => (
             <View key={c.category} className="border-border gap-2 border-b pb-3">
               <View className="flex-row items-center justify-between gap-3">
@@ -61,7 +61,7 @@ export function NotificationSettingsScreen() {
               ) : null}
             </View>
           ))}
-          <Text className="font-bold">Quiet hours</Text>
+          <Text className="font-semibold">Quiet hours</Text>
           <Text className="text-muted-foreground text-sm">No phone notifications between these times ({s.timeZone.replace('_', ' ')}). They still wait in the app.</Text>
           <View className="flex-row gap-3">
             <QuietTime label="From" value={s.quietStart} muted={muted} onSave={(quietStart) => void save({ quietStart })} />

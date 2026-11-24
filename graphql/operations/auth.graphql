@@ -58,8 +58,7 @@ query SignInOptions {
   signInOptions {
     emailPassword
     google
-    github
-    linkedin
+    emailCode
   }
   termsVersion
 }
@@ -202,6 +201,27 @@ mutation CancelAccountDeletion {
     deletionScheduledFor
     userErrors {
       message
+    }
+  }
+}
+
+# Sign in with a 6-digit code emailed to the account (lvn-backend ADR-0115).
+mutation RequestSignInCode($email: String!) {
+  requestSignInCode(input: { email: $email }) {
+    ok
+    userErrors {
+      ...Problems
+    }
+  }
+}
+
+mutation SignInWithCode($email: String!, $code: String!) {
+  signInWithCode(input: { email: $email, code: $code }) {
+    session {
+      ...SessionFields
+    }
+    userErrors {
+      ...Problems
     }
   }
 }

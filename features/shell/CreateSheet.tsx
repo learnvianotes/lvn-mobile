@@ -46,7 +46,7 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
     })
     return () => sub.remove()
   }, [open, onClose])
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const create = useCreate()
   const viewer = useQuery(ViewerDocument, { skip: !open })
   const teacher = viewer.data?.viewer?.globalRole === 'TEACHER'
@@ -72,7 +72,7 @@ export function CreateSheet({ open, onClose }: { open: boolean; onClose: () => v
             style={{ paddingBottom: insets.bottom + 24 }}
           >
             <View className="bg-border h-1.5 w-10 self-center rounded-full" />
-            <Text className="text-lg font-bold" accessibilityRole="header">Create</Text>
+            <Text className="text-lg font-semibold" accessibilityRole="header">Create</Text>
             <View className="flex-row flex-wrap gap-3">
               {[...options, ...kinds].map(({ label, icon: Icon }) => (
                 <PressScale key={label} onPress={() => void choose(label)} accessibilityRole="button" accessibilityLabel={label} style={{ width: '30.5%' }}>

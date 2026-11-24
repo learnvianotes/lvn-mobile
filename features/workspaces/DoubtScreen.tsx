@@ -24,9 +24,9 @@ import { StatusChip } from './WorkspaceParts'
  */
 export function DoubtScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const query = useQuery(DoubtDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [answer] = useMutation(AnswerDoubtDocument)
@@ -60,7 +60,7 @@ export function DoubtScreen({ id }: { id: string }) {
               <ReportLink icon entityType="DOUBT" entityId={d.id} authorId={d.author.id} />
             </View>
             <ContentModeration entityType="DOUBT" item={d} onAppealed={() => void refetch()} />
-            <Text className="text-2xl font-extrabold" accessibilityRole="header">
+            <Text className="text-2xl font-semibold" accessibilityRole="header">
               {d.title}
             </Text>
             {d.repoRef ? <Text className="bg-secondary self-start rounded px-2 py-1 font-mono text-xs">{d.repoRef}</Text> : null}
@@ -94,13 +94,13 @@ export function DoubtScreen({ id }: { id: string }) {
               ) : null}
             </View>
           </View>
-          {/* Ask AI on a doubt (lvn-backend ADR-0015, ADR-0060): over the workspace's notes; the answer is the asker's. */}
+          {/* Ask Nova on a doubt (lvn-backend ADR-0015, ADR-0060): over the workspace's notes; the answer is the asker's. */}
           <View className="border-primary/40 gap-3 rounded-2xl border border-dashed p-4">
-            <Text className="text-muted-foreground text-sm">AI reads the notes shared with this workspace and this thread. Its answer is for you; post it yourself if it helps.</Text>
+            <Text className="text-muted-foreground text-sm">Nova reads the notes shared with this workspace and this thread. Its answer is for you; post it yourself if it helps.</Text>
             <AskForm scope="WORKSPACE" doubtId={id} />
             <AnswerList doubtId={id} />
           </View>
-          <Text className="text-lg font-bold">{d.answers.length === 1 ? '1 answer' : d.answers.length ? `${d.answers.length} answers` : 'No answers'}</Text>
+          <Text className="text-lg font-semibold">{d.answers.length === 1 ? '1 answer' : d.answers.length ? `${d.answers.length} answers` : 'No answers'}</Text>
           {d.answers.map((a) => (
             <View key={a.id} className={`bg-card gap-1.5 rounded-2xl border p-4 ${a.byMentor ? 'border-primary' : 'border-border'}`}>
               <View className="flex-row flex-wrap items-center gap-2">

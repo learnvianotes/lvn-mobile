@@ -22,7 +22,7 @@ export function AppearanceButton() {
 
 function AppearanceSheet({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const closeRef = useRef<PressableInstance>(null)
   useEffect(() => {
     const node = closeRef.current as { focus?: () => void } | null

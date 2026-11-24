@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 
 /** The kit's Input at a 48 dp touch height, marked invalid when its field has an error. */
 export function TextField({ invalid, className, ...props }: React.ComponentProps<typeof Input> & { invalid?: boolean }) {
-  return <Input className={cn('h-11 rounded-[14px]', invalid && 'border-destructive', className)} aria-invalid={invalid} {...props} />
+  return <Input className={cn('h-11 rounded-[10px]', invalid && 'border-destructive', className)} aria-invalid={invalid} {...props} />
 }
 
 /** A checkbox whose whole row (box and sentence) is one control for touch and for screen readers. */

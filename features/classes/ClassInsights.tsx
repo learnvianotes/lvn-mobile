@@ -81,7 +81,7 @@ type Goal = NonNullable<NonNullable<NonNullable<ClassroomRhythmRingQuery['classr
  * up to a share; everyone sees the total, teachers each part, and teachers set it, let it size itself, or turn it off.
  */
 function ClassGoal({ classroomId, goal, staff }: { classroomId: string; goal: Goal | null; staff: boolean }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [target, setTarget] = useState(goal && !goal.automatic ? String(goal.target) : '')
   const [problem, setProblem] = useState<string | null>(null)
   const [set, setting] = useMutation(SetClassGoalDocument, { refetchQueries: [ClassroomRhythmRingDocument] })

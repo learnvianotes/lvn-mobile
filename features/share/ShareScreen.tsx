@@ -147,7 +147,7 @@ export function ShareScreen() {
               <ArrowLeft size={22} color={fg} />
             </Pressable>
             <View className="flex-1">
-              <Text className="text-2xl font-extrabold" accessibilityRole="header">Save to LVN</Text>
+              <Text className="text-2xl font-semibold" accessibilityRole="header">Save to LVN</Text>
               <Text className="text-muted-foreground text-xs">{share.items.length === 0 ? 'Shared text' : `${share.items.length} ${share.items.length === 1 ? 'file' : 'files'}`}</Text>
             </View>
           </View>
@@ -202,7 +202,7 @@ export function ShareScreen() {
           ) : null}
 
           <View className="gap-3">
-            <Text className="text-lg font-bold">Save into</Text>
+            <Text className="text-lg font-semibold">Save into</Text>
             <View className={wide ? 'flex-row gap-3' : 'gap-3'}>
               <Pressable accessibilityRole="button" accessibilityState={{ selected: mode === 'new' }} onPress={() => setMode('new')} className={`border-border flex-1 rounded-2xl border p-3 ${mode === 'new' ? 'bg-primary' : 'bg-card'}`}>
                 <Text className={mode === 'new' ? 'text-primary-foreground font-semibold' : 'font-semibold'}>New note</Text>

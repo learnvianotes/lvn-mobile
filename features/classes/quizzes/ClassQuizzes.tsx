@@ -15,8 +15,8 @@ export const questions = (n: number) => `${n} question${n === 1 ? '' : 's'}`
 
 /** The class's quizzes on the phone (lvn-backend ADR-0064): every member takes them; staff publish and remove them. */
 export function ClassQuizzes({ classroom }: { classroom: ClassroomDetailFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const { data, loading, refetch } = useQuery(ClassroomQuizzesDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const [remove] = useMutation(DeleteClassQuizDocument)
   const [error, setError] = useState<string | null>(null)
@@ -33,7 +33,7 @@ export function ClassQuizzes({ classroom }: { classroom: ClassroomDetailFragment
       {staff ? (
         <View className="gap-1">
           <Pill label="New quiz" primary onPress={() => router.push(`/classes/${classroom.id}/quizzes/new`)} />
-          <Text className="text-muted-foreground text-xs">Make questions from one of your notes with AI, or write your own.</Text>
+          <Text className="text-muted-foreground text-xs">Make questions from one of your notes with Nova, or write your own.</Text>
         </View>
       ) : null}
       {error ? (

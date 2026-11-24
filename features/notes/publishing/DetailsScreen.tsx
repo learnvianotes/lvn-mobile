@@ -20,7 +20,7 @@ type Topic = { id: string; title: string; subject: string }
 export function DetailsScreen({ id }: { id: string }) {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const meta = useQuery(PhoneNoteMetaDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const organise = useQuery(OrganiseDocument, { fetchPolicy: 'cache-and-network' })
   const [save, saving] = useMutation(UpdateNoteDetailsDocument)

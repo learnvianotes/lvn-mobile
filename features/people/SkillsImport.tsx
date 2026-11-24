@@ -29,7 +29,7 @@ const day = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'n
  * away. Verified teachers only; others read when it opens to them.
  */
 export function SkillsImport({ drafts, imported }: { drafts: TeacherSkillFieldsFragment[]; imported: TeacherSkillFieldsFragment[] }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [waiting, setWaiting] = useState(false)
   const query = useQuery(MySkillsImportDocument, { fetchPolicy: 'cache-and-network', pollInterval: waiting ? 4_000 : 0 })
   const { data } = query

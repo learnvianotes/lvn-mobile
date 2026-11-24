@@ -34,7 +34,7 @@ export function MyResourcesScreen() {
         {list.map((r) => (
           <Pressable key={r.id} accessibilityRole="link" accessibilityLabel={r.title} onPress={() => router.push(`/resources/${r.id}`)} className="bg-card border-border gap-1 rounded-2xl border p-4">
             <View className="flex-row flex-wrap items-center gap-2">
-              <Text className="text-primary text-xs font-semibold uppercase">{TYPE_LABEL[r.type]}</Text>
+              <Text className="text-primary text-xs font-semibold">{TYPE_LABEL[r.type]}</Text>
               <Text className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', TONE[r.status])}>{STATUS_LABEL[r.status]}</Text>
             </View>
             <Text className="font-semibold">{r.title}</Text>

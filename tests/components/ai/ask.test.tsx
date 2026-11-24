@@ -10,8 +10,8 @@ import { mockApi } from '../../support/api'
 import { renderInApp } from '../../support/render'
 
 /**
- * Ask AI on the phone (lvn-backend ADR-0060): the Ask AI screen and its scopes, an answer that grows while the model
- * writes, its citations and sources, Ask AI on one note and on a workspace doubt, the refusals, and the way in.
+ * Ask Nova on the phone (lvn-backend ADR-0060): the Ask Nova screen and its scopes, an answer that grows while the model
+ * writes, its citations and sources, Ask Nova on one note and on a workspace doubt, the refusals, and the way in.
  */
 const ANSWER = '01920000-0000-7000-8000-0000000a5001'
 const NOTE = '01920000-0000-7000-8000-00000000a001'
@@ -34,7 +34,7 @@ const inApollo = (ui: React.ReactElement) => renderInApp(<ApolloProvider client=
 
 beforeEach(() => jest.clearAllMocks())
 
-it('asks public notes from the Ask AI screen; the answer grows, then cites sources that open their notes', async () => {
+it('asks public notes from the Ask Nova screen; the answer grows, then cites sources that open their notes', async () => {
   let stage: 'none' | 'writing' | 'done' = 'none'
   let polls = 0
   const current = () => (stage === 'writing' ? answer({ status: 'RUNNING', text: 'Use Dijkstra' }) : answer({ text: 'Use **Dijkstra** with a priority queue [1].', sources: [source(1)] }))
@@ -98,7 +98,7 @@ it('asks AI about a workspace doubt, over the workspace’s notes', async () => 
     },
   })
   await inApollo(<DoubtScreen id={DOUBT} />)
-  await fireEvent.press(await screen.findByRole('button', { name: 'Ask AI about this doubt' }))
+  await fireEvent.press(await screen.findByRole('button', { name: 'Ask Nova about this doubt' }))
   expect(await screen.findByRole('link', { name: 'Source 1: Team notes' })).toBeOnTheScreen()
   expect(api.calls.find((c) => c.op === 'AskAiAboutDoubt')?.variables).toEqual({ doubtId: DOUBT })
 })
@@ -111,7 +111,7 @@ it('says why AI cannot answer, shows a failed answer, and deletes one', async ()
     DeleteAiAnswer: () => ((answers = []), { data: { deleteAiAnswer: { __typename: 'OkPayload', ok: true, userErrors: [] } } }),
   })
   await inApollo(<AskScreen />)
-  expect(await screen.findByText('The AI model isn’t answering right now. Try again in a minute.')).toBeOnTheScreen()
+  expect(await screen.findByText('Nova isn’t answering right now. Try again in a minute.')).toBeOnTheScreen()
   expect(screen.getByRole('button', { name: 'Ask' })).toBeDisabled()
   const failed = await screen.findByLabelText('Answer: How do I find shortest paths?')
   expect(within(failed).getByText('AI is not answering right now. Try again in a minute.')).toBeOnTheScreen()
@@ -120,9 +120,9 @@ it('says why AI cannot answer, shows a failed answer, and deletes one', async ()
   expect(api.calls.find((c) => c.op === 'DeleteAiAnswer')?.variables).toEqual({ id: ANSWER })
 })
 
-it('My notes leads to Ask AI', async () => {
+it('My notes leads to Ask Nova', async () => {
   mockApi({})
   await inApollo(<NotesListScreen />)
-  await fireEvent.press(await screen.findByRole('button', { name: 'Ask AI' }))
+  await fireEvent.press(await screen.findByRole('button', { name: 'Ask Nova' }))
   expect(router.push).toHaveBeenCalledWith('/ask')
 })

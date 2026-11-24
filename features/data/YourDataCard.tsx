@@ -23,11 +23,11 @@ export function YourDataCard() {
   const [request, requesting] = useMutation(RequestDataExportDocument, { refetchQueries: [MyDataExportsDocument] })
   const [error, setError] = useState<string | null>(null)
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
 
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-5" accessibilityLabel="Your data">
-      <Text className="text-lg font-bold" accessibilityRole="header">
+      <Text className="text-lg font-semibold" accessibilityRole="header">
         Your data
       </Text>
       <Text className="text-muted-foreground text-sm">Download everything about you: your notes as Markdown and JSON with their pictures, and your account data. One archive a day; we email you when it is ready.</Text>

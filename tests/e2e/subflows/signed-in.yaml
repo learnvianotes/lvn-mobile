@@ -11,6 +11,8 @@ appId: ${APP_ID}
     id: "sign-in-email"
 - inputText: ${output.email}
 - tapOn:
+    id: "sign-in-mode"
+- tapOn:
     id: "sign-in-password"
 - inputText: ${output.password}
 - hideKeyboard

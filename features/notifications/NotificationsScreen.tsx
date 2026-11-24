@@ -19,8 +19,8 @@ const ICONS: Partial<Record<NotificationFieldsFragment['category'], typeof Bell>
 /** The person's notifications, newest first (lvn-backend ADR-0042); opening one marks it read and goes where it points. */
 export function NotificationsScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const client = useApolloClient()
   const query = useQuery(NotificationsDocument, { variables: { first: PAGE }, fetchPolicy: 'cache-and-network' })
   const { data, refetch, fetchMore } = query
@@ -57,7 +57,7 @@ export function NotificationsScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="flex-1 text-xl font-extrabold" accessibilityRole="header">
+        <Text className="flex-1 text-xl font-semibold" accessibilityRole="header">
           Notifications
         </Text>
         {unread ? (

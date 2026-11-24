@@ -39,7 +39,7 @@ export function ResourceScreen({ id }: { id: string }) {
       <View className="bg-background flex-1">
         <ScreenHeader />
         <View className="items-center gap-2 px-6 py-16">
-          <Text className="text-lg font-bold">This resource is not here.</Text>
+          <Text className="text-lg font-semibold">This resource is not here.</Text>
           <Text className="text-muted-foreground text-center text-sm">It may be waiting for moderators, or it was removed.</Text>
         </View>
       </View>
@@ -72,8 +72,8 @@ export function ResourceScreen({ id }: { id: string }) {
           </View>
         ) : null}
         {cover ? <Image source={{ uri: cover }} style={{ height: 180, width: 135, borderRadius: 12 }} contentFit="contain" accessibilityIgnoresInvertColors /> : null}
-        <Text className="text-primary text-xs font-semibold uppercase">{TYPE_LABEL[r.type]}</Text>
-        <Text className="text-2xl font-extrabold" accessibilityRole="header">
+        <Text className="text-primary text-xs font-semibold">{TYPE_LABEL[r.type]}</Text>
+        <Text className="text-2xl font-semibold" accessibilityRole="header">
           {r.title}
         </Text>
         {r.author ? <Text className="text-muted-foreground text-sm">by {r.author}</Text> : null}

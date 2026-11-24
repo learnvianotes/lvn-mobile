@@ -9,11 +9,11 @@ export function LandingArt() {
   const { palette } = useTheme()
   return (
     <View accessible accessibilityLabel="A note, flashcards and a question answered" className="mt-2 h-72">
-      <View className="bg-card border-border absolute left-2 top-6 w-48 rounded-2xl border p-4" style={{ shadowColor: '#152033', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }}>
+      <View className="bg-card border-border absolute left-2 top-6 w-48 rounded-2xl border p-4" style={{ shadowColor: '#1c1b18', shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } }}>
         <View className="mb-3 flex-row items-center justify-between">
           <View className="bg-muted h-2 w-16 rounded-full" />
           <View className="bg-success size-5 items-center justify-center rounded-full">
-            <Text className="text-primary-foreground text-[10px] font-bold">✓</Text>
+            <Text className="text-primary-foreground text-[10px] font-semibold">✓</Text>
           </View>
         </View>
         <View className="bg-muted mb-2 h-2 w-full rounded-full" />

@@ -23,8 +23,8 @@ const SECTIONS: Record<Section, string> = { forYou: 'For You', trending: 'Trendi
  */
 export function CommunityScreen() {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const mine = useQuery(MyGroupsDocument, { fetchPolicy: 'cache-and-network' })
   const [query, setQuery] = useState('')
   const [settled, setSettled] = useState('')
@@ -43,7 +43,7 @@ export function CommunityScreen() {
   }, [asked])
   return (
     <ScrollView className="bg-background flex-1" contentContainerStyle={{ paddingTop: insets.top + 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 100, gap: 16 }} keyboardShouldPersistTaps="handled">
-      <Text className="text-2xl font-extrabold" accessibilityRole="header">
+      <Text className="text-2xl font-semibold" accessibilityRole="header">
         Community
       </Text>
       <View accessibilityRole="tablist" className="flex-row flex-wrap gap-2">
@@ -82,8 +82,8 @@ export function CommunityScreen() {
 }
 
 function GroupRow({ group }: { group: GroupCardFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const Icon = group.privacy === 'PRIVATE' ? Lock : Globe
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={group.name} onPress={() => router.push(`/groups/${group.id}`)} className="bg-card border-border gap-1.5 rounded-2xl border p-4">

@@ -44,7 +44,7 @@ export function ExamReadiness() {
           <Text className="text-muted-foreground text-xs font-medium">Upcoming exam · {inDays(exam.daysLeft)}</Text>
           <Text className="font-semibold">{exam.name}</Text>
         </View>
-        <Text className="text-primary text-xl font-bold">{exam.readiness}%</Text>
+        <Text className="text-primary text-xl font-semibold">{exam.readiness}%</Text>
       </View>
       <View>
         <Progress value={exam.readiness} className="h-2.5" />

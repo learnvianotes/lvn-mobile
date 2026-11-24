@@ -42,7 +42,7 @@ export function QuizScreen({ quizId }: { quizId: string }) {
       <ScreenHeader title="Quiz" />
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }} keyboardShouldPersistTaps="handled">
         <View className="gap-1">
-          <Text className="text-2xl font-extrabold" accessibilityRole="header">
+          <Text className="text-2xl font-semibold" accessibilityRole="header">
             {quiz.title}
           </Text>
           <Text className="text-muted-foreground text-sm">
@@ -55,7 +55,7 @@ export function QuizScreen({ quizId }: { quizId: string }) {
         ) : (
           <>
             <View accessibilityLiveRegion="polite" className="border-primary/40 bg-primary/10 gap-2 rounded-2xl border p-4">
-              <Text className="text-lg font-bold">
+              <Text className="text-lg font-semibold">
                 You got {latest.score} of {latest.total}
               </Text>
               {first && first.id !== latest.id ? (
@@ -121,7 +121,7 @@ function TakeQuiz({ quiz, practice, onDone }: { quiz: Quiz; practice: boolean; o
       {q ? (
         <View key={q.id} accessibilityLabel={`Question ${at + 1}`} className="bg-card border-border gap-2 rounded-2xl border p-4">
           <View className="flex-row gap-2">
-            <Text className="text-muted-foreground font-bold">{at + 1}.</Text>
+            <Text className="text-muted-foreground font-semibold">{at + 1}.</Text>
             <View className="flex-1">
               <RichDoc doc={q.question as Doc} />
             </View>
@@ -185,7 +185,7 @@ function Review({ quiz, answers }: { quiz: Quiz; answers: Answers }) {
         return (
           <View key={q.id} accessibilityLabel={`Question ${i + 1}: ${right ? 'right' : 'wrong'}`} className="bg-card border-border gap-2 rounded-2xl border p-4">
             <View className="flex-row gap-2">
-              <Text className="text-muted-foreground font-bold">{i + 1}.</Text>
+              <Text className="text-muted-foreground font-semibold">{i + 1}.</Text>
               <View className="flex-1">
                 <RichDoc doc={q.question as Doc} />
               </View>

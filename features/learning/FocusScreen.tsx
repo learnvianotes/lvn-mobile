@@ -98,7 +98,7 @@ export function FocusScreen() {
       <StatusBar style="light" />
       <View className="flex-1 px-6" style={{ paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 }}>
         <View className="flex-row items-center justify-between">
-          <Text className="flex-1 text-lg font-bold" style={{ color: palette.inverseInk }} accessibilityRole="header">
+          <Text className="flex-1 text-lg font-semibold" style={{ color: palette.inverseInk }} accessibilityRole="header">
             Focus mode
           </Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Close focus mode" hitSlop={8} onPress={() => (router.canGoBack() ? router.back() : router.replace('/rhythm'))} className="size-10 items-center justify-center rounded-full">
@@ -130,7 +130,7 @@ export function FocusScreen() {
               <Circle cx={130} cy={130} r={118} stroke="rgba(255,255,255,0.12)" strokeWidth={10} fill="none" />
               <Circle cx={130} cy={130} r={118} stroke={onInverse.brand} strokeWidth={10} fill="none" strokeLinecap="round" strokeDasharray={`${2 * Math.PI * 118 * share} ${2 * Math.PI * 118}`} />
             </Svg>
-            <Text className="text-6xl font-extrabold" style={{ color: palette.inverseInk, fontVariant: ['tabular-nums'] }} accessibilityLabel={`${clock(left)} left`}>
+            <Text className="text-6xl font-semibold" style={{ color: palette.inverseInk, fontVariant: ['tabular-nums'] }} accessibilityLabel={`${clock(left)} left`}>
               {clock(left)}
             </Text>
             <Text className="mt-1 text-sm" style={{ color: palette.inverseMuted }}>
@@ -187,7 +187,7 @@ function Big({ label, onPress, ghost, disabled }: { label: string; onPress: () =
   const { palette } = useTheme()
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={disabled} onPress={onPress} className="min-h-11 min-w-32 items-center justify-center rounded-full px-6" style={{ backgroundColor: ghost ? 'transparent' : palette.inverseInk, borderWidth: ghost ? 1 : 0, borderColor: palette.inverseMuted }}>
-      <Text className="text-base font-bold" style={{ color: ghost ? palette.inverseInk : palette.inverse }}>
+      <Text className="text-base font-semibold" style={{ color: ghost ? palette.inverseInk : palette.inverse }}>
         {label}
       </Text>
     </Pressable>

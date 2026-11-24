@@ -54,7 +54,7 @@ export function ringPercent(today: Pick<R['today'], 'learningSeconds' | 'reviews
  */
 export function RhythmScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const rhythm = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
   const r = rhythm.data?.rhythm
   return (
@@ -63,7 +63,7 @@ export function RhythmScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Rhythm
         </Text>
       </View>
@@ -104,7 +104,7 @@ function Card({ title, badge, children }: { title: string; badge?: string | null
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
+        <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">
           {title}
         </Text>
         {badge ? <Text className="bg-secondary text-primary rounded-full px-3 py-1 text-xs font-semibold">{badge}</Text> : null}
@@ -177,7 +177,7 @@ function Week({ r }: { r: R }) {
           const label = `${w.name}: ${d.planned && d.status !== 'MISSED' ? `${status}, planned` : status}`
           return (
             <View key={d.day} accessible accessibilityLabel={label} className="items-center gap-1.5">
-              <Text className={cn('text-xs', d.day === r.today.day ? 'text-primary font-bold' : 'text-muted-foreground')}>{w.short}</Text>
+              <Text className={cn('text-xs', d.day === r.today.day ? 'text-primary font-semibold' : 'text-muted-foreground')}>{w.short}</Text>
               <View
                 className={cn(
                   'size-9 items-center justify-center rounded-full',
@@ -210,7 +210,7 @@ function Counters({ r }: { r: R }) {
     <View className="flex-row gap-2">
       {items.map(([label, n]) => (
         <View key={label} accessible accessibilityLabel={`${label}: ${n}`} className="bg-card border-border flex-1 gap-1 rounded-2xl border p-3">
-          <Text className="text-2xl font-extrabold">{n}</Text>
+          <Text className="text-2xl font-semibold">{n}</Text>
           <Text className="text-muted-foreground text-xs">{label}</Text>
         </View>
       ))}
@@ -313,13 +313,13 @@ function Pauses({ r }: { r: R }) {
           </View>
           <View className="flex-row items-center gap-3">
             <Pressable accessibilityRole="button" accessibilityLabel="One day fewer" disabled={length <= 1} onPress={() => setLength((n) => Math.max(n - 1, 1))} className="border-border size-10 items-center justify-center rounded-full border">
-              <Text className="text-lg font-bold">−</Text>
+              <Text className="text-lg font-semibold">−</Text>
             </Pressable>
             <Text className="text-sm font-semibold" accessibilityLiveRegion="polite">
               {length} {length === 1 ? 'day' : 'days'}: {short(from)} to {short(to)}
             </Text>
             <Pressable accessibilityRole="button" accessibilityLabel="One day more" disabled={length >= 14} onPress={() => setLength((n) => Math.min(n + 1, 14))} className="border-border size-10 items-center justify-center rounded-full border">
-              <Text className="text-lg font-bold">+</Text>
+              <Text className="text-lg font-semibold">+</Text>
             </Pressable>
           </View>
           <View className="flex-row flex-wrap gap-2">

@@ -45,8 +45,8 @@ export function StatusChip({ status }: { status: DoubtStatus }) {
  * (opened in the browser; admins link, change or unlink it) and the showcase (chosen in Settings).
  */
 export function WorkspaceHeader({ group, onChanged }: { group: GroupDetailFragment; onChanged: () => void }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const workspace = useQuery(WorkspaceDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = workspace
   const [answer] = useMutation(AnswerMentorInviteDocument)
@@ -160,7 +160,7 @@ function RepositoryEditor({ groupId, url, onChanged }: { groupId: string; url: s
 
 /** The ideas board (ADR-0048): ranked by the team's reactions; react and discuss under each. */
 export function Ideas({ group }: { group: GroupDetailFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const query = useQuery(WorkspaceIdeasDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [create] = useMutation(CreateIdeaDocument)
@@ -201,7 +201,7 @@ export function Ideas({ group }: { group: GroupDetailFragment }) {
         ideas.map((idea, i) => (
           <View key={idea.id} className="bg-card border-border gap-2 rounded-2xl border p-4">
             <View className="flex-row items-center gap-2">
-              <Text accessibilityLabel={`Rank ${i + 1}`} className="text-primary font-bold">
+              <Text accessibilityLabel={`Rank ${i + 1}`} className="text-primary font-semibold">
                 {i + 1}
               </Text>
               <Lightbulb size={14} color="#8a4b08" />
@@ -225,7 +225,7 @@ export function Ideas({ group }: { group: GroupDetailFragment }) {
 
 /** Doubts (ADR-0048): ask one, filter by status, open one to answer. */
 export function Doubts({ group }: { group: GroupDetailFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [status, setStatus] = useState<DoubtStatus | null>(null)
   const query = useQuery(WorkspaceDoubtsDocument, { variables: { id: group.id, status }, fetchPolicy: 'cache-and-network' })
   const { data } = query

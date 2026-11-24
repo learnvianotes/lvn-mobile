@@ -26,7 +26,7 @@ env:
                 visible: "Respiration scan"
                 timeout: 10000
       - tapOn: "Respiration scan"
-      - tapOn: "AI tasks"
+      - tapOn: "Nova tasks"
       - scrollUntilVisible:
           element: "Clean up the text"
           direction: DOWN

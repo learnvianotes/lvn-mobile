@@ -47,7 +47,7 @@ function Chip({ label, on, onPress }: { label: string; on: boolean; onPress: () 
  * server counts the time between start and end, at most the plan; the timer here only shows it.
  */
 export function FocusCard() {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const { data } = useQuery(FocusSessionDocument, { fetchPolicy: 'cache-and-network' })
   const refresh = { refetchQueries: [FocusSessionDocument, RhythmDocument], awaitRefetchQueries: true }
   const [start, starting] = useMutation(StartFocusSessionDocument, refresh)
@@ -67,7 +67,7 @@ export function FocusCard() {
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
+        <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">
           Focus
         </Text>
         {/* Board A's dark focus screen: the timer large, pause and resume, Pomodoro and breaks (ADR-0076). */}
@@ -77,7 +77,7 @@ export function FocusCard() {
       </View>
       {session && phase ? (
         <>
-          <Text className="text-4xl font-extrabold" accessibilityLabel={`${clock(phase.left)} left`}>
+          <Text className="text-4xl font-semibold" accessibilityLabel={`${clock(phase.left)} left`}>
             {clock(phase.left)}
           </Text>
           <Text className="text-muted-foreground text-sm">{phase.phase === 'FOCUS' ? `Focusing: ${session.plannedMinutes} minutes, then a rest.` : phase.phase === 'BREAK' ? 'Rest: stretch, drink some water.' : 'Done. End the session to count it.'}</Text>
@@ -134,7 +134,7 @@ export function FocusCard() {
 
 /** Rhythm buddies on the phone (lvn-backend ADR-0072): the list follows the live channel. */
 export function BuddiesCard({ shared }: { shared: boolean }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const { data, refetch } = useQuery(RhythmBuddiesDocument, { fetchPolicy: 'cache-and-network' })
   useLive((signal) => {
     if (signal.kind === 'BUDDY_PRESENCE' || signal.kind === 'RECONNECTED') void refetch().catch(() => undefined)
@@ -149,7 +149,7 @@ export function BuddiesCard({ shared }: { shared: boolean }) {
   const list = data?.rhythmBuddies
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
-      <Text className="text-lg font-bold" accessibilityRole="header">
+      <Text className="text-lg font-semibold" accessibilityRole="header">
         Rhythm buddies
       </Text>
       <Text className="text-muted-foreground text-sm">Up to five people you follow or are connected with. You see when each other is studying, and each other’s week; nothing else.</Text>

@@ -37,14 +37,14 @@ export function AccountScreen() {
   const viewer = data?.viewer
   const uploadsOn = useUploadsEnabled()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   return (
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           {copy.account.title}
         </Text>
       </View>
@@ -68,7 +68,7 @@ export function AccountScreen() {
 }
 
 function SupportRow() {
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   return (
     <SupportLink label="Contact support" className="bg-card border-border min-h-0 flex-row items-center gap-3 rounded-2xl border px-5 py-4">
       <Mail size={20} color={primary} />
@@ -81,8 +81,8 @@ function SupportRow() {
 }
 
 function NotificationSettingsLink() {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   return (
     <Pressable accessibilityRole="link" onPress={() => router.push('/notification-settings')} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border px-5 py-4">
       <Bell size={20} color={primary} />
@@ -99,7 +99,7 @@ function Account({ viewer }: { viewer: ViewerFieldsFragment }) {
     <>
       <View className="flex-row items-center gap-4">
         <View className="bg-secondary size-14 items-center justify-center rounded-full" importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-          <Text className="text-secondary-foreground text-xl font-bold">{viewer.displayName.slice(0, 1).toUpperCase()}</Text>
+          <Text className="text-secondary-foreground text-xl font-semibold">{viewer.displayName.slice(0, 1).toUpperCase()}</Text>
         </View>
         <View className="flex-1">
           <Text className="text-lg font-semibold">{viewer.displayName}</Text>

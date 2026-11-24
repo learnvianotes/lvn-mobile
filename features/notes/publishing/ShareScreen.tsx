@@ -35,7 +35,7 @@ const ROLE: Record<NoteShareRole, string> = { VIEWER: 'Can view', EDITOR: 'Can e
 export function ShareScreen({ id }: { id: string }) {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const meta = useQuery(PhoneNoteMetaDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const shares = useQuery(NoteSharesDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { needsPrompt } = useGatedActions()

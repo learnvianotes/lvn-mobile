@@ -69,7 +69,7 @@ function toCard(d: Draft, n: number): { content: object } | { problem: string } 
 
 export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const client = useApolloClient()
   const [runTask] = useMutation(RunAiTaskDocument)
   const [publish, publishing] = useMutation(PublishClassQuizDocument)
@@ -90,22 +90,22 @@ export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
     try {
       const res = await runTask({ variables: { input: { noteId, task: 'QUIZ' } } })
       const started = res.data?.runAiTask.artifact
-      if (!started) return setError(res.data?.runAiTask.userErrors[0]?.message ?? 'AI could not make questions from that note. Try again, or write them yourself.')
+      if (!started) return setError(res.data?.runAiTask.userErrors[0]?.message ?? 'Nova could not make questions from that note. Try again, or write them yourself.')
       for (;;) {
         await new Promise((r) => setTimeout(r, POLL_MS))
         const { data } = await client.query({ query: AiArtifactDocument, variables: { id: started.id }, fetchPolicy: 'network-only' })
         const a = data?.aiArtifact
-        if (!a || a.status === 'FAILED') return setError(a?.error ?? 'AI could not make questions from that note. Try again, or write them yourself.')
+        if (!a || a.status === 'FAILED') return setError(a?.error ?? 'Nova could not make questions from that note. Try again, or write them yourself.')
         if (a.status !== 'READY') continue
         const made = (a.cards ?? []).filter((c) => c.type === 'quiz').map((c) => fromCard(c.content as Parameters<typeof fromCard>[0]))
-        if (!made.length) return setError('AI could not make questions from that note. Try again, or write them yourself.')
+        if (!made.length) return setError('Nova could not make questions from that note. Try again, or write them yourself.')
         setDrafts((all) => [...all, ...made].slice(0, MAX_QUESTIONS))
         setSourceNoteId(noteId)
         setTitle((t) => t || noteTitle)
         return
       }
     } catch {
-      setError('AI could not make questions from that note. Try again, or write them yourself.')
+      setError('Nova could not make questions from that note. Try again, or write them yourself.')
     } finally {
       setMaking(null)
     }
@@ -130,7 +130,7 @@ export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
         <Field label="Title" value={title} onChangeText={setTitle} maxLength={120} />
         <View className="bg-secondary gap-2 rounded-2xl p-4">
           <Text className="font-semibold">Make questions from a note</Text>
-          <Text className="text-muted-foreground text-xs">AI writes questions from the note; check each one, change or remove it, and add your own.</Text>
+          <Text className="text-muted-foreground text-xs">Nova writes questions from the note; check each one, change or remove it, and add your own.</Text>
           {making ? (
             <View className="flex-row items-center gap-2" accessibilityLiveRegion="polite">
               <ActivityIndicator size="small" />
@@ -151,7 +151,7 @@ export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
         {drafts.map((d, i) => (
           <View key={d.key} accessibilityLabel={`Question ${i + 1}`} className="bg-card border-border gap-3 rounded-2xl border p-4">
             <View className="flex-row items-center">
-              <Text className="flex-1 font-bold">Question {i + 1}</Text>
+              <Text className="flex-1 font-semibold">Question {i + 1}</Text>
               <Pressable accessibilityRole="button" accessibilityLabel={`Remove question ${i + 1}`} onPress={() => setDrafts((all) => all.filter((x) => x.key !== d.key))} hitSlop={8} className="p-1">
                 <Trash2 size={18} color={fg} />
               </Pressable>
