@@ -22,7 +22,7 @@ const listeners = new Set<() => void>()
 
 function snapshot(): ThemeSnapshot {
   const accents = listAccents()
-  const accent = accents.some((a) => a.id === pref.accent) ? pref.accent : (accents[0]?.id ?? 'navy')
+  const accent = accents.some((a) => a.id === pref.accent) ? pref.accent : (accents[0]?.id ?? 'ink')
   const scheme: Scheme = pref.mode === 'system' ? system : pref.mode
   return { mode: pref.mode, accent, scheme, palette: resolvePalette(scheme, accent), accents }
 }

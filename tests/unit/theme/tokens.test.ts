@@ -17,6 +17,10 @@ const PAIRS: [string, string][] = [
 ]
 
 const BRAND: Record<string, Record<Appearance, { brand: string; brandHover: string; brandForeground: string; brandSoft: string }>> = {
+  ink: {
+    light: { brand: '#2847a8', brandHover: '#1f3888', brandForeground: '#ffffff', brandSoft: '#e9edf8' },
+    dark: { brand: '#a9bbf2', brandHover: '#c9d5f7', brandForeground: '#141413', brandSoft: '#1f2640' },
+  },
   navy: {
     light: { brand: '#1e4d8c', brandHover: '#163e73', brandForeground: '#ffffff', brandSoft: '#e7f0fa' },
     dark: { brand: '#9dc0ea', brandHover: '#c5d9f4', brandForeground: '#0e1520', brandSoft: '#1a2c44' },
@@ -40,13 +44,13 @@ const BRAND: Record<string, Record<Appearance, { brand: string; brandHover: stri
 }
 
 describe('tokens.json', () => {
-  it('ships Navy, Teal, Forest, Slate and Amber, with Navy as the default and System-ready base', () => {
+  it('ships Ink, Navy, Teal, Forest, Slate and Amber, with Ink as the default and System-ready base', () => {
     expect(file.version).toBe(2)
     expect(file.appearance.storage).toEqual({ mode: 'cnote:theme', accent: 'cnote:accent' })
-    expect(file.font).toEqual({ sans: 'Inter, ui-sans-serif, system-ui, sans-serif', mono: 'JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace' })
-    expect(defaultAccentId()).toBe('navy')
-    expect(listAccents().map((a) => a.label)).toEqual(['Navy', 'Teal', 'Forest', 'Slate', 'Amber'])
-    expect(resolvePalette('light', 'missing').brand).toBe('#1e4d8c')
+    expect(file.font).toEqual({ sans: 'IBM Plex Sans, ui-sans-serif, system-ui, sans-serif', mono: 'JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, monospace' })
+    expect(defaultAccentId()).toBe('ink')
+    expect(listAccents().map((a) => a.label)).toEqual(['Ink', 'Navy', 'Teal', 'Forest', 'Slate', 'Amber'])
+    expect(resolvePalette('light', 'missing').brand).toBe('#2847a8')
     for (const [id, schemes] of Object.entries(BRAND)) {
       for (const appearance of ['light', 'dark'] as Appearance[]) {
         const palette = resolvePalette(appearance, id)
@@ -54,7 +58,7 @@ describe('tokens.json', () => {
       }
     }
     // Info is the shared base slot, not the Teal accent.
-    expect(resolvePalette('light', 'teal').paper).toBe('#f4f6f8')
+    expect(resolvePalette('light', 'teal').paper).toBe('#f8f7f4')
     expect(resolvePalette('light', 'teal').info).toBe('#0f5f6b')
     expect(resolvePalette('dark', 'teal').info).toBe('#7fd4d0')
   })
@@ -92,7 +96,8 @@ describe('tokens.json', () => {
   it('maps the palette onto the CSS variables the screens already use, and rose is danger', () => {
     const vars = cssVariables(resolvePalette('light', 'forest'))
     expect(vars['--color-primary']).toBe('#0f6b45')
-    expect(vars['--color-background']).toBe('#f4f6f8')
+    expect(vars['--color-background']).toBe('#f8f7f4')
+    expect(vars['--color-spark']).toBe('#f2c230')
     expect(vars['--color-rose']).toBe('#9f1d1d')
     expect(vars['--color-rose-soft']).toBe('#fdecec')
   })
@@ -110,12 +115,12 @@ describe('theme preference', () => {
     expect(localStorage.getItem(ACCENT_KEY)).toBe('"amber"')
     expect(loadThemePreference()).toEqual({ mode: 'dark', accent: 'amber' })
     localStorage.setItem(ACCENT_KEY, JSON.stringify('violet'))
-    expect(loadThemePreference()).toEqual({ mode: 'dark', accent: 'navy' })
+    expect(loadThemePreference()).toEqual({ mode: 'dark', accent: 'ink' })
     localStorage.setItem(THEME_KEY, 'not-json')
-    expect(loadThemePreference()).toEqual({ mode: 'system', accent: 'navy' })
+    expect(loadThemePreference()).toEqual({ mode: 'system', accent: 'ink' })
     localStorage.removeItem(THEME_KEY)
     localStorage.removeItem(ACCENT_KEY)
-    expect(loadThemePreference()).toEqual({ mode: 'system', accent: 'navy' })
+    expect(loadThemePreference()).toEqual({ mode: 'system', accent: 'ink' })
   })
 
   it('applies the stored choice before a screen can render the default', () => {

@@ -5,7 +5,7 @@ import { defaultAccentId, listAccents } from './tokens'
 /**
  * Same keys and JSON values as the web app's localStorage.
  * `cnote:theme` is `"system"`, `"light"`, or `"dark"`. Missing means System.
- * `cnote:accent` is `"navy"`, `"teal"`, `"forest"`, `"slate"`, or `"amber"`. Missing means the file default.
+ * `cnote:accent` is `"ink"`, `"navy"`, `"teal"`, `"forest"`, `"slate"`, or `"amber"`. Missing means the file default.
  * Native installs this API from expo-sqlite before the root layout reads it. Web already has it.
  * Secure Store cannot use these keys: a colon is not a legal key character there.
  */
