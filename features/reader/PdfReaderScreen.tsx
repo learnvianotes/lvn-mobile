@@ -62,9 +62,9 @@ type NewCommand = { [K in DomCommand['kind']]: Omit<Extract<DomCommand, { kind: 
 export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCard }: { noteId: string; fileId: string; page?: number; card?: string }) {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const background = String(useCSSVariable('--color-secondary') ?? '#e7f0fa')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const background = String(useCSSVariable('--color-secondary') ?? '#e9edf8')
   const onBrand = useTheme().palette.brandForeground
 
   const note = useLocal(() => db.getNote(noteId), [noteId])
@@ -426,7 +426,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
       {sheet ? (
         <View className="bg-background border-border absolute inset-x-0 bottom-0 rounded-t-3xl border-t" style={{ height: '72%', paddingBottom: insets.bottom }} accessibilityLabel="Notes beside the PDF">
           <View className="border-border flex-row items-center gap-2 border-b px-4 py-3">
-            <Text className="flex-1 text-lg font-bold" numberOfLines={1}>
+            <Text className="flex-1 text-lg font-semibold" numberOfLines={1}>
               {title || 'Untitled note'}
             </Text>
             {note ? (

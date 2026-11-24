@@ -44,7 +44,7 @@ export function confirm(title: string, action: string, run: () => void, message?
  * over, moderators mute for a day; each from a sheet behind the member's "more" button.
  */
 export function GroupMembers({ group, onChanged }: { group: GroupDetailFragment; onChanged: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const { data, refetch } = useQuery(GroupMembersDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const [setRole] = useMutation(SetGroupRoleDocument)
   const [remove] = useMutation(RemoveGroupMemberDocument)
@@ -89,7 +89,7 @@ export function GroupMembers({ group, onChanged }: { group: GroupDetailFragment;
           <View key={m.user.id} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">
             <Pressable accessibilityRole="link" accessibilityLabel={m.user.displayName} onPress={() => router.push(`/u/${m.user.handle}`)} className="flex-1 flex-row items-center gap-3">
               <View className="bg-secondary size-9 items-center justify-center rounded-full">
-                <Text className="text-secondary-foreground font-bold">{m.user.displayName.slice(0, 1).toUpperCase()}</Text>
+                <Text className="text-secondary-foreground font-semibold">{m.user.displayName.slice(0, 1).toUpperCase()}</Text>
               </View>
               <View className="flex-1">
                 <Text className="font-semibold">{m.user.displayName}</Text>
@@ -197,7 +197,7 @@ export function GroupSettings({ group, onSaved }: { group: GroupDetailFragment; 
       {group.viewerCan.delete ? (
         // Its own place, apart from saving: deleting cannot be undone (owner, 2026-10-14).
         <View className="border-destructive/40 mt-4 gap-2 rounded-2xl border p-4" accessibilityRole="summary">
-          <Text className="text-destructive font-bold" accessibilityRole="header">
+          <Text className="text-destructive font-semibold" accessibilityRole="header">
             Delete this group
           </Text>
           <Text className="text-muted-foreground text-sm">Its posts, shared notes, members and requests go for everyone. Notes stay with the people who wrote them. This cannot be undone.</Text>
@@ -247,7 +247,7 @@ export function ShowcaseSetting({ group }: { group: GroupDetailFragment }) {
   }
   return (
     <View className="gap-3">
-      <Text className="font-bold" accessibilityRole="header">
+      <Text className="font-semibold" accessibilityRole="header">
         Showcase
       </Text>
       <Choices

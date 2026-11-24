@@ -42,7 +42,7 @@ export function Welcome() {
   const { scheme } = useTheme()
   const scroll = useRef<ScrollViewInstance>(null)
   const featuresY = useRef(0)
-  const brand = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const brand = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const open = (path: string) => openInBrowser(new URL(path, env.EXPO_PUBLIC_WEB_URL).toString())
   return (
     <View className="bg-background flex-1">
@@ -52,8 +52,8 @@ export function Welcome() {
           <Text className="text-primary text-xs font-semibold">Built by students, learn together</Text>
         </View>
         <View className="gap-3">
-          <Text className="text-4xl font-extrabold leading-[40px] tracking-tight" accessibilityRole="header">
-            Your Learning Community for a <Text className="text-primary text-4xl font-extrabold leading-[40px] tracking-tight">Brighter Tomorrow</Text>
+          <Text className="text-4xl font-semibold leading-[40px] tracking-tight" accessibilityRole="header">
+            Your Learning Community for a <Text className="text-primary text-4xl font-semibold leading-[40px] tracking-tight">Brighter Tomorrow</Text>
           </Text>
           <Text className="text-muted-foreground text-base leading-6">Create notes, share knowledge, prepare for exams, learn with AI and grow together.</Text>
         </View>
@@ -82,7 +82,7 @@ export function Welcome() {
         </View>
         <LandingArt />
         <View accessibilityLabel="What you can do" onLayout={(e) => { featuresY.current = e.nativeEvent.layout.y }} className="gap-3">
-          <Text className="text-lg font-bold" accessibilityRole="header">
+          <Text className="text-lg font-semibold" accessibilityRole="header">
             What you can do
           </Text>
           <View className="flex-row flex-wrap gap-3">
@@ -98,7 +98,7 @@ export function Welcome() {
           </View>
         </View>
         <View className="border-border gap-2 border-t pt-6">
-          <Text className="font-bold">LearnViaNotes</Text>
+          <Text className="font-semibold">LearnViaNotes</Text>
           <Text className="text-muted-foreground text-sm">Notes are free to read. Your own notes, groups and classrooms are on the way.</Text>
           <View className="flex-row flex-wrap gap-x-4 gap-y-2">
             {LEGAL.map((item) => (

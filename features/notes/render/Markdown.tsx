@@ -59,7 +59,7 @@ function Block({ block, depth, cite }: { block: MdBlock; depth: number; cite?: C
   switch (block.kind) {
     case 'heading':
       return (
-        <Text accessibilityRole="header" className={block.level === 1 ? 'text-xl font-bold' : block.level === 2 ? 'text-lg font-bold' : 'text-base font-bold'}>
+        <Text accessibilityRole="header" className={block.level === 1 ? 'text-xl font-semibold' : block.level === 2 ? 'text-lg font-semibold' : 'text-base font-semibold'}>
           <Inlines content={block.content} cite={cite} />
         </Text>
       )

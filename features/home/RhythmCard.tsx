@@ -21,7 +21,7 @@ const NAMES = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday
 export function RhythmCard() {
   const success = String(useCSSVariable('--color-success') ?? '#0f6b45')
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
-  const secondaryFg = String(useCSSVariable('--color-secondary-foreground') ?? '#1e4d8c')
+  const secondaryFg = String(useCSSVariable('--color-secondary-foreground') ?? '#2847a8')
   const { data, error, refetch } = useQuery(RhythmDocument, { fetchPolicy: 'cache-and-network' })
   const r = data?.rhythm
   if (!r) {
@@ -42,7 +42,7 @@ export function RhythmCard() {
   return (
     <Pressable accessibilityRole="link" accessibilityHint="Opens Rhythm" onPress={() => router.push('/rhythm')} className="bg-card border-border gap-4 rounded-3xl border p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="text-lg font-bold">Today</Text>
+        <Text className="text-lg font-semibold">Today</Text>
         {paused ? (
           <View className="bg-secondary flex-row items-center gap-1.5 rounded-full px-3 py-1">
             <Pause size={12} color={secondaryFg} />
@@ -79,7 +79,7 @@ export function RhythmCard() {
             const status = d.status === 'AHEAD' && !d.planned ? 'rest day' : d.status === 'MISSED' ? 'planned, not counted' : d.status === 'REST' ? 'rest day' : d.status.toLowerCase()
             return (
               <View key={d.day} className="items-center gap-1.5" accessible accessibilityLabel={`${NAMES[i]}: ${status}`}>
-                <Text className={cn('text-xs', d.day === t.day ? 'text-primary font-bold' : 'text-muted-foreground')}>{LETTERS[i]}</Text>
+                <Text className={cn('text-xs', d.day === t.day ? 'text-primary font-semibold' : 'text-muted-foreground')}>{LETTERS[i]}</Text>
                 <View className={cn('size-8 items-center justify-center rounded-full', d.counted ? 'bg-primary' : d.planned && d.status !== 'PAUSED' ? 'border-primary border-2' : 'bg-muted', d.status === 'MISSED' && 'border-dashed')}>
                   {d.counted ? <Check size={14} color={primaryFg} /> : null}
                 </View>

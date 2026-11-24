@@ -55,7 +55,7 @@ export function ImportCard() {
 
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-5" accessibilityLabel="Import notes">
-      <Text className="text-lg font-bold" accessibilityRole="header">
+      <Text className="text-lg font-semibold" accessibilityRole="header">
         Import notes
       </Text>
       <Text className="text-muted-foreground text-sm">Bring notes from a LearnViaNotes archive, Markdown files, or a ZIP of Markdown with pictures (Obsidian, Notion, Joplin). Everything arrives private.</Text>

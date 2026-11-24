@@ -22,7 +22,7 @@ const TAB: Record<Kind, string> = { person: 'A person', group: 'A group', class:
  */
 export function RecommendSheet({ resourceId, open, onClose }: { resourceId: string; open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [tab, setTab] = useState<Kind>('person')
   const [to, setTo] = useState<To | null>(null)
   const [reason, setReason] = useState('')
@@ -75,14 +75,14 @@ export function RecommendSheet({ resourceId, open, onClose }: { resourceId: stri
             <View className="bg-border mb-3 h-1.5 w-10 self-center rounded-full" />
             {sent ? (
               <View accessibilityRole="summary" className="items-center gap-3 py-6">
-                <Text className="text-lg font-bold">Recommended to {sent}.</Text>
+                <Text className="text-lg font-semibold">Recommended to {sent}.</Text>
                 <Pressable accessibilityRole="button" onPress={close} className="bg-primary mt-2 rounded-full px-6 py-2.5">
                   <Text className="text-primary-foreground font-semibold">Done</Text>
                 </Pressable>
               </View>
             ) : (
               <ScrollView contentContainerStyle={{ gap: 12 }} keyboardShouldPersistTaps="handled">
-                <Text className="text-lg font-bold" accessibilityRole="header">
+                <Text className="text-lg font-semibold" accessibilityRole="header">
                   Recommend this resource
                 </Text>
                 <View className="bg-secondary flex-row gap-1 rounded-xl p-1" accessibilityRole="tablist">

@@ -41,8 +41,8 @@ type Kind = keyof typeof KINDS
  */
 export function ProfileScreen({ handle }: { handle: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const onBrand = useTheme().palette.brandForeground
   const query = useQuery(ProfileDocument, { variables: { handle }, fetchPolicy: 'cache-and-network' })
   const { data } = query
@@ -137,10 +137,10 @@ export function ProfileScreen({ handle }: { handle: string }) {
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }}>
         <View className="bg-card border-border items-center gap-2 rounded-3xl border p-6">
           <View className="bg-secondary size-20 items-center justify-center rounded-full">
-            <Text className="text-secondary-foreground text-3xl font-extrabold">{person.displayName.slice(0, 1).toUpperCase()}</Text>
+            <Text className="text-secondary-foreground text-3xl font-semibold">{person.displayName.slice(0, 1).toUpperCase()}</Text>
           </View>
           <View className="flex-row items-center gap-1.5">
-            <Text className="text-2xl font-extrabold" accessibilityRole="header">
+            <Text className="text-2xl font-semibold" accessibilityRole="header">
               {person.displayName}
             </Text>
             {person.verified ? <BadgeCheck size={20} color={accent} accessibilityLabel="Verified" /> : null}
@@ -224,7 +224,7 @@ export function ProfileScreen({ handle }: { handle: string }) {
           // Achievements an adult chose to show (lvn-backend ADR-0080); the person always sees their own.
           <View className="gap-3">
             <View className="flex-row items-center gap-2">
-              <Text className="flex-1 text-base font-bold" accessibilityRole="header">
+              <Text className="flex-1 text-base font-semibold" accessibilityRole="header">
                 Achievements
               </Text>
               {person.contribution && person.contribution.level !== 'NEWCOMER' ? <Text className="text-primary text-sm font-semibold">{LEVEL[person.contribution.level]}</Text> : null}
@@ -289,7 +289,7 @@ function SkillsTab({
         if (!items.length) return null
         return (
           <View key={k} className="gap-2">
-            <Text className="text-muted-foreground text-xs font-semibold uppercase" accessibilityRole="header">
+            <Text className="text-muted-foreground text-xs font-semibold" accessibilityRole="header">
               {SKILL_KINDS[k]}
             </Text>
             {items.map((s) => (

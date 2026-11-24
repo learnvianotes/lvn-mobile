@@ -202,7 +202,7 @@ function SmallButton({ label, disabled, onPress }: { label: string; disabled?: b
 
 /** Curated topics only (lvn-backend ADR-0074): a person's own topics are private to them. */
 function TopicPicker({ picked, onChange }: { picked: Topic[]; onChange: (topics: Topic[]) => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [query, setQuery] = useState('')
   const [find, found] = useLazyQuery(ResourceTopicOptionsDocument)
   useEffect(() => {

@@ -34,11 +34,11 @@ export function ConfirmAge({ value, busy, onConfirm, onChange }: { value: number
     <Modal visible={value !== null} transparent animationType="fade" onRequestClose={onChange}>
       <View className="flex-1 items-center justify-center bg-black/40 px-6">
         <View className="bg-card w-full max-w-sm gap-4 rounded-3xl p-6" accessibilityViewIsModal>
-          <Text className="text-xl font-bold tracking-tight" accessibilityRole="header">{t.confirmTitle}</Text>
+          <Text className="text-xl font-semibold" accessibilityRole="header">{t.confirmTitle}</Text>
           <View className="flex-row items-center gap-3">
             <UserCheck size={22} color={colors.accent} />
             <Text className="flex-1 text-base">
-              {t.confirmLead} <Text className="text-base font-bold">{value === null ? '' : ageInWords(value)}</Text>.
+              {t.confirmLead} <Text className="text-base font-semibold">{value === null ? '' : ageInWords(value)}</Text>.
             </Text>
           </View>
           <View className="flex-row justify-end gap-2">
@@ -60,7 +60,7 @@ export function AgeRefused({ action }: { action?: ReactNode }) {
   const t = copy.age
   return (
     <View className="gap-3" accessibilityLiveRegion="polite">
-      <Text className="text-lg font-bold" accessibilityRole="header">{t.refusedTitle}</Text>
+      <Text className="text-lg font-semibold" accessibilityRole="header">{t.refusedTitle}</Text>
       <Text className="text-muted-foreground text-sm leading-5">{t.refusedLead}</Text>
       {action}
     </View>

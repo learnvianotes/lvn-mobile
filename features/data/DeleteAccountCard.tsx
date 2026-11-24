@@ -30,7 +30,7 @@ export function DeleteAccountCard() {
     <View className="bg-card border-destructive/40 gap-3 rounded-2xl border p-5" accessibilityLabel="Delete your account" testID="delete-account">
       <View className="flex-row items-center gap-2">
         <AlertTriangle size={18} color={destructive} />
-        <Text className="text-destructive text-lg font-bold" accessibilityRole="header">
+        <Text className="text-destructive text-lg font-semibold" accessibilityRole="header">
           Delete your account
         </Text>
       </View>

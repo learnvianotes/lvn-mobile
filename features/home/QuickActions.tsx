@@ -20,7 +20,7 @@ const ACTIONS: { label: string; hint: string; icon: LucideIcon; go: string | Cre
 ]
 
 export function QuickActions() {
-  const brand = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const brand = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const create = useCreate()
   // Camera, Voice and Upload send files: only while uploads are on (lvn-backend ADR-0097).
   const uploadsOn = useUploadsEnabled()

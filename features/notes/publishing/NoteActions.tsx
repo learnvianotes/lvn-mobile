@@ -79,7 +79,7 @@ export function useNoteActions(note: LocalNote, onTrash: () => void) {
 }
 
 function MoreButton({ onPress }: { onPress: () => void }) {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   return (
     <Pressable accessibilityRole="button" accessibilityLabel="Note actions" onPress={onPress} className="rounded-full p-2">
       <MoreHorizontal size={22} color={fg} />
@@ -110,7 +110,7 @@ export function NoteStatus({ status, message, verifyToPublish }: { status: strin
  */
 export function MakeCopyButton({ noteId }: { noteId: string }) {
   const client = useApolloClient()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const meta = useQuery(PhoneNoteMetaDocument, { variables: { id: noteId }, fetchPolicy: 'cache-and-network', errorPolicy: 'all' })
   const [fork, forking] = useMutation(ForkNoteDocument)
   if (!meta.data?.note?.viewerCan.fork) return null

@@ -15,8 +15,8 @@ import { SavedNotesDocument, SavedResourcesDocument } from '@/graphql/generated/
  */
 export function SavedScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const notes = useQuery(SavedNotesDocument, { variables: { first: 30 }, fetchPolicy: 'cache-and-network' })
   const resources = useQuery(SavedResourcesDocument, { variables: { first: 60 }, fetchPolicy: 'cache-and-network' })
   const noteList = notes.data?.savedNotes.edges.map((e) => e.node) ?? []
@@ -31,13 +31,13 @@ export function SavedScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Saved
         </Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 12, paddingBottom: insets.bottom + 32 }}>
         <Text className="text-muted-foreground text-sm">Notes and resources you saved to come back to. Only you see them.</Text>
-        <Text className="text-base font-bold" accessibilityRole="header">
+        <Text className="text-base font-semibold" accessibilityRole="header">
           Notes
         </Text>
         <LoadState query={notes} message="Your saved notes could not load." />
@@ -69,7 +69,7 @@ export function SavedScreen() {
             <Text className="text-primary text-sm font-semibold">Show more</Text>
           </Pressable>
         ) : null}
-        <Text className="mt-2 text-base font-bold" accessibilityRole="header">
+        <Text className="mt-2 text-base font-semibold" accessibilityRole="header">
           Resources
         </Text>
         <LoadState query={resources} message="Your saved resources could not load." />

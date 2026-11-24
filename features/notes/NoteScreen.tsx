@@ -1,6 +1,6 @@
 import { useApolloClient, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { ArrowDown, ArrowLeft, ArrowUp, Check, Cloud, CloudOff, Plus, Sparkles, Square, Trash2, Volume2 } from 'lucide-react-native'
+import { ArrowDown, ArrowLeft, ArrowUp, Check, Cloud, CloudOff, Plus, TextQuote, Square, Trash2, Volume2 } from 'lucide-react-native'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -88,7 +88,7 @@ function Loading() {
 
 function Header({ children, title }: { children?: React.ReactNode; title?: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   return (
     <View className="bg-background border-border flex-row items-center gap-2 border-b px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
       <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/notes'))} className="size-10 items-center justify-center rounded-full">
@@ -104,7 +104,7 @@ function Header({ children, title }: { children?: React.ReactNode; title?: strin
 
 function SyncBadge({ unsent }: { unsent: boolean }) {
   const status = useSyncStatus()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const offline = status.state === 'offline'
   const label = unsent ? (offline ? 'Saved on this phone' : 'Sending…') : 'Saved'
   return (
@@ -116,7 +116,7 @@ function SyncBadge({ unsent }: { unsent: boolean }) {
 }
 
 function ReadAloudButton({ reader }: { reader: ReturnType<typeof useReadAloud> }) {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={reader.playing ? 'Stop reading' : 'Read aloud'} onPress={() => (reader.playing ? reader.stop() : reader.play())} className="rounded-full p-2">
       {reader.playing ? <Square size={20} color={fg} /> : <Volume2 size={22} color={fg} />}
@@ -126,7 +126,7 @@ function ReadAloudButton({ reader }: { reader: ReturnType<typeof useReadAloud> }
 
 /** Opens the note's AI tasks (lvn-backend ADR-0059); a note made here waits until the server has it. */
 function AiButton({ noteId, localOnly }: { noteId: string; localOnly?: boolean }) {
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   return (
     <Pressable
       accessibilityRole="button"
@@ -134,7 +134,7 @@ function AiButton({ noteId, localOnly }: { noteId: string; localOnly?: boolean }
       onPress={() => (localOnly ? Alert.alert('Not sent yet', 'The note is still only on this phone. Once it has been sent, AI can read it.') : router.push(`/notes/ai/${noteId}`))}
       className="rounded-full p-2"
     >
-      <Sparkles size={21} color={primary} />
+      <TextQuote size={21} color={primary} />
     </Pressable>
   )
 }
@@ -149,9 +149,9 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
   const unsent = useLocal(() => db.unsentNoteIds().then((s) => s.has(note.id)), [note.id]) ?? false
   const spoken = useMemo(() => cards.map((c) => ({ id: c.id, text: cardPlainText(c.type, c.content) })), [cards])
   const reader = useReadAloud(spoken)
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const titleTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const changed = () => syncSoon(client)
 
@@ -229,7 +229,7 @@ function Editor({ note, cards }: { note: LocalNote; cards: LocalCard[] }) {
           onChangeText={onTitle}
           placeholder="Untitled note"
           placeholderTextColor={muted}
-          className="text-foreground text-3xl font-extrabold"
+          className="text-foreground text-3xl font-semibold"
           multiline
         />
         {note.access === 'EDITOR' ? <Text className="text-muted-foreground text-xs">Editing {note.ownerName}’s note</Text> : null}
@@ -330,7 +330,7 @@ function Reader({ note, cards }: { note: Pick<LocalNote, 'title' | 'ownerName' |
             </Pressable>
           </View>
         ) : null}
-        <Text className="text-3xl font-extrabold">{note.title || 'Untitled note'}</Text>
+        <Text className="text-3xl font-semibold">{note.title || 'Untitled note'}</Text>
         {note.ownerName ? <Text className="text-muted-foreground text-sm">By {note.ownerName}</Text> : null}
         {note.deletedAt ? null : <NoteCredits noteId={note.id} />}
         {cards.map((c) => (

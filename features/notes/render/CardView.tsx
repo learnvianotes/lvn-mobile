@@ -41,7 +41,7 @@ export function CardView({ id, type, content, highlighted, onOpenFile, onAnchor 
       case 'text':
         return <RichDoc doc={c.doc as Doc} />
       case 'heading':
-        return <InlineText content={c.content as Inline} className={cn('font-bold', c.level === 1 ? 'text-2xl' : c.level === 2 ? 'text-xl' : 'text-lg')} />
+        return <InlineText content={c.content as Inline} className={cn('font-semibold', c.level === 1 ? 'text-2xl' : c.level === 2 ? 'text-xl' : 'text-lg')} />
       case 'quote':
         return (
           <View className="border-primary/50 gap-1 border-l-4 pl-3">

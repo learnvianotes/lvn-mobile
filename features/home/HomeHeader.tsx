@@ -26,7 +26,7 @@ function NotificationBell({ color }: { color: string }) {
         <Bell size={20} color={color} />
         {unread ? (
           <View className="bg-primary absolute -right-1 -top-1 h-5 min-w-5 items-center justify-center rounded-full px-1">
-            <Text className="text-primary-foreground text-[10px] font-bold">{unread > 99 ? '99+' : unread}</Text>
+            <Text className="text-primary-foreground text-[10px] font-semibold">{unread > 99 ? '99+' : unread}</Text>
           </View>
         ) : null}
       </View>
@@ -36,8 +36,8 @@ function NotificationBell({ color }: { color: string }) {
 
 /** Menu, wordmark, theme, bell and account. Search opens Explore. */
 export function HomeHeader() {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const name = useQuery(ViewerDocument).data?.viewer?.displayName.trim() ?? ''
   const [menu, setMenu] = useState(false)
   return (
@@ -55,7 +55,7 @@ export function HomeHeader() {
         <NotificationBell color={fg} />
         <PressScale accessibilityRole="button" accessibilityLabel="Your account" hitSlop={4} onPress={() => router.push('/profile')}>
           <View className="bg-secondary size-10 items-center justify-center rounded-full">
-            <Text className="text-secondary-foreground font-bold">{name.slice(0, 1).toUpperCase() || '·'}</Text>
+            <Text className="text-secondary-foreground font-semibold">{name.slice(0, 1).toUpperCase() || '·'}</Text>
           </View>
         </PressScale>
       </View>

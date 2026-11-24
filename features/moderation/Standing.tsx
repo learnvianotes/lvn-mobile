@@ -13,7 +13,7 @@ const when = (iso: string) => new Date(iso).toLocaleString(undefined, { day: 'nu
 
 /** The one appeal, inline: a suspended account's (USER) or a removed group's owner's (GROUP). */
 function AppealForm({ entityType, entityId, onDone }: { entityType: ReportEntityType; entityId: string; onDone: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [appeal, appealing] = useMutation(AppealModerationDocument)
   const [open, setOpen] = useState(false)
   const [message, setMessage] = useState('')
@@ -91,7 +91,7 @@ export function RemovedGroupNotice({ id }: { id: string }) {
     <View accessibilityRole="alert" className="m-4 flex-row gap-3 rounded-2xl border border-destructive bg-rose-soft p-4">
       <ShieldAlert size={20} color="#9f1d1d" />
       <View className="flex-1 gap-2">
-        <Text className="text-lg font-bold text-destructive" accessibilityRole="header">
+        <Text className="text-lg font-semibold text-destructive" accessibilityRole="header">
           Moderators removed {g.name}
         </Text>
         <Text className="text-destructive">{g.reason}</Text>

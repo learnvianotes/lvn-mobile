@@ -31,7 +31,7 @@ function TabItem({ focused, name, onPress }: { focused: boolean; name: string; o
   const icon = useAnimatedStyle(() => ({ transform: [{ translateY: -2 * p.value }, { scale: 1 + 0.08 * p.value }] }))
   const dot = useAnimatedStyle(() => ({ opacity: p.value, transform: [{ scale: p.value }] }))
   const { icon: Icon, label } = ICONS[name] ?? { icon: House, label: name }
-  const color = String((focused ? primary : muted) ?? '#3d4b63')
+  const color = String((focused ? primary : muted) ?? '#66625b')
   return (
     <Pressable
       onPress={onPress}
@@ -90,7 +90,7 @@ export function TabBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
             accessibilityRole="button"
             accessibilityLabel={open ? 'Close create menu' : 'Create'}
             className="bg-primary -mt-6 size-[60px] items-center justify-center rounded-full"
-            style={{ shadowColor: '#152033', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}
+            style={{ shadowColor: '#1c1b18', shadowOpacity: 0.12, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}
           >
             <Animated.View style={plus}>
               <Plus size={28} color={fg} strokeWidth={2.6} />

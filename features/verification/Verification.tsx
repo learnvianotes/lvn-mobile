@@ -107,7 +107,7 @@ export function VerifyCard({ restrictedMinor }: { restrictedMinor: boolean }) {
 }
 
 function AskTeacher({ onSent }: { onSent: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [query, setQuery] = useState('')
   const [settled, setSettled] = useState('')
   const [teacher, setTeacher] = useState<{ id: string; displayName: string; handle: string } | null>(null)
@@ -166,7 +166,7 @@ function AskTeacher({ onSent }: { onSent: () => void }) {
 
 function SendDocuments({ onSent }: { onSent: () => void }) {
   const client = useApolloClient()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [files, setFiles] = useState<Picked[]>([])
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
@@ -275,7 +275,7 @@ async function pickCollegeId(source: 'camera' | 'library' | 'files'): Promise<Pi
  */
 function CollegeId({ restrictedMinor, uploadsOn }: { restrictedMinor: boolean; uploadsOn: boolean }) {
   const client = useApolloClient()
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const offered = !restrictedMinor && uploadsOn
   const enabled = useQuery(StudentIdVerificationEnabledDocument, { skip: !offered, fetchPolicy: 'cache-and-network' })
   const on = offered && enabled.data?.studentIdVerificationEnabled === true
@@ -348,7 +348,7 @@ function CollegeId({ restrictedMinor, uploadsOn }: { restrictedMinor: boolean; u
       ) : (
         <>
           {current?.status === 'REJECTED' ? <Text className="rounded-xl bg-rose-soft p-3 text-sm text-destructive">{current.reason ? `Your college ID was not accepted: ${current.reason}` : 'Your college ID was not accepted.'}</Text> : null}
-          {current?.status === 'APPROVED' ? <Text className="rounded-xl bg-emerald-50 p-3 text-sm">Your college ID was accepted.</Text> : null}
+          {current?.status === 'APPROVED' ? <Text className="rounded-xl bg-success-soft p-3 text-sm">Your college ID was accepted.</Text> : null}
           <View className="flex-row">
             <Pill label="Send your college ID card" primary={open} onPress={() => setOpen((v) => !v)} />
           </View>
@@ -409,8 +409,8 @@ export function ReviewRequests({ admin, quietForbidden }: { admin?: boolean; qui
 
 function RequestCard({ request: r, onDone }: { request: Request; onDone: () => void }) {
   const client = useApolloClient()
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [review, reviewing] = useMutation(ReviewVerificationRequestDocument)
   const [reason, setReason] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -544,8 +544,8 @@ export function StudentIdQueue() {
 
 function StudentIdCard({ item, onDone }: { item: Queued; onDone: () => void }) {
   const client = useApolloClient()
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [review, reviewing] = useMutation(ReviewStudentIdVerificationDocument)
   const [reason, setReason] = useState('')
   const [error, setError] = useState<string | null>(null)

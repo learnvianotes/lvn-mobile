@@ -129,9 +129,9 @@ export function CaptureScreen({ start }: { start?: Source }) {
     <View className="bg-background flex-1">
       <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={leave} className="size-10 items-center justify-center rounded-full">
-          <ArrowLeft size={22} color={String(fg ?? '#152033')} />
+          <ArrowLeft size={22} color={String(fg ?? '#1c1b18')} />
         </Pressable>
-        <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
+        <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">
           Notes from photos
         </Text>
       </View>
@@ -148,7 +148,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
               onPress={() => void add(source)}
               className={`border-border bg-card flex-1 items-center gap-1 rounded-2xl border py-3 ${full || busy ? 'opacity-50' : ''}`}
             >
-              <Icon size={22} color={String(fg ?? '#152033')} />
+              <Icon size={22} color={String(fg ?? '#1c1b18')} />
               <Text className="text-sm font-semibold">{label}</Text>
             </Pressable>
           ))}
@@ -165,7 +165,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
             return (
               <View key={item.key} className="w-[30%] gap-1" accessibilityLabel={`${i + 1}. ${item.name}, ${sizeLabel(item.size)}`}>
                 <View className="border-border bg-card aspect-[3/4] items-center justify-center overflow-hidden rounded-xl border">
-                  {preview ? <Image source={{ uri: preview }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <FileText size={28} color={String(muted ?? '#3d4b63')} />}
+                  {preview ? <Image source={{ uri: preview }} style={{ width: '100%', height: '100%' }} contentFit="cover" /> : <FileText size={28} color={String(muted ?? '#66625b')} />}
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel={`Remove ${item.name}`}
@@ -173,7 +173,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
                     onPress={() => setItems((all) => all.filter((x) => x.key !== item.key))}
                     className="bg-background/90 absolute right-1 top-1 rounded-full p-1"
                   >
-                    <X size={14} color={String(fg ?? '#152033')} />
+                    <X size={14} color={String(fg ?? '#1c1b18')} />
                   </Pressable>
                 </View>
                 <Text className="text-xs" numberOfLines={1}>

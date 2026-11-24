@@ -14,7 +14,7 @@ export function AppearanceCard() {
   const theme = useTheme()
   return (
     <View className="gap-4">
-      <Text className="text-lg font-bold" accessibilityRole="header">
+      <Text className="text-lg font-semibold" accessibilityRole="header">
         Appearance
       </Text>
       <Choices label="Theme" options={MODES} value={theme.mode} onChange={chooseMode} />

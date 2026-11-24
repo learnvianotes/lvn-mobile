@@ -48,7 +48,7 @@ export function MediaView({ type, content }: { type: 'image' | 'video' | 'audio'
 }
 
 function Placeholder({ type }: { type: keyof typeof LABEL }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   return (
     <View className="border-border flex-row items-center gap-2 rounded-2xl border border-dashed p-4">
       <ImageIcon size={18} color={muted} />
@@ -65,7 +65,7 @@ function Video({ uri }: { uri: string }) {
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`
 
 function Audio({ uri, name }: { uri: string; name: string }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const onBrand = useTheme().palette.brandForeground
   const player = useAudioPlayer(uri)
   const status = useAudioPlayerStatus(player)
@@ -101,7 +101,7 @@ function Audio({ uri, name }: { uri: string; name: string }) {
 }
 
 function FileLink({ url, name }: { url: string | null; name: string }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={`Open ${name}`} disabled={!httpUrl(url)} onPress={() => openExternal(url)} className="border-border flex-row items-center gap-3 rounded-2xl border p-3">
       <FileText size={20} color={accent} />

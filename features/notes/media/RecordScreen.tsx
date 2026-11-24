@@ -26,7 +26,7 @@ const clock = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60))
 export function RecordScreen({ id, transcribe }: { id: string; transcribe?: boolean }) {
   const client = useApolloClient()
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY)
   const [runTask] = useMutation(RunAiTaskDocument)
   const [state, setState] = useState<'idle' | 'recording' | 'recorded' | 'saving'>('idle')

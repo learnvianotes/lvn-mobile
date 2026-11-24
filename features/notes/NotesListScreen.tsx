@@ -1,6 +1,6 @@
 import { useApolloClient } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { AlertTriangle, ArrowLeft, CloudOff, NotebookPen, Plus, RotateCcw, Sparkles, Trash2 } from 'lucide-react-native'
+import { AlertTriangle, ArrowLeft, CloudOff, NotebookPen, Plus, RotateCcw, TextQuote, Trash2 } from 'lucide-react-native'
 import { useState } from 'react'
 import { FlatList, Pressable, RefreshControl, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -81,8 +81,8 @@ export function NotesListScreen() {
   const attention = useLocal(() => db.outbox('ATTENTION'), [])
   const status = useSyncStatus()
   const { scheme, palette } = useTheme()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const primaryFg = String(useCSSVariable('--color-primary-foreground') ?? '#ffffff')
 
   const create = async () => {
@@ -97,13 +97,13 @@ export function NotesListScreen() {
           <ArrowLeft size={22} color={fg} />
         </Pressable>
         <View className="flex-1">
-          <Text className="text-2xl font-extrabold" accessibilityRole="header">
+          <Text className="text-2xl font-semibold" accessibilityRole="header">
             {trash ? 'Trash' : 'My notes'}
           </Text>
           <Text className="text-muted-foreground text-xs">{status.state === 'offline' ? 'Offline — your changes are saved on this phone' : status.state === 'syncing' ? 'Syncing…' : status.lastSyncedAt ? `Synced ${ago(status.lastSyncedAt)}` : ' '}</Text>
         </View>
         <Pressable accessibilityRole="button" accessibilityLabel="Ask AI" onPress={() => router.push('/ask')} className="rounded-full p-2">
-          <Sparkles size={20} color={fg} />
+          <TextQuote size={20} color={fg} />
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={trash ? 'Show my notes' : 'Show the trash'} onPress={() => setTrash((t) => !t)} className="rounded-full p-2">
           {trash ? <NotebookPen size={20} color={fg} /> : <Trash2 size={20} color={fg} />}
@@ -153,7 +153,7 @@ export function NotesListScreen() {
           <PressScale accessibilityRole="button" accessibilityLabel={item.title || 'Untitled note'} onPress={() => router.push(`/notes/${item.id}`)}>
             <View className="bg-card border-border flex-row gap-3 overflow-hidden rounded-3xl border p-4">
               <View className="size-11 items-center justify-center rounded-2xl" style={{ backgroundColor: accentOf(item.id, scheme).brand }}>
-                <Text className="text-lg font-extrabold" style={{ color: accentOf(item.id, scheme).brandForeground }}>{(item.title || 'U').trim().charAt(0).toUpperCase()}</Text>
+                <Text className="text-lg font-semibold" style={{ color: accentOf(item.id, scheme).brandForeground }}>{(item.title || 'U').trim().charAt(0).toUpperCase()}</Text>
               </View>
               <View className="flex-1 gap-1">
                 <Text className="font-semibold" numberOfLines={2}>
@@ -188,7 +188,7 @@ export function NotesListScreen() {
           <PressScale accessibilityRole="button" accessibilityLabel="New note" onPress={() => void create()}>
             <View className={cn('bg-primary flex-row items-center gap-2 rounded-full px-5 py-4 shadow-lg')}>
               <Plus size={20} color={primaryFg} />
-              <Text className="text-primary-foreground font-bold">New note</Text>
+              <Text className="text-primary-foreground font-semibold">New note</Text>
             </View>
           </PressScale>
         </View>

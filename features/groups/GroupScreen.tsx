@@ -56,9 +56,9 @@ const TABS: Record<Tab, string> = { posts: 'Posts', ideas: 'Ideas', doubts: 'Dou
  */
 export function GroupScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const onBrand = useTheme().palette.brandForeground
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const query = useQuery(GroupDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [tab, setTab] = useState<Tab>('posts')
@@ -151,7 +151,7 @@ export function GroupScreen({ id }: { id: string }) {
               {group.viewerRole ? ` · ${ROLE[group.viewerRole]}` : ''}
             </Text>
           </View>
-          <Text className="text-2xl font-extrabold" accessibilityRole="header">
+          <Text className="text-2xl font-semibold" accessibilityRole="header">
             {group.name}
           </Text>
           {group.description ? <Text className="text-muted-foreground">{group.description}</Text> : null}
@@ -261,7 +261,7 @@ function Action({ label, onPress, primary }: { label: string; onPress: () => voi
 }
 
 function Posts({ group, selection, onSelection }: { group: GroupDetailFragment } & Selecting) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const query = useQuery(GroupPostsDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [remove] = useMutation(DeleteGroupPostDocument)
@@ -327,7 +327,7 @@ function Posts({ group, selection, onSelection }: { group: GroupDetailFragment }
 }
 
 function Notes({ group, selection, onSelection }: { group: GroupDetailFragment } & Selecting) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const viewerId = useQuery(ViewerDocument).data?.viewer?.id
   const query = useQuery(GroupNotesDocument, { variables: { id: group.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query

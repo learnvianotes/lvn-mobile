@@ -20,7 +20,7 @@ const dateLabel = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateStri
  */
 export function HistoryScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const days = useQuery(LearningHistoryDocument, { variables: { days: 14 }, fetchPolicy: 'cache-and-network' })
   const { fetchMore } = days
   const history = days.data?.learningHistory
@@ -36,7 +36,7 @@ export function HistoryScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Learning history
         </Text>
       </View>

@@ -54,7 +54,7 @@ export function ActivityFeed() {
 }
 
 function ActivityCard({ item }: { item: Item }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const Icon = ICON[item.kind]
   const place = item.group?.name ?? item.classroom?.name ?? null
   // A repository event opens on GitHub (lvn-backend ADR-0078).
@@ -104,7 +104,7 @@ export function FollowingFeed() {
             {KIND[node.kind] ?? 'Note'} · {node.owner.displayName}
             {node.publishedAt ? ` · ${ago(node.publishedAt)}` : ''}
           </Text>
-          <Text className="text-lg font-bold">{node.title || 'Untitled note'}</Text>
+          <Text className="text-lg font-semibold">{node.title || 'Untitled note'}</Text>
         </Pressable>
       ))}
       {feed.pageInfo.hasNextPage ? (

@@ -29,13 +29,13 @@ const field = 'border-border bg-card text-foreground rounded-xl border px-3 py-2
 
 function Header({ title }: { title: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   return (
     <View className="flex-row items-center gap-2 px-3 pb-2" style={{ paddingTop: insets.top + 6 }}>
       <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
         <ArrowLeft size={22} color={fg} />
       </Pressable>
-      <Text className="text-lg font-bold" accessibilityRole="header">
+      <Text className="text-lg font-semibold" accessibilityRole="header">
         {title}
       </Text>
     </View>
@@ -126,7 +126,7 @@ export function ExamsScreen() {
           <>
             {upcoming.map((e) => (
               <View key={e.id} className="bg-card border-border gap-3 rounded-2xl border p-4">
-                <Text className="text-lg font-bold" accessibilityRole="header">
+                <Text className="text-lg font-semibold" accessibilityRole="header">
                   {e.name}
                 </Text>
                 <View className="flex-row items-center gap-3">
@@ -157,7 +157,7 @@ function StudyPlan({ exams }: { exams: Exam[] }) {
     <>
       <View className="bg-card border-border gap-3 rounded-2xl border p-4">
         <View className="flex-row items-center justify-between gap-3">
-          <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
+          <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">
             Today
           </Text>
           {next ? (
@@ -277,7 +277,7 @@ function ExamCard({ exam }: { exam: Exam }) {
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={exam.name} onPress={() => router.push(`/exams/${exam.id}`)} className="bg-card border-border gap-2 rounded-2xl border p-4">
       <View className="flex-row items-baseline justify-between gap-2">
-        <Text className="flex-1 text-lg font-bold" numberOfLines={1}>
+        <Text className="flex-1 text-lg font-semibold" numberOfLines={1}>
           {exam.name}
         </Text>
         <Text className="text-muted-foreground text-sm">{exam.past ? 'Done' : daysLeftText(exam.daysLeft)}</Text>
@@ -343,14 +343,14 @@ export function ExamScreen({ id }: { id: string }) {
               </View>
             ) : null}
             <View className="bg-card border-border gap-3 rounded-2xl border p-4">
-              <Text className="text-lg font-bold" accessibilityRole="header">
+              <Text className="text-lg font-semibold" accessibilityRole="header">
                 Topics
               </Text>
               <Text className="text-muted-foreground text-sm">Recall is how likely you are to remember a topic’s flashcards now; accuracy is your last quiz answers on it.</Text>
               <TopicMastery exam={exam} />
             </View>
             <View className="bg-card border-border gap-2 rounded-2xl border p-4">
-              <Text className="text-lg font-bold" accessibilityRole="header">
+              <Text className="text-lg font-semibold" accessibilityRole="header">
                 Revision plan
               </Text>
               <Text className="text-muted-foreground text-sm">A session is done by 10 minutes on its topics that day, or a quiz on them.</Text>
@@ -382,20 +382,20 @@ function ExamForm({ exam, onDone }: { exam?: Exam; onDone: () => void }) {
   const [problem, setProblem] = useState<string | null>(null)
   const [create, creating] = useMutation(CreateExamDocument, { refetchQueries: [ExamsDocument, WeakTopicsDocument] })
   const [update, updating] = useMutation(UpdateExamDocument, { refetchQueries: [ExamsDocument, WeakTopicsDocument] })
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const move = (n: number) => setDate((d) => (addDays(d, n) < localToday() ? localToday() : addDays(d, n)))
   return (
     <View className="gap-3">
       <TextInput accessibilityLabel="Exam" placeholder="e.g. Operating Systems midterm" placeholderTextColor={muted} maxLength={EXAM_LIMITS.name} value={name} onChangeText={setName} className={field} />
       <View className="flex-row items-center gap-3">
         <Pressable accessibilityRole="button" accessibilityLabel="A day earlier" onPress={() => move(-1)} className="border-border size-10 items-center justify-center rounded-full border">
-          <Text className="text-lg font-bold">−</Text>
+          <Text className="text-lg font-semibold">−</Text>
         </Pressable>
         <Text className="flex-1 text-center text-sm font-semibold" accessibilityLiveRegion="polite">
           {short(date)}
         </Text>
         <Pressable accessibilityRole="button" accessibilityLabel="A day later" onPress={() => move(1)} className="border-border size-10 items-center justify-center rounded-full border">
-          <Text className="text-lg font-bold">+</Text>
+          <Text className="text-lg font-semibold">+</Text>
         </Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="A week later" onPress={() => move(7)} className="border-border rounded-full border px-3 py-2">
           <Text className="text-sm font-semibold">+7</Text>
@@ -429,7 +429,7 @@ function ExamForm({ exam, onDone }: { exam?: Exam; onDone: () => void }) {
 }
 
 function TopicPicker({ picked, onChange }: { picked: PickedTopic[]; onChange: (topics: PickedTopic[]) => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [query, setQuery] = useState('')
   const [find, found] = useLazyQuery(ExamTopicOptionsDocument)
   useEffect(() => {
@@ -484,7 +484,7 @@ function WeakTopics() {
   if (!weak) return null
   return (
     <View className="bg-card border-border gap-2 rounded-2xl border p-4">
-      <Text className="text-lg font-bold" accessibilityRole="header">
+      <Text className="text-lg font-semibold" accessibilityRole="header">
         Weak topics
       </Text>
       <Text className="text-muted-foreground text-sm">{weak.length ? 'Topics to revise first.' : 'No weak topics. Well done.'}</Text>

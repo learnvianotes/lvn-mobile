@@ -15,8 +15,8 @@ import { CLASS_ROLE, cleanCode } from './shared'
  * teachers a new class.
  */
 export function ClassesSection() {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const classes = useQuery(MyClassroomsDocument, { fetchPolicy: 'cache-and-network' })
   const { data, refetch } = classes
   const viewer = useQuery(ViewerDocument)
@@ -80,8 +80,8 @@ export function ClassesSection() {
 }
 
 function ClassRow({ classroom }: { classroom: ClassroomCardFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   return (
     <Pressable accessibilityRole="link" accessibilityLabel={classroom.name} onPress={() => router.push(`/classes/${classroom.id}`)} className="bg-card border-border gap-1.5 rounded-2xl border p-4">
       <View className="flex-row items-center gap-2">

@@ -35,7 +35,7 @@ export function WeeklyTasks() {
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
       <View className="flex-row items-center justify-between">
-        <Text className="flex-1 text-lg font-bold" accessibilityRole="header">
+        <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">
           This week’s tasks
         </Text>
         {week.tasks.length ? <Text className="text-muted-foreground text-sm">{`${done} of ${week.tasks.length} done`}</Text> : null}
@@ -60,7 +60,7 @@ export function WeeklyTasks() {
 }
 
 function TaskRow({ task }: { task: WeeklyTaskFieldsFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const onBrand = useTheme().palette.brandForeground
   const [editing, setEditing] = useState(false)
   const [target, setTarget] = useState(String(task.target))
@@ -128,7 +128,7 @@ function TaskRow({ task }: { task: WeeklyTaskFieldsFragment }) {
 }
 
 function AddTask({ onClose }: { onClose: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const suggestions = useQuery(TaskSuggestionsDocument, { fetchPolicy: 'cache-and-network' }).data?.taskSuggestions ?? []
   const [kind, setKind] = useState<WeeklyTaskKind>('REVIEWS')
   const [target, setTarget] = useState('50')

@@ -18,7 +18,7 @@ import {
   SearchCheck,
   Share2,
   SpellCheck,
-  Sparkles,
+  TextQuote,
   Trash2,
   type LucideIcon,
 } from 'lucide-react-native'
@@ -127,7 +127,7 @@ const timeOf = (iso: string) => new Date(iso).toLocaleTimeString([], { hour: 'nu
 
 export function AiScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const state = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
   const list = useQuery(NoteAiArtifactsDocument, { variables: { noteId: id }, fetchPolicy: 'cache-and-network' })
   const localCards = useLocal(() => db.getCards(id), [id])
@@ -245,7 +245,7 @@ export function AiScreen({ id }: { id: string }) {
         </View>
         <Outcome message={message} />
 
-        <Text accessibilityRole="header" className="text-muted-foreground text-xs font-bold uppercase tracking-wide">
+        <Text accessibilityRole="header" className="text-muted-foreground text-xs font-semibold">
           Your results
         </Text>
         {list.loading && !list.data ? <ActivityIndicator /> : null}
@@ -280,8 +280,8 @@ function Poll({ id }: { id: string }) {
 }
 
 function Result({ noteId, artifact: a, canEdit, onRetry }: { noteId: string; artifact: Artifact; canEdit: boolean; onRetry: () => void }) {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const [remove, removing] = useMutation(DeleteAiArtifactDocument)
   const pending = a.status === 'QUEUED' || a.status === 'RUNNING'
   const label = a.task === 'TRANSLATE' ? `Translated into ${LANGUAGE[a.language]}` : TASK_LABEL[a.task]
@@ -302,7 +302,7 @@ function Result({ noteId, artifact: a, canEdit, onRetry }: { noteId: string; art
   return (
     <View accessibilityLabel={`${label} result`} className="bg-card border-border gap-3 rounded-2xl border p-4">
       <View className="flex-row items-center gap-2">
-        <Sparkles size={16} color={primary} />
+        <TextQuote size={16} color={primary} />
         <Text className="flex-1 font-semibold" numberOfLines={1}>
           {label}
         </Text>
@@ -426,7 +426,7 @@ function KeepCards({ artifact: a, canEdit }: { artifact: Artifact; canEdit: bool
  */
 function ApplyChanges({ artifact: a }: { artifact: Artifact }) {
   const client = useApolloClient()
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const changes = a.changes ?? []
   const open = changes.filter((c) => !c.applied)
   const [chosen, setChosen] = useState<ReadonlySet<string>>(() => new Set(open.map((c) => c.cardId)))
@@ -507,14 +507,14 @@ function ApplyChanges({ artifact: a }: { artifact: Artifact }) {
 
 /** The account screen's view of AI (P5b): whether it answers, and how much of today's allowance is used. */
 export function AiAccountCard({ className }: { className?: string }) {
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const { data } = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
   if (!data) return null
   const { aiStatus: status, myAiAllowance: allowance } = data
   return (
     <View className={className} accessibilityLabel="AI">
       <View className="flex-row items-center gap-2" accessible accessibilityRole="header">
-        <Sparkles size={18} color={primary} />
+        <TextQuote size={18} color={primary} />
         <Text className="text-base font-semibold">AI</Text>
       </View>
       <Text className="text-muted-foreground text-sm">Open a note and tap AI tasks to summarise it, explain it, quiz yourself or make flashcards. Each day your plan gives you an allowance.</Text>

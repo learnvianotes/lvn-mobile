@@ -23,7 +23,7 @@ function Section({ index, title, action, onAction, children }: { index: number; 
     <Animated.View entering={FadeInDown.duration(260).delay(index * 40)} className="gap-3">
       {title ? (
         <View className="flex-row items-end justify-between">
-          <Text className="flex-1 text-lg font-bold" accessibilityRole="header">{title}</Text>
+          <Text className="flex-1 text-lg font-semibold" accessibilityRole="header">{title}</Text>
           {action ? (
             <Pressable accessibilityRole="link" disabled={!onAction} onPress={onAction}>
               <Text className="text-primary text-sm font-medium">{action}</Text>

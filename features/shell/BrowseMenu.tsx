@@ -15,7 +15,7 @@ const LINKS = [
 /** Public header menu. It is named Browse, not Menu — Menu is the signed-in drawer. */
 export function BrowseMenu({ open, onClose, onFeatures }: { open: boolean; onClose: () => void; onFeatures?: () => void }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const choose = (action: (typeof LINKS)[number]['action']) => {
     onClose()
     if (action === 'features') onFeatures?.()

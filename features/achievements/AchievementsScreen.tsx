@@ -25,8 +25,8 @@ const RULE: Record<string, [earned: string, back: string]> = {
  */
 export function AchievementsScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const mine = useQuery(MyAchievementsDocument, { fetchPolicy: 'cache-and-network' })
   const points = useQuery(MyPointsDocument, { variables: { first: 30 }, fetchPolicy: 'cache-and-network' })
   const viewer = mine.data?.viewer
@@ -40,7 +40,7 @@ export function AchievementsScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/profile'))} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Achievements
         </Text>
       </View>
@@ -54,7 +54,7 @@ export function AchievementsScreen() {
                 <Award size={24} color={primary} />
               </View>
               <View className="flex-1">
-                <Text className="text-lg font-bold" accessibilityRole="header">
+                <Text className="text-lg font-semibold" accessibilityRole="header">
                   {LEVEL[c.level]}
                 </Text>
                 <Text className="text-muted-foreground text-sm">{c.points === 1 ? '1 point' : `${c.points} points`}</Text>
@@ -72,7 +72,7 @@ export function AchievementsScreen() {
           </View>
         ) : null}
 
-        <Text className="text-base font-bold" accessibilityRole="header">
+        <Text className="text-base font-semibold" accessibilityRole="header">
           Earned
         </Text>
         {items.length ? (
@@ -96,7 +96,7 @@ export function AchievementsScreen() {
 
         {mine.data ? <Visibility key={String(mine.data.achievementSettings.showAchievements)} shown={mine.data.achievementSettings.showAchievements} canShow={mine.data.achievementSettings.canShow} /> : null}
 
-        <Text className="text-base font-bold" accessibilityRole="header">
+        <Text className="text-base font-semibold" accessibilityRole="header">
           Points history
         </Text>
         <LoadState query={points} inline message="Your points history could not load." />
@@ -110,7 +110,7 @@ export function AchievementsScreen() {
                 onPress={() => router.push(e.sourceType === 'NOTE' ? `/notes/${e.sourceId}` : `/resources/${e.sourceId}`)}
                 className={`flex-row items-center gap-3 px-4 py-3 ${i ? 'border-border border-t' : ''}`}
               >
-                <Text className={`w-10 font-bold ${e.delta > 0 ? 'text-success' : 'text-muted-foreground'}`}>{e.delta > 0 ? `+${e.delta}` : String(e.delta)}</Text>
+                <Text className={`w-10 font-semibold ${e.delta > 0 ? 'text-success' : 'text-muted-foreground'}`}>{e.delta > 0 ? `+${e.delta}` : String(e.delta)}</Text>
                 <Text className="flex-1 text-sm" numberOfLines={2}>
                   {RULE[e.rule]?.[e.delta < 0 ? 1 : 0] ?? e.rule}
                   {e.subjectTitle ? <Text className="text-muted-foreground"> · {e.subjectTitle}</Text> : null}

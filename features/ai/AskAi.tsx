@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
-import { Globe, MessageCircleQuestion, NotebookPen, Sparkles, Trash2, Users, type LucideIcon } from 'lucide-react-native'
+import { Globe, MessageCircleQuestion, NotebookPen, TextQuote, Trash2, Users, type LucideIcon } from 'lucide-react-native'
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -40,7 +40,7 @@ function Follow({ id }: { id: string }) {
 /** A question box, or for a doubt one button: the doubt is the question. */
 /** `offNotice` false: the screen already says AI is off. */
 export function AskForm({ scope, noteId, doubtId, offNotice = true }: { scope: AskAiScope; noteId?: string; doubtId?: string; offNotice?: boolean }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const state = useQuery(AiStateDocument, { fetchPolicy: 'cache-and-network' })
   const [askAi, asking] = useMutation(AskAiDocument, { refetchQueries: ['MyAiAnswers'] })
   const [askDoubt, askingDoubt] = useMutation(AskAiAboutDoubtDocument, { refetchQueries: ['MyAiAnswers'] })
@@ -88,8 +88,8 @@ export function AskForm({ scope, noteId, doubtId, offNotice = true }: { scope: A
 
 /** One answer: the question, the text with its citations, and the sources they point to. */
 export function AnswerCard({ answer: a }: { answer: Answer }) {
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const [remove, removing] = useMutation(DeleteAiAnswerDocument, { refetchQueries: ['MyAiAnswers'] })
   const pending = a.status === 'QUEUED' || a.status === 'RUNNING'
   const cited = new Set(a.sources.map((s) => s.n))
@@ -115,7 +115,7 @@ export function AnswerCard({ answer: a }: { answer: Answer }) {
         <Markdown
           source={a.text}
           cite={(n, key) => (
-            <Text key={key} accessibilityLabel={`Source ${n}`} className={cn('text-xs font-bold', cited.has(n) ? 'text-primary' : 'text-muted-foreground')}>
+            <Text key={key} accessibilityLabel={`Source ${n}`} className={cn('text-xs font-semibold', cited.has(n) ? 'text-primary' : 'text-muted-foreground')}>
               {` [${n}]`}
             </Text>
           )}
@@ -128,13 +128,13 @@ export function AnswerCard({ answer: a }: { answer: Answer }) {
       ) : null}
       {a.status === 'READY' && a.sources.length ? (
         <View className="gap-2">
-          <Text accessibilityRole="header" className="text-muted-foreground text-xs font-bold uppercase tracking-wide">
+          <Text accessibilityRole="header" className="text-muted-foreground text-xs font-semibold">
             Sources
           </Text>
           {a.sources.map((s) => (
             <Pressable key={s.n} accessibilityRole="link" accessibilityLabel={`Source ${s.n}: ${s.title || 'Untitled note'}`} onPress={() => router.push(`/notes/${s.noteId}`)} className="border-border bg-background flex-row gap-3 rounded-xl border p-3">
               <View className="bg-primary/10 size-6 items-center justify-center rounded-md">
-                <Text className="text-primary text-xs font-bold">{s.n}</Text>
+                <Text className="text-primary text-xs font-semibold">{s.n}</Text>
               </View>
               <View className="flex-1 gap-0.5">
                 <Text className="font-semibold" numberOfLines={1}>
@@ -177,13 +177,13 @@ const SCOPES: { scope: AskAiScope; label: string; hint: string; icon: LucideIcon
 /** The Ask AI screen: questions over the asker's notes, their groups' and classes', or public notes. */
 export function AskScreen() {
   const insets = useSafeAreaInsets()
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const [scope, setScope] = useState<AskAiScope>('MY_NOTES')
   const current = SCOPES.find((s) => s.scope === scope)!
   return (
     <View className="bg-background flex-1">
-      <ScreenHeader title="Ask AI" right={<Sparkles size={20} color={primary} />} />
+      <ScreenHeader title="Ask AI" right={<TextQuote size={20} color={primary} />} />
       <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
         <Text className="text-muted-foreground text-sm">Ask a question and get an answer from notes you can read, with the notes it came from.</Text>
         <View accessibilityRole="radiogroup" accessibilityLabel="Where to look" className="flex-row flex-wrap gap-2">
@@ -196,7 +196,7 @@ export function AskScreen() {
         </View>
         <Text className="text-muted-foreground text-xs">{current.hint}</Text>
         <AskForm scope={scope} />
-        <Text accessibilityRole="header" className="text-muted-foreground text-xs font-bold uppercase tracking-wide">
+        <Text accessibilityRole="header" className="text-muted-foreground text-xs font-semibold">
           Your questions
         </Text>
         <AnswerList emptyText="No questions yet." />

@@ -24,7 +24,7 @@ const DOCUMENTS = [
  * new version, the app waits until it is accepted. The Profile tab stays open, so people who do not agree can sign out.
  */
 export function TermsGate() {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const pathname = usePathname()
   const status = useQuery(TermsStatusDocument, { fetchPolicy: 'cache-and-network' })
   const [accept, accepting] = useMutation(AcceptTermsDocument)
@@ -41,7 +41,7 @@ export function TermsGate() {
     <Portal name="terms-gate">
       <View className="absolute inset-0 justify-center bg-black/50 p-5" accessibilityViewIsModal>
         <View className="bg-card gap-4 rounded-3xl p-5">
-          <Text className="text-xl font-extrabold" accessibilityRole="header">
+          <Text className="text-xl font-semibold" accessibilityRole="header">
             We have updated our terms
           </Text>
           <Text className="text-muted-foreground text-sm">Please read what changed and accept to keep using LearnViaNotes.</Text>

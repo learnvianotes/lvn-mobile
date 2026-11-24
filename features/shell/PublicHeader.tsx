@@ -12,7 +12,7 @@ import { AppearanceButton } from './AppearanceButton'
 /** Public bar: wordmark, Browse, Sign in, theme. Safe area sits above the 40px controls. */
 export function PublicHeader({ onFeatures }: { onFeatures?: () => void }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const [open, setOpen] = useState(false)
   return (
     <View className="border-border bg-card border-b px-3" style={{ paddingTop: insets.top }}>

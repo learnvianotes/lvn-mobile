@@ -18,15 +18,15 @@ const ICONS: Record<RecommendationKind, typeof BookOpen> = { EXAM_TOPIC: Calenda
  * 30 days. The API reads every note through the read rule when asked.
  */
 export function Recommendations({ limit = 6 }: { limit?: number }) {
-  const primary = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const primary = String(useCSSVariable('--color-primary') ?? '#2847a8')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const recs = useQuery(RecommendationsDocument, { variables: { limit }, fetchPolicy: 'cache-and-network' })
   const [dismiss] = useMutation(DismissRecommendationDocument, { refetchQueries: [RecommendationsDocument] })
   const items = recs.data?.recommendations
   if (!items) return <LoadState query={recs} inline message="Recommendations could not load." />
   return (
     <View className="bg-card border-border gap-3 rounded-2xl border p-4">
-      <Text className="text-lg font-bold" accessibilityRole="header">
+      <Text className="text-lg font-semibold" accessibilityRole="header">
         Recommended for you
       </Text>
       {!items.length ? <Text className="text-muted-foreground text-sm">Nothing to recommend yet. Read a few notes, add an exam or take a quiz, and suggestions appear here.</Text> : null}

@@ -69,7 +69,7 @@ function toCard(d: Draft, n: number): { content: object } | { problem: string } 
 
 export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const client = useApolloClient()
   const [runTask] = useMutation(RunAiTaskDocument)
   const [publish, publishing] = useMutation(PublishClassQuizDocument)
@@ -151,7 +151,7 @@ export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
         {drafts.map((d, i) => (
           <View key={d.key} accessibilityLabel={`Question ${i + 1}`} className="bg-card border-border gap-3 rounded-2xl border p-4">
             <View className="flex-row items-center">
-              <Text className="flex-1 font-bold">Question {i + 1}</Text>
+              <Text className="flex-1 font-semibold">Question {i + 1}</Text>
               <Pressable accessibilityRole="button" accessibilityLabel={`Remove question ${i + 1}`} onPress={() => setDrafts((all) => all.filter((x) => x.key !== d.key))} hitSlop={8} className="p-1">
                 <Trash2 size={18} color={fg} />
               </Pressable>

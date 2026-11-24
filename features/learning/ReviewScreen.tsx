@@ -31,7 +31,7 @@ const RATINGS: { rating: Rating; label: string }[] = [
  */
 export function ReviewScreen() {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
   const { data, error, refetch } = useQuery(ReviewQueueDocument, { fetchPolicy: 'network-only' })
   const [queue, setQueue] = useState<Queue | null>(null)
   const [cards, setCards] = useState<Card[] | null>(null)
@@ -88,7 +88,7 @@ export function ReviewScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="Back" onPress={() => router.back()} className="size-10 items-center justify-center rounded-full">
           <ArrowLeft size={22} color={fg} />
         </Pressable>
-        <Text className="text-lg font-bold" accessibilityRole="header">
+        <Text className="text-lg font-semibold" accessibilityRole="header">
           Review
         </Text>
       </View>
@@ -101,13 +101,13 @@ export function ReviewScreen() {
         {!cards ? fallback === 'none' ? <LoadFailed message="Your cards could not load, and none were kept on this phone yet." onRetry={refetch} /> : <Loading /> : null}
         {cards && !cards.length ? (
           <View className="items-center gap-2 py-10">
-            <Text className="text-xl font-bold">Nothing to review</Text>
+            <Text className="text-xl font-semibold">Nothing to review</Text>
             <Text className="text-muted-foreground text-center">Add flashcards to your notes, or study the cards of a note you read, and they come back here when it is time.</Text>
           </View>
         ) : null}
         {cards?.length && !card ? (
           <View className="items-center gap-2 py-10">
-            <Text className="text-xl font-bold">Done for today</Text>
+            <Text className="text-xl font-semibold">Done for today</Text>
             <Text className="text-muted-foreground">{done === 1 ? '1 card reviewed.' : `${done} cards reviewed.`}</Text>
             {queue?.waiting ? <Text className="text-muted-foreground">{queue.waiting === 1 ? '1 more card waits for the next days.' : `${queue.waiting} more cards wait for the next days.`}</Text> : null}
           </View>

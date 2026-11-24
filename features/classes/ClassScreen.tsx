@@ -54,8 +54,8 @@ type Member = NonNullable<NonNullable<ClassroomPeopleQuery['classroom']>['member
  */
 export function ClassScreen({ id }: { id: string }) {
   const insets = useSafeAreaInsets()
-  const fg = String(useCSSVariable('--color-foreground') ?? '#152033')
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const fg = String(useCSSVariable('--color-foreground') ?? '#1c1b18')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const query = useQuery(ClassroomDocument, { variables: { id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [tab, setTab] = useState<Tab>('posts')
@@ -106,7 +106,7 @@ export function ClassScreen({ id }: { id: string }) {
               {classroom.viewerRole ? ` · ${CLASS_ROLE[classroom.viewerRole]}` : ''}
             </Text>
           </View>
-          <Text className="text-2xl font-extrabold" accessibilityRole="header">
+          <Text className="text-2xl font-semibold" accessibilityRole="header">
             {classroom.name}
           </Text>
           {classroom.description ? <Text className="text-muted-foreground">{classroom.description}</Text> : null}
@@ -114,7 +114,7 @@ export function ClassScreen({ id }: { id: string }) {
             <View className="bg-secondary gap-1 rounded-2xl p-3">
               <Text className="text-muted-foreground text-xs font-semibold">Class code</Text>
               <View className="flex-row items-center gap-3">
-                <Text accessibilityLabel={`Class code ${classroom.joinCode}`} className="flex-1 font-mono text-xl font-bold tracking-widest">
+                <Text accessibilityLabel={`Class code ${classroom.joinCode}`} className="flex-1 font-mono text-xl font-semibold">
                   {classroom.joinCode}
                 </Text>
                 <Pressable
@@ -182,7 +182,7 @@ function Action({ label, onPress, primary }: { label: string; onPress: () => voi
 }
 
 function Posts({ classroom }: { classroom: ClassroomDetailFragment }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const query = useQuery(ClassroomPostsDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [create] = useMutation(CreateClassroomPostDocument)
@@ -248,7 +248,7 @@ function Posts({ classroom }: { classroom: ClassroomDetailFragment }) {
 }
 
 function Notes({ classroom }: { classroom: ClassroomDetailFragment }) {
-  const accent = String(useCSSVariable('--color-primary') ?? '#1e4d8c')
+  const accent = String(useCSSVariable('--color-primary') ?? '#2847a8')
   const query = useQuery(ClassroomNotesDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [share] = useMutation(ShareNoteToClassroomDocument)
@@ -311,7 +311,7 @@ function Notes({ classroom }: { classroom: ClassroomDetailFragment }) {
 }
 
 function People({ classroom, onChanged }: { classroom: ClassroomDetailFragment; onChanged: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const query = useQuery(ClassroomPeopleDocument, { variables: { id: classroom.id }, fetchPolicy: 'cache-and-network' })
   const { data, refetch } = query
   const [invite] = useMutation(InviteToClassroomDocument)
@@ -350,7 +350,7 @@ function People({ classroom, onChanged }: { classroom: ClassroomDetailFragment; 
         <View key={m.user.id} className="bg-card border-border flex-row items-center gap-3 rounded-2xl border p-3">
           <Pressable accessibilityRole="link" accessibilityLabel={m.user.displayName} onPress={() => router.push(`/u/${m.user.handle}`)} className="flex-1 flex-row items-center gap-3">
             <View className="bg-secondary size-9 items-center justify-center rounded-full">
-              <Text className="text-secondary-foreground font-bold">{m.user.displayName.slice(0, 1).toUpperCase()}</Text>
+              <Text className="text-secondary-foreground font-semibold">{m.user.displayName.slice(0, 1).toUpperCase()}</Text>
             </View>
             <Text className="flex-1 font-semibold">{m.user.displayName}</Text>
             <Text className="text-muted-foreground text-xs">{CLASS_ROLE[m.role]}</Text>

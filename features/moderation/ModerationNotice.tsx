@@ -13,7 +13,7 @@ const TITLE = { PENDING_REVIEW: 'Waiting for a moderator', HIDDEN: 'Hidden by mo
  * or a warning on content that stays; and the one appeal. Only the author is ever sent a reason.
  */
 export function ModerationNotice({ entityType, entityId, state, reason, canAppeal, onAppealed }: { entityType: ReportEntityType; entityId: string; state: ModerationState; reason?: string | null; canAppeal: boolean; onAppealed?: () => void }) {
-  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#3d4b63')
+  const muted = String(useCSSVariable('--color-muted-foreground') ?? '#66625b')
   const [writing, setWriting] = useState(false)
   const [message, setMessage] = useState('')
   const [appealed, setAppealed] = useState(false)

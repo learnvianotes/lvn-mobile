@@ -40,12 +40,12 @@ export function CardEditor({ card, onChange: save }: { card: LocalCard; onChange
   }
   const color = (name: string, fallback: string) => String(useCSSVariable(name) ?? fallback)
   const theme = {
-    fg: color('--color-foreground', '#152033'),
-    muted: color('--color-muted-foreground', '#3d4b63'),
-    accent: color('--color-primary', '#1e4d8c'),
+    fg: color('--color-foreground', '#1c1b18'),
+    muted: color('--color-muted-foreground', '#66625b'),
+    accent: color('--color-primary', '#2847a8'),
     bg: color('--color-background', '#ffffff'),
-    surface: color('--color-secondary', '#e8edf3'),
-    border: color('--color-border', '#d5dde8'),
+    surface: color('--color-secondary', '#f0eee9'),
+    border: color('--color-border', '#e4e1da'),
   }
   const field = 'text-foreground border-border bg-background rounded-xl border px-3 py-2.5 text-base'
 
@@ -80,11 +80,11 @@ export function CardEditor({ card, onChange: save }: { card: LocalCard; onChange
           <View className="flex-row gap-2">
             {[1, 2, 3].map((level) => (
               <Pressable key={level} accessibilityRole="radio" accessibilityState={{ checked: c.level === level }} accessibilityLabel={`Heading level ${level}`} onPress={() => onChange({ ...c, level })} className={cn('rounded-full px-3 py-1.5', c.level === level ? 'bg-primary' : 'bg-secondary')}>
-                <Text className={cn('text-sm font-bold', c.level === level ? 'text-primary-foreground' : 'text-secondary-foreground')}>H{level}</Text>
+                <Text className={cn('text-sm font-semibold', c.level === level ? 'text-primary-foreground' : 'text-secondary-foreground')}>H{level}</Text>
               </Pressable>
             ))}
           </View>
-          <TextInput autoFocus accessibilityLabel="Heading" placeholder="Heading" placeholderTextColor={theme.muted} className={cn(field, 'text-xl font-bold')} defaultValue={inlineText(c.content)} onChangeText={(t) => onChange({ ...c, content: toInline(t) })} />
+          <TextInput autoFocus accessibilityLabel="Heading" placeholder="Heading" placeholderTextColor={theme.muted} className={cn(field, 'text-xl font-semibold')} defaultValue={inlineText(c.content)} onChangeText={(t) => onChange({ ...c, content: toInline(t) })} />
         </View>
       )
     case 'code':
