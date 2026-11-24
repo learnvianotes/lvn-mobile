@@ -9,16 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- A new look: warm paper, ink blue and a highlighter yellow, IBM Plex Sans, and a new flat LVN app icon.
-- Sign in with a 6-digit code sent to your email; a password is still one tap away. The assistant is called Nova.
+- A new look: warm paper, ink blue and a highlighter yellow, IBM Plex Sans, and a new flat LVN app icon. [#53](https://github.com/learnvianotes/lvn-mobile/pull/53)
+- Sign in with a 6-digit code sent to your email; a password is still one tap away. The assistant is called Nova. [#53](https://github.com/learnvianotes/lvn-mobile/pull/53)
 
 ### Fixed
 
-- Uploads on a weak network no longer hang: a stalled upload is retried, quick notes upload two files at a time, and a PDF you just added opens by itself once its virus check finishes.
+- Uploads on a weak network no longer hang: a stalled upload is retried, quick notes upload two files at a time, and a PDF you just added opens by itself once its virus check finishes. [#53](https://github.com/learnvianotes/lvn-mobile/pull/53)
 
 ### Removed
 
-- GitHub and LinkedIn sign-in.
+- GitHub and LinkedIn sign-in. [#53](https://github.com/learnvianotes/lvn-mobile/pull/53)
 
 ### Security
 
