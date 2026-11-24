@@ -2,6 +2,7 @@ import { useApolloClient, useMutation, useQuery } from '@apollo/client/react'
 import { router } from 'expo-router'
 import { ArrowLeft, ChevronDown, ChevronUp, NotebookPen, Search, Trash2, Wand2, X, ZoomIn, ZoomOut } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { StudyLoader } from '@/components/ui/study-loader'
 import { ActivityIndicator, Pressable, ScrollView, TextInput, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useCSSVariable } from 'uniwind'
@@ -351,8 +352,8 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
         ) : null}
         {state !== 'ready' || !url ? (
           <View className="absolute inset-0 items-center justify-center gap-2 p-6" pointerEvents="none">
-            {file.loading || waitingForScan || (url && state === 'loading') ? <ActivityIndicator /> : null}
-            <Text className="text-muted-foreground text-center text-sm">
+            {waitingForScan ? <StudyLoader kind="scan" detail="It opens here by itself in a moment." /> : file.loading || (url && state === 'loading') ? <StudyLoader kind="pdf" /> : null}
+            {waitingForScan || file.loading || (url && state === 'loading') ? null : <Text className="text-muted-foreground text-center text-sm">
               {file.error
                 ? 'Connect to the internet to open this PDF.'
                 : waitingForScan
@@ -364,7 +365,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
                     : state === 'failed'
                       ? 'This PDF could not be opened. Go back and open it again.'
                       : 'Opening the PDF…'}
-            </Text>
+            </Text>}
           </View>
         ) : null}
       </View>

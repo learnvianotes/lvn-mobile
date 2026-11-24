@@ -17,6 +17,7 @@ import * as db from '../store/db'
 import { syncNow } from '../sync/engine'
 import { pickForTray, type Source } from './prepare'
 import { addToTray, sizeLabel, type TrayItem } from './tray'
+import { StudyLoader } from '@/components/ui/study-loader'
 
 type Busy = { adding: true } | { upload: number; of: number } | { making: true } | null
 
@@ -196,12 +197,14 @@ export function CaptureScreen({ start }: { start?: Source }) {
           </Text>
         ) : null}
         {busy && 'upload' in busy ? (
-          <View className="gap-2">
-            <Text className="text-sm">{busy.upload ? `Uploading ${busy.upload} of ${busy.of}…` : 'Making the note…'}</Text>
-            <Progress value={busy.of ? (Math.max(0, busy.upload - 1) / busy.of) * 100 : 0} />
-          </View>
+          <StudyLoader
+            kind="upload"
+            label={busy.upload ? `Uploading ${busy.upload} of ${busy.of}…` : 'Making the note…'}
+            progress={busy.of ? Math.max(0, busy.upload - 1) / busy.of : null}
+            className="py-2"
+          />
         ) : null}
-        {busy && 'making' in busy ? <Text className="text-sm">Asking Nova to make notes…</Text> : null}
+        {busy && 'making' in busy ? <StudyLoader kind="nova" label="Asking Nova to make notes…" className="py-2" /> : null}
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ disabled: !items.length || !!busy }}
