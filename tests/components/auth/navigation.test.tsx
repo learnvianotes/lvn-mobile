@@ -48,6 +48,7 @@ describe('signed out', () => {
     const api = mockApi({ SignInOptions: () => signInOptions, SignIn: () => ({ data: { signIn: { __typename: 'AuthPayload', session: session(), userErrors: [] } } }) })
     await render('./app', { initialUrl: '/' })
     await press(screen.getByTestId('welcome-sign-in'))
+    await press(screen.getByTestId('sign-in-mode'))
     await fireEvent.changeText(screen.getByLabelText('Email'), ' asha@example.com ')
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
     await press(screen.getByRole('button', { name: 'Sign in' }))
@@ -62,6 +63,7 @@ describe('signed out', () => {
       SignIn: () => ({ data: { signIn: { __typename: 'AuthPayload', session: null, userErrors: [{ __typename: 'UserError', field: null, message: 'Email or password is incorrect.', code: 'VALIDATION' }] } } }),
     })
     await render('./app', { initialUrl: '/sign-in' })
+    await press(screen.getByTestId('sign-in-mode'))
     await press(screen.getByRole('button', { name: 'Sign in' }))
     expect(screen.getByText('Enter a valid email address.')).toBeVisible()
     expect(api.ops()).not.toContain('SignIn')
@@ -163,6 +165,7 @@ describe('signed out', () => {
       SignIn: () => ({ data: { signIn: { __typename: 'AuthPayload', session: null, userErrors: [problem(null, 'Registration is invite-only.', 'FORBIDDEN')] } } }),
     })
     await render('./app', { initialUrl: '/sign-in' })
+    await press(screen.getByTestId('sign-in-mode'))
     await fireEvent.changeText(screen.getByLabelText('Email'), 'asha@example.com')
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
     await press(screen.getByRole('button', { name: 'Sign in' }))

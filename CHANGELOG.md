@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- A new look: warm paper, ink blue and a highlighter yellow, IBM Plex Sans, and a new flat LVN app icon.
+- Sign in with a 6-digit code sent to your email; a password is still one tap away. The assistant is called Nova.
+
+### Fixed
+
+- Uploads on a weak network no longer hang: a stalled upload is retried, quick notes upload two files at a time, and a PDF you just added opens by itself once its virus check finishes.
+
+### Removed
+
+- GitHub and LinkedIn sign-in.
+
 ### Security
 
 - Every library is on its latest release that this Expo SDK supports, including Firebase 13 for Google sign-in, and the app knows about the newest parts of the API. Library updates now arrive as one weekly pull request instead of ten. [#52](https://github.com/learnvianotes/lvn-mobile/pull/52)

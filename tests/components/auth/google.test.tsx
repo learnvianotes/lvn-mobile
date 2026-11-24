@@ -87,7 +87,7 @@ it('does nothing when the account chooser is closed, and shows the API’s refus
   await fireEvent.press(screen.getByText('Continue with Google'))
   await settle()
   expect(screen.getByText('This account was deleted.')).toBeVisible()
-  expect(screen.getByText('Welcome back. Pick up where you left off.')).toBeVisible()
+  expect(screen.getByText('Sign in to your notes, PDFs and Nova.')).toBeVisible()
 })
 
 it('says so when Google or Firebase fails, and still signs out of Google', async () => {
