@@ -11,7 +11,7 @@ import { renderInApp } from '../../support/render'
 /**
  * Classroom quizzes on the phone (lvn-backend ADR-0064): the class's Quizzes tab, taking a quiz without its answers and
  * reading them after, a dropped submission sent again as the same attempt, and a teacher making questions from a
- * note with AI, editing them and publishing.
+ * note with Nova, editing them and publishing.
  */
 jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn(), replace: jest.fn() } }))
 jest.mock('@/features/notes/store/db', () => ({
@@ -40,7 +40,7 @@ const quiz = (attempts: Attempt[]) => {
     myAttempts: attempts.map((a) => ({ __typename: 'QuizAttempt', submittedAt: '2026-10-13T10:00:00.000Z', ...a, answers: a.answers.map((x) => ({ __typename: 'QuizAnswer', ...x })) })),
     questions: [
       { __typename: 'ClassQuizQuestion', id: Q1, position: 0, question: doc('What makes most of the ATP?'), choices: [{ __typename: 'ClassQuizChoice', id: 'c1', content: inline('Mitochondria') }, { __typename: 'ClassQuizChoice', id: 'c2', content: inline('Ribosomes') }], multiple: false, correct: shown ? ['c1'] : null, explanation: shown ? doc('Respiration happens there.') : null },
-      // Choice ids repeat across questions, as in quizzes made with AI: each question shows its own choices.
+      // Choice ids repeat across questions, as in quizzes made with Nova: each question shows its own choices.
       { __typename: 'ClassQuizQuestion', id: Q2, position: 1, question: doc('Which are products?'), choices: [{ __typename: 'ClassQuizChoice', id: 'c1', content: inline('Water') }, { __typename: 'ClassQuizChoice', id: 'c2', content: inline('Oxygen') }, { __typename: 'ClassQuizChoice', id: 'c3', content: inline('Carbon dioxide') }], multiple: true, correct: shown ? ['c1', 'c3'] : null, explanation: null },
     ],
   }
@@ -123,7 +123,7 @@ it('takes a quiz without its answers, one question at a time; a dropped submissi
   expect(third.clientOpId).not.toBe(sent[0]!.clientOpId)
 })
 
-it('a teacher makes questions from a synced note with AI, edits them, adds one by hand and publishes', async () => {
+it('a teacher makes questions from a synced note with Nova, edits them, adds one by hand and publishes', async () => {
   const card = (question: string, choices: string[], correct: string[]) => ({ __typename: 'AiCard', type: 'quiz', content: { question: doc(question), choices: choices.map((c, i) => ({ id: `c${i + 1}`, content: inline(c) })), correct, multiple: correct.length > 1 } })
   const artifact = (over: Record<string, unknown>) => ({ __typename: 'AiArtifact', id: ART, task: 'QUIZ', status: 'QUEUED', language: 'ENGLISH', markdown: null, title: null, cards: null, changes: null, error: null, fromPublishedVersion: false, truncated: false, keptAt: null, createdAt: '2026-10-13T10:00:00.000Z', ...over })
   const api = mockApi({
@@ -133,7 +133,7 @@ it('a teacher makes questions from a synced note with AI, edits them, adds one b
   })
   await inApollo(<QuizBuilderScreen classroomId={CLASS} />)
   await fireEvent.press(screen.getByRole('button', { name: 'Choose a note' }))
-  // Only notes on the server: AI reads them there.
+  // Only notes on the server: Nova reads them there.
   expect(await screen.findByRole('button', { name: 'Make questions from Respiration notes' })).toBeOnTheScreen()
   expect(screen.queryByRole('button', { name: 'Make questions from Not synced yet' })).toBeNull()
   await fireEvent.press(screen.getByRole('button', { name: 'Make questions from Respiration notes' }))

@@ -155,6 +155,6 @@ it('follows a conversion in progress and pulls its cards when it is done', async
   await show()
   expect(await screen.findByText('Reading the PDF… 15%')).toBeTruthy()
   // The scanned page the OCR was unsure of was read again by AI (lvn-backend ADR-0063).
-  expect(await screen.findByText('Made 7 cards from 2 pages. Check them beside the PDF. AI read 1 unclear page again. To mend words the conversion broke, use Clean up the text in AI tasks.', {}, { timeout: 8000 })).toBeTruthy()
+  expect(await screen.findByText('Made 7 cards from 2 pages. Check them beside the PDF. Nova read 1 unclear page again. To mend words the conversion broke, use Clean up the text in Nova tasks.', {}, { timeout: 8000 })).toBeTruthy()
   await waitFor(() => expect(syncNow).toHaveBeenCalled())
 }, 15000)

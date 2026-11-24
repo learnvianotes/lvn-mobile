@@ -6,7 +6,7 @@ env:
 ---
 - runFlow: subflows/signed-in.yaml
 - assertVisible: "Keep learning, .*"
-# No dead controls on Home (ADR-0076): the search bar opens Explore, Q&A opens Ask AI, the avatar the Profile tab.
+# No dead controls on Home (ADR-0076): the search bar opens Explore, Q&A opens Ask Nova, the avatar the Profile tab.
 - tapOn: "Search notes, topics and people"
 - extendedWaitUntil:
     visible: "Explore"
@@ -14,7 +14,7 @@ env:
 - tapOn: "Home"
 - tapOn: "Q&A"
 - extendedWaitUntil:
-    visible: "Ask AI"
+    visible: "Ask Nova"
     timeout: 15000
 - pressKey: Back
 - tapOn: "Your profile"

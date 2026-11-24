@@ -24,7 +24,7 @@ describe('HeroCard', () => {
     expect(screen.getByText('Twenty days to your mid-term: one topic today keeps you on track.')).toBeOnTheScreen()
   })
 
-  it('shows the chosen line while AI writes the person’s own, then asks again', async () => {
+  it('shows the chosen line while Nova writes the person’s own, then asks again', async () => {
     let asked = 0
     mockApi({ DailyLine: () => (++asked === 1 ? line('Small steps count', 'Ten focused minutes today beat a perfect plan for someday.', true) : line('Your week, your way', 'Two of three days done: one more and the week is yours.')) })
     await render(<ApolloProvider client={createApolloClient()}><HeroCard firstName="Asha" /></ApolloProvider>)
@@ -44,7 +44,7 @@ describe('HomeHeader', () => {
     expect(screen.getByLabelText('LearnViaNotes')).toBeOnTheScreen()
     expect(screen.getByRole('button', { name: 'Appearance' })).toBeOnTheScreen()
     expect(await screen.findByRole('button', { name: 'Notifications, 2 unread' })).toBeOnTheScreen()
-    expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeOnTheScreen()
+    expect(screen.getByLabelText('Search or ask Nova')).toBeOnTheScreen()
   })
 })
 

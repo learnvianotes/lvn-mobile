@@ -91,7 +91,7 @@ export function RecordScreen({ id, transcribe }: { id: string; transcribe?: bool
     <View className="bg-background flex-1">
       <ScreenHeader title="Voice note" />
       <View className="flex-1 items-center justify-center gap-6 p-6" style={{ paddingBottom: insets.bottom + 24 }}>
-        <Text className="text-muted-foreground text-center text-sm">{transcribe ? 'Speak; when you stop, AI writes down what you said for you to keep.' : 'Speak; it becomes an audio card of this note. Transcribe it from AI tasks.'}</Text>
+        <Text className="text-muted-foreground text-center text-sm">{transcribe ? 'Speak; when you stop, Nova writes down what you said for you to keep.' : 'Speak; it becomes an audio card of this note. Transcribe it from Nova tasks.'}</Text>
         <Text accessibilityLiveRegion="polite" accessibilityLabel={`Recording time ${clock(seconds)}`} className="font-mono text-5xl">
           {clock(seconds)}
         </Text>

@@ -65,7 +65,7 @@ export function StudyAids({ noteId }: { noteId: string }) {
         <BookOpenCheck size={18} color={primary} />
         <Text className="text-lg font-semibold">Study aids</Text>
       </View>
-      <Text className="text-muted-foreground text-sm">{owner ? 'Made by AI from your published note for its readers. Hide any you don’t want them to see.' : 'Made by AI from this note: a summary, key concepts, questions to practise with, a quiz and flashcards.'}</Text>
+      <Text className="text-muted-foreground text-sm">{owner ? 'Made by Nova from your published note for its readers. Hide any you don’t want them to see.' : 'Made by Nova from this note: a summary, key concepts, questions to practise with, a quiz and flashcards.'}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }} accessibilityRole="tablist">
         {aids.map((a, i) => {
           const selected = a.id === aid.id

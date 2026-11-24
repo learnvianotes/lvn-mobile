@@ -95,7 +95,7 @@ it('a teacher verifies a student who asked, and must say why to decline', async 
   await waitFor(() => expect(api.calls.filter((c) => c.op === 'ReviewVerificationRequest').at(-1)?.variables).toEqual({ input: { requestId: 'r2', approve: false, reason: 'I do not teach you.' } }))
 })
 
-it('platform admins see the AI read of a college ID and the card image through a recorded link', async () => {
+it('platform admins see the Nova read of a college ID and the card image through a recorded link', async () => {
   const docs = {
     ...request({ method: 'DOCUMENTS', teacher: null }),
     aiCheck: { __typename: 'IdCardCheck', verdict: 'MISMATCH', confidence: 0.42, reason: 'The name differs.', checkedAt: new Date().toISOString(), extracted: { __typename: 'IdCardFields', name: 'Ravi K', institution: 'City College', idNumber: 'CSE-19', validUntil: '2027' } },

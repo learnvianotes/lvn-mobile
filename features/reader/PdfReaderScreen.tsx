@@ -47,7 +47,7 @@ const COLORS: { color: HighlightColor; swatch: string; label: string }[] = [
 const pageKey = (fileId: string) => `reader.page.${fileId}`
 /** The pages the vision model read again (lvn-backend ADR-0063), as a sentence for the conversion's banner. */
 const aiRead = (pages: number | null | undefined, rejected: number | null | undefined) =>
-  pages ? ` AI read ${pages} unclear page${pages === 1 ? '' : 's'} again${rejected ? `; ${rejected} reading${rejected === 1 ? '' : 's'} disagreed with the scan and ${rejected === 1 ? 'was' : 'were'} set aside` : ''}.` : ''
+  pages ? ` Nova read ${pages} unclear page${pages === 1 ? '' : 's'} again${rejected ? `; ${rejected} reading${rejected === 1 ? '' : 's'} disagreed with the scan and ${rejected === 1 ? 'was' : 'were'} set aside` : ''}.` : ''
 
 type Card = { id: string; type: CardType; content: unknown }
 /** A command for the PDF before it is numbered */
@@ -257,7 +257,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
             {working
               ? `${{ QUEUED: 'Waiting to start…', TRIAGE: 'Counting the pages…', PARSING: 'Reading the PDF…', MAPPING: 'Making your cards…' }[conversion.status as 'QUEUED'] ?? 'Converting…'} ${conversion.progress}%`
               : conversion.status === 'DONE'
-                ? `Made ${conversion.cards ?? 0} cards from ${conversion.pages ?? 0} pages. Check them beside the PDF.${aiRead(conversion.aiPages, conversion.aiRejected)}${conversion.scannedPages ? ' To mend words the conversion broke, use Clean up the text in AI tasks.' : ''}`
+                ? `Made ${conversion.cards ?? 0} cards from ${conversion.pages ?? 0} pages. Check them beside the PDF.${aiRead(conversion.aiPages, conversion.aiRejected)}${conversion.scannedPages ? ' To mend words the conversion broke, use Clean up the text in Nova tasks.' : ''}`
                 : (conversion.error ?? 'The conversion failed.')}
           </Text>
           {!working ? (

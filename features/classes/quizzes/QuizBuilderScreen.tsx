@@ -90,22 +90,22 @@ export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
     try {
       const res = await runTask({ variables: { input: { noteId, task: 'QUIZ' } } })
       const started = res.data?.runAiTask.artifact
-      if (!started) return setError(res.data?.runAiTask.userErrors[0]?.message ?? 'AI could not make questions from that note. Try again, or write them yourself.')
+      if (!started) return setError(res.data?.runAiTask.userErrors[0]?.message ?? 'Nova could not make questions from that note. Try again, or write them yourself.')
       for (;;) {
         await new Promise((r) => setTimeout(r, POLL_MS))
         const { data } = await client.query({ query: AiArtifactDocument, variables: { id: started.id }, fetchPolicy: 'network-only' })
         const a = data?.aiArtifact
-        if (!a || a.status === 'FAILED') return setError(a?.error ?? 'AI could not make questions from that note. Try again, or write them yourself.')
+        if (!a || a.status === 'FAILED') return setError(a?.error ?? 'Nova could not make questions from that note. Try again, or write them yourself.')
         if (a.status !== 'READY') continue
         const made = (a.cards ?? []).filter((c) => c.type === 'quiz').map((c) => fromCard(c.content as Parameters<typeof fromCard>[0]))
-        if (!made.length) return setError('AI could not make questions from that note. Try again, or write them yourself.')
+        if (!made.length) return setError('Nova could not make questions from that note. Try again, or write them yourself.')
         setDrafts((all) => [...all, ...made].slice(0, MAX_QUESTIONS))
         setSourceNoteId(noteId)
         setTitle((t) => t || noteTitle)
         return
       }
     } catch {
-      setError('AI could not make questions from that note. Try again, or write them yourself.')
+      setError('Nova could not make questions from that note. Try again, or write them yourself.')
     } finally {
       setMaking(null)
     }
@@ -130,7 +130,7 @@ export function QuizBuilderScreen({ classroomId }: { classroomId: string }) {
         <Field label="Title" value={title} onChangeText={setTitle} maxLength={120} />
         <View className="bg-secondary gap-2 rounded-2xl p-4">
           <Text className="font-semibold">Make questions from a note</Text>
-          <Text className="text-muted-foreground text-xs">AI writes questions from the note; check each one, change or remove it, and add your own.</Text>
+          <Text className="text-muted-foreground text-xs">Nova writes questions from the note; check each one, change or remove it, and add your own.</Text>
           {making ? (
             <View className="flex-row items-center gap-2" accessibilityLiveRegion="polite">
               <ActivityIndicator size="small" />

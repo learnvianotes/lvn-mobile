@@ -37,7 +37,7 @@ describe('signed out', () => {
   it('opens on the welcome screen, whatever link the app was opened with', async () => {
     mockApi({})
     await render('./app', { initialUrl: '/explore' })
-    expect(screen.getByRole('header', { name: /Your Learning Community for a Brighter Tomorrow/ })).toBeVisible()
+    expect(screen.getByRole('header', { name: /Learn from your own notes and PDFs/ })).toBeVisible()
     // Without Google in this build, email sign-up is the first action.
     expect(screen.queryByTestId('welcome-google')).toBeNull()
     expect(screen.getByText('Get Started Free')).toBeVisible()
@@ -52,7 +52,7 @@ describe('signed out', () => {
     await fireEvent.changeText(screen.getByLabelText('Password'), 'a long enough passphrase')
     await press(screen.getByRole('button', { name: 'Sign in' }))
     await settle()
-    expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
+    expect(screen.getByLabelText('Search or ask Nova')).toBeVisible()
     expect(api.calls.find((c) => c.op === 'SignIn')!.variables).toEqual({ input: { email: 'asha@example.com', password: 'a long enough passphrase' } })
   })
 
@@ -192,7 +192,7 @@ describe('signed in', () => {
     await press(screen.getByText('Continue'))
     await press(screen.getByText('Yes, that’s right'))
     await settle()
-    expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
+    expect(screen.getByLabelText('Search or ask Nova')).toBeVisible()
     // Only the age, in whole years (lvn-backend ADR-0104); no date of birth.
     expect(api.calls.find((c) => c.op === 'CompleteRegistration')!.variables.input).toEqual({
       displayName: 'Asha from GitHub',

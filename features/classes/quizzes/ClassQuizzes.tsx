@@ -33,7 +33,7 @@ export function ClassQuizzes({ classroom }: { classroom: ClassroomDetailFragment
       {staff ? (
         <View className="gap-1">
           <Pill label="New quiz" primary onPress={() => router.push(`/classes/${classroom.id}/quizzes/new`)} />
-          <Text className="text-muted-foreground text-xs">Make questions from one of your notes with AI, or write your own.</Text>
+          <Text className="text-muted-foreground text-xs">Make questions from one of your notes with Nova, or write your own.</Text>
         </View>
       ) : null}
       {error ? (

@@ -23,9 +23,9 @@ import { cn } from '@/lib/utils'
 type Answer = AiAnswerFieldsFragment
 const POLL_MS = 2000
 const OFF: Record<AiUnavailableReason, string> = {
-  NOT_CONFIGURED: 'AI isn’t switched on here yet.',
-  BUDGET: 'AI is resting until next month: this month’s AI budget is used up.',
-  PROVIDER_DOWN: 'The AI model isn’t answering right now. Try again in a minute.',
+  NOT_CONFIGURED: 'Nova isn’t switched on here yet.',
+  BUDGET: 'Nova is resting until next month: this month’s budget is used up.',
+  PROVIDER_DOWN: 'Nova isn’t answering right now. Try again in a minute.',
 }
 
 /** Keeps a running answer fresh until it is READY or FAILED; updates reach every list through the cache. */
@@ -59,7 +59,7 @@ export function AskForm({ scope, noteId, doubtId, offNotice = true }: { scope: A
     <View className="gap-2">
       {doubtId ? (
         <View className="flex-row">
-          <Pill label="Ask AI about this doubt" primary disabled={off || busy} onPress={() => void submit()} />
+          <Pill label="Ask Nova about this doubt" primary disabled={off || busy} onPress={() => void submit()} />
         </View>
       ) : (
         <>
@@ -183,7 +183,7 @@ export function AskScreen() {
   const current = SCOPES.find((s) => s.scope === scope)!
   return (
     <View className="bg-background flex-1">
-      <ScreenHeader title="Ask AI" right={<TextQuote size={20} color={primary} />} />
+      <ScreenHeader title="Ask Nova" right={<TextQuote size={20} color={primary} />} />
       <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, gap: 14, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
         <Text className="text-muted-foreground text-sm">Ask a question and get an answer from notes you can read, with the notes it came from.</Text>
         <View accessibilityRole="radiogroup" accessibilityLabel="Where to look" className="flex-row flex-wrap gap-2">

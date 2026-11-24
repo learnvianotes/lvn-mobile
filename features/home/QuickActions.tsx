@@ -14,7 +14,7 @@ import { UPLOAD_ACTIONS, useUploadsEnabled } from '@/features/notes/media/upload
 const ACTIONS: { label: string; hint: string; icon: LucideIcon; go: string | CreateAction }[] = [
   { label: 'Notes', hint: 'Opens your notes', icon: NotebookPen, go: '/notes' },
   { label: 'Q&A', hint: 'Ask about your notes', icon: MessagesSquare, go: '/ask' },
-  { label: 'Camera', hint: 'Take photos or add PDFs, and AI makes notes of them', icon: Camera, go: 'Photo' },
+  { label: 'Camera', hint: 'Take photos or add PDFs, and Nova makes notes of them', icon: Camera, go: 'Photo' },
   { label: 'Voice', hint: 'Record a voice note', icon: Mic, go: 'Voice note' },
   { label: 'Upload', hint: 'Put a PDF, picture or recording in a new note', icon: Upload, go: 'Upload' },
 ]

@@ -116,9 +116,9 @@ const EDITORS_ONLY = new Set<AiTask>(['QUICK_NOTE', 'CLEAN_UP'])
 const DERIVATIVE = new Set<AiTask>(['CREATE_NOTES', 'OUTLINE_TO_NOTE'])
 const LANGUAGE: Record<AiLanguage, string> = { HINDI: 'Hindi', TELUGU: 'Telugu', ENGLISH: 'English' }
 const UNAVAILABLE: Record<AiUnavailableReason, string> = {
-  NOT_CONFIGURED: 'AI isn’t switched on here yet.',
-  BUDGET: 'AI is resting until next month: this month’s AI budget is used up.',
-  PROVIDER_DOWN: 'The AI model isn’t answering right now. Try again in a minute.',
+  NOT_CONFIGURED: 'Nova isn’t switched on here yet.',
+  BUDGET: 'Nova is resting until next month: this month’s budget is used up.',
+  PROVIDER_DOWN: 'Nova isn’t answering right now. Try again in a minute.',
 }
 const POLL_MS = 1500
 
@@ -171,12 +171,12 @@ export function AiScreen({ id }: { id: string }) {
 
   return (
     <View className="bg-background flex-1">
-      <ScreenHeader title="AI tasks" />
+      <ScreenHeader title="Nova tasks" />
       <ScrollView nestedScrollEnabled contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 40 }}>
-        {list.error && !list.data ? <Text className="text-muted-foreground py-16 text-center">Connect to the internet to use AI on this note.</Text> : null}
+        {list.error && !list.data ? <Text className="text-muted-foreground py-16 text-center">Connect to the internet to use Nova on this note.</Text> : null}
         {note ? (
           <Text className="text-muted-foreground text-sm">
-            Ask AI about <Text className="text-foreground font-semibold">{note.title || 'Untitled note'}</Text>. Results stay beside it and only you see them; the note itself is never changed.
+            Ask Nova about <Text className="text-foreground font-semibold">{note.title || 'Untitled note'}</Text>. Results stay beside it and only you see them; the note itself is never changed.
           </Text>
         ) : null}
         {status && !status.available ? (
@@ -259,14 +259,14 @@ export function AiScreen({ id }: { id: string }) {
 }
 
 export function Allowance({ used, limit, resetsAt }: { used: number; limit: number | null; resetsAt: string }) {
-  if (limit == null) return <Text className="text-muted-foreground text-xs">Your plan has no daily AI limit.</Text>
+  if (limit == null) return <Text className="text-muted-foreground text-xs">Your plan has no daily Nova limit.</Text>
   const share = limit > 0 ? Math.min(1, used / limit) : 1
   return (
     <View className="gap-1.5">
       <Text className="text-muted-foreground text-xs">
-        {share >= 1 ? `You’ve used today’s AI allowance. It comes back at ${timeOf(resetsAt)}.` : `Today’s AI allowance: ${Math.round(share * 100)}% used · resets at ${timeOf(resetsAt)}`}
+        {share >= 1 ? `You’ve used today’s Nova allowance. It comes back at ${timeOf(resetsAt)}.` : `Today’s Nova allowance: ${Math.round(share * 100)}% used · resets at ${timeOf(resetsAt)}`}
       </Text>
-      <View accessible accessibilityRole="progressbar" accessibilityLabel="Today’s AI allowance" accessibilityValue={{ min: 0, max: limit, now: Math.min(used, limit) }} className="bg-secondary h-1.5 overflow-hidden rounded-full">
+      <View accessible accessibilityRole="progressbar" accessibilityLabel="Today’s Nova allowance" accessibilityValue={{ min: 0, max: limit, now: Math.min(used, limit) }} className="bg-secondary h-1.5 overflow-hidden rounded-full">
         <View className={cn('h-full rounded-full', share >= 1 ? 'bg-destructive' : share >= 0.8 ? 'bg-warm-soft0' : 'bg-primary')} style={{ width: `${share * 100}%` }} />
       </View>
     </View>
@@ -512,12 +512,12 @@ export function AiAccountCard({ className }: { className?: string }) {
   if (!data) return null
   const { aiStatus: status, myAiAllowance: allowance } = data
   return (
-    <View className={className} accessibilityLabel="AI">
+    <View className={className} accessibilityLabel="Nova">
       <View className="flex-row items-center gap-2" accessible accessibilityRole="header">
         <TextQuote size={18} color={primary} />
-        <Text className="text-base font-semibold">AI</Text>
+        <Text className="text-base font-semibold">Nova</Text>
       </View>
-      <Text className="text-muted-foreground text-sm">Open a note and tap AI tasks to summarise it, explain it, quiz yourself or make flashcards. Each day your plan gives you an allowance.</Text>
+      <Text className="text-muted-foreground text-sm">Open a note and tap Nova tasks to summarise it, explain it, quiz yourself or make flashcards. Each day your plan gives you an allowance.</Text>
       {status.available ? <Allowance used={allowance.usedToday} limit={allowance.limitToday} resetsAt={allowance.resetsAt} /> : <Text className="text-sm">{UNAVAILABLE[status.reason ?? 'NOT_CONFIGURED']}</Text>}
     </View>
   )

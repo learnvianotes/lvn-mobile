@@ -130,8 +130,8 @@ function AiButton({ noteId, localOnly }: { noteId: string; localOnly?: boolean }
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="AI tasks"
-      onPress={() => (localOnly ? Alert.alert('Not sent yet', 'The note is still only on this phone. Once it has been sent, AI can read it.') : router.push(`/notes/ai/${noteId}`))}
+      accessibilityLabel="Nova tasks"
+      onPress={() => (localOnly ? Alert.alert('Not sent yet', 'The note is still only on this phone. Once it has been sent, Nova can read it.') : router.push(`/notes/ai/${noteId}`))}
       className="rounded-full p-2"
     >
       <TextQuote size={21} color={primary} />

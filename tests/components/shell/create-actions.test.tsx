@@ -15,7 +15,7 @@ import { renderInApp as render } from '../../support/render'
 
 /**
  * No dead controls (lvn-backend ADR-0076): every tile on Home and every option of the create sheet does what it says —
- * the search bar opens Explore, the avatar the Profile tab, Q&A Ask AI, Camera the tray of photos for notes, Voice a recording, Upload
+ * the search bar opens Explore, the avatar the Profile tab, Q&A Ask Nova, Camera the tray of photos for notes, Voice a recording, Upload
  * a file in a new note (a PDF in the reader), and Quiz and Flashcards a note that starts with that card.
  */
 jest.mock('@/lib/haptics', () => ({ haptic: { tick: jest.fn(), press: jest.fn(), success: jest.fn() } }))
@@ -42,7 +42,7 @@ const renderInApp = (ui: React.ReactElement) => render(<ApolloProvider client={c
 describe('Home', () => {
   it('the search bar opens Explore ready to type, and the avatar shows the person and opens the Profile tab', async () => {
     await renderInApp(<HomeHeader />)
-    await fireEvent.press(screen.getByRole('search', { name: 'Search notes, topics, people, or ask AI…' }))
+    await fireEvent.press(screen.getByRole('search', { name: 'Search or ask Nova' }))
     expect(router.push).toHaveBeenCalledWith({ pathname: '/explore', params: { focus: expect.any(String) } })
     const avatar = screen.getByRole('button', { name: 'Your account' })
     expect(await screen.findByText('R')).toBeOnTheScreen()

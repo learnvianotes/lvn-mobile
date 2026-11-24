@@ -12,7 +12,7 @@ import { PressScale } from '@/features/shell/PressScale'
 import { AppearanceButton } from '@/features/shell/AppearanceButton'
 import { UnreadNotificationCountDocument, ViewerDocument } from '@/graphql/generated/graphql'
 
-const SEARCH = 'Search notes, topics, people, or ask AI…'
+const SEARCH = 'Search or ask Nova'
 
 /** The bell (lvn-backend ADR-0042): the unread count, refreshed by live events while the app is open. */
 function NotificationBell({ color }: { color: string }) {

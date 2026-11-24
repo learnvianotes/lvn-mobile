@@ -20,7 +20,7 @@ const EXPLAINED: readonly [string, string][] = [
   [GATED.share, 'sharing a note'],
   [GATED.contest, 'entering a contest'],
   [GATED.payout, 'requesting a payout'],
-  [GATED.aiBulk, 'running bulk AI'],
+  [GATED.aiBulk, 'running bulk Nova requests'],
   [GATED.submitResource, 'submitting a resource'],
 ]
 

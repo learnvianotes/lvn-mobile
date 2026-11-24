@@ -136,7 +136,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
         </Text>
       </View>
       <ScrollView contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: insets.bottom + 32 }}>
-        <Text className="text-muted-foreground text-sm">{`Add up to ${QuickNoteLimits.files} photos or PDFs (pages of notes, slides, a whiteboard), then AI makes one note from them all. Photos are made smaller so they upload quickly; a PDF can be up to ${QuickNoteLimits.pdfBytes / 1024 ** 2} MB.`}</Text>
+        <Text className="text-muted-foreground text-sm">{`Add up to ${QuickNoteLimits.files} photos or PDFs (pages of notes, slides, a whiteboard), then Nova makes one note from them all. Photos are made smaller so they upload quickly; a PDF can be up to ${QuickNoteLimits.pdfBytes / 1024 ** 2} MB.`}</Text>
         <View className="flex-row gap-2">
           {SOURCES.map(({ source, label, icon: Icon }) => (
             <Pressable
@@ -195,7 +195,7 @@ export function CaptureScreen({ start }: { start?: Source }) {
             <Progress value={busy.of ? (Math.max(0, busy.upload - 1) / busy.of) * 100 : 0} />
           </View>
         ) : null}
-        {busy && 'making' in busy ? <Text className="text-sm">Asking AI to make notes…</Text> : null}
+        {busy && 'making' in busy ? <Text className="text-sm">Asking Nova to make notes…</Text> : null}
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ disabled: !items.length || !!busy }}

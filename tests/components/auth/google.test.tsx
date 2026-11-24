@@ -113,7 +113,7 @@ it('puts Google first on the welcome screen: one tap, and a returning account is
   })
   await renderRouter('./app', { initialUrl: '/' })
   await settle()
-  expect(screen.getByRole('header', { name: /Your Learning Community for a Brighter Tomorrow/ })).toBeVisible()
+  expect(screen.getByRole('header', { name: /Learn from your own notes and PDFs/ })).toBeVisible()
   await fireEvent.press(screen.getByTestId('welcome-google'))
   // While Google's account chooser is open the button says so and cannot be pressed twice.
   expect(screen.getByText('Signing in…')).toBeVisible()
@@ -121,7 +121,7 @@ it('puts Google first on the welcome screen: one tap, and a returning account is
   await act(async () => choose({ type: 'success', data: { idToken: 'google-id-token' } }))
   await settle()
   expect(api.calls.find((c) => c.op === 'SignInWithGoogle')!.variables).toEqual({ idToken: 'firebase-id-token' })
-  expect(screen.getByLabelText('Search notes, topics, people, or ask AI…')).toBeVisible()
+  expect(screen.getByLabelText('Search or ask Nova')).toBeVisible()
 })
 
 it('keeps the welcome screen usable when Google sign-in fails', async () => {

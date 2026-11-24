@@ -18,7 +18,7 @@ import { useGoogleSignIn } from './useGoogleSignIn'
 
 const TILES: { title: string; body: string; icon: LucideIcon }[] = [
   { title: 'Smart Notes', body: 'Cards, code and pictures', icon: NotebookPen },
-  { title: 'AI Learning', body: 'Ask about your notes', icon: MessagesSquare },
+  { title: 'Ask Nova', body: 'Answers from your PDFs, with the page', icon: MessagesSquare },
   { title: 'Study Groups', body: 'Learn with peers', icon: Users },
   { title: 'Exam Prep', body: 'A plan for the day', icon: CalendarCheck },
   { title: 'Quizzes & Flashcards', body: 'Remember what you read', icon: BookOpen },
@@ -48,14 +48,13 @@ export function Welcome() {
     <View className="bg-background flex-1">
       <PublicHeader onFeatures={() => scroll.current?.scrollTo({ y: featuresY.current, animated: true })} />
       <ScrollView ref={scroll} contentContainerClassName="gap-6 px-4 pb-12 pt-6">
-        <View className="bg-secondary self-start rounded-full px-3 py-1">
-          <Text className="text-primary text-xs font-semibold">Built by students, learn together</Text>
-        </View>
         <View className="gap-3">
-          <Text className="text-4xl font-semibold leading-[40px] tracking-tight" accessibilityRole="header">
-            Your Learning Community for a <Text className="text-primary text-4xl font-semibold leading-[40px] tracking-tight">Brighter Tomorrow</Text>
+          <Text className="text-4xl font-medium leading-[42px]" accessibilityRole="header">
+            Learn from <Text className="bg-highlight text-4xl font-medium leading-[42px]">your own notes and PDFs</Text>
           </Text>
-          <Text className="text-muted-foreground text-base leading-6">Create notes, share knowledge, prepare for exams, learn with AI and grow together.</Text>
+          <Text className="text-muted-foreground text-base leading-6">
+            Write notes, read PDFs and record lectures in one place. Nova answers your questions from that material and shows the page each answer came from. Built for CSE and B.Tech first, open to every course and profession.
+          </Text>
         </View>
         {refused ? <Notice tone="info">{`${copy.age.refusedTitle}. ${copy.age.refusedLead}`}</Notice> : null}
         {google.error ? <Notice>{google.error}</Notice> : null}
