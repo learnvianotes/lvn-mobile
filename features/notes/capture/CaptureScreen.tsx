@@ -98,12 +98,18 @@ export function CaptureScreen({ start }: { start?: Source }) {
       const { noteId } = made.current
       if ((await db.getNote(noteId))?.localOnly) throw new UploadError('Connect to the internet to make notes from photos.')
       const list = [...items]
-      for (const [i, item] of list.entries()) {
-        if (item.fileId) continue
-        setBusy({ upload: i + 1, of: list.length })
-        list[i] = { ...item, fileId: await uploadToNote(client, noteId, item) }
-        setItems([...list])
-      }
+      // Two at a time: a quick note of ten photos is not ten waits in a row, and the server's scan keeps up (ADR-0102).
+      let done = list.filter((item) => item.fileId).length
+      setBusy({ upload: Math.min(done + 1, list.length), of: list.length })
+      await inPairs(
+        list.map((item, i) => ({ item, i })).filter(({ item }) => !item.fileId),
+        async ({ item, i }) => {
+          list[i] = { ...item, fileId: await uploadToNote(client, noteId, item) }
+          done += 1
+          setItems([...list])
+          setBusy({ upload: Math.min(done + 1, list.length), of: list.length })
+        },
+      )
       for (const item of list) {
         if (made.current.carded.has(item.key)) continue
         await appendCard(noteId, item.kind === 'pdf' ? 'file' : 'image', item.kind === 'pdf' ? { fileId: item.fileId } : { fileId: item.fileId, alt: '' })
@@ -208,4 +214,13 @@ export function CaptureScreen({ start }: { start?: Source }) {
       </ScrollView>
     </View>
   )
+}
+
+/** Runs `work` over `items`, at most two at once, and stops at the first failure (the rest are not started). */
+async function inPairs<T>(items: T[], work: (item: T) => Promise<void>): Promise<void> {
+  let next = 0
+  const lane = async () => {
+    while (next < items.length) await work(items[next++]!)
+  }
+  await Promise.all([lane(), lane()])
 }

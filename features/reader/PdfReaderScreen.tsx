@@ -220,6 +220,24 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
 
   const url = file.data?.noteFile?.url
   const fileName = file.data?.noteFile?.fileName ?? ''
+  // A PDF uploaded a moment ago is served only after its virus scan (ADR-0102). Ask again every few seconds for up to
+  // SCAN_WAIT_MS instead of saying it is not there; the reader opens by itself when the scan is done.
+  const [scanWaitOver, setScanWaitOver] = useState(false)
+  const waitingForScan = !url && !file.error && !file.loading && file.data !== undefined && !scanWaitOver
+  useEffect(() => {
+    if (!waitingForScan) return
+    const started = Date.now()
+    const tick = setInterval(() => {
+      if (Date.now() - started > SCAN_WAIT_MS) {
+        clearInterval(tick)
+        setScanWaitOver(true)
+        return
+      }
+      void file.refetch().catch(() => undefined)
+    }, SCAN_POLL_MS)
+    return () => clearInterval(tick)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one loop per wait, not per refetch
+  }, [waitingForScan])
   const assets = env.EXPO_PUBLIC_WEB_URL ? `${env.EXPO_PUBLIC_WEB_URL.replace(/\/$/, '')}/pdfjs/${PDFJS_VERSION}/` : null
 
   return (
@@ -333,10 +351,12 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
         ) : null}
         {state !== 'ready' || !url ? (
           <View className="absolute inset-0 items-center justify-center gap-2 p-6" pointerEvents="none">
-            {file.loading || (url && state === 'loading') ? <ActivityIndicator /> : null}
+            {file.loading || waitingForScan || (url && state === 'loading') ? <ActivityIndicator /> : null}
             <Text className="text-muted-foreground text-center text-sm">
               {file.error
                 ? 'Connect to the internet to open this PDF.'
+                : waitingForScan
+                  ? 'Checking your PDF for viruses. It opens here by itself in a moment.'
                 : !file.loading && !url
                   ? 'This PDF is not in the note, or you cannot open it.'
                   : state === 'password'
@@ -471,3 +491,7 @@ export function PdfReaderScreen({ noteId, fileId, page: startPage, card: startCa
     </View>
   )
 }
+
+/** How often the reader asks again for a PDF that is still being scanned, and for how long. */
+export const SCAN_POLL_MS = 3_000
+export const SCAN_WAIT_MS = 3 * 60_000
