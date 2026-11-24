@@ -1,9 +1,22 @@
 version: 2
 updates:
+  # Minor and patch bumps arrive as one grouped pull request a week; majors still come one by one, so each gets a look.
+  # Expo SDK packages (expo-*, react, react-native, reanimated, worklets, gesture-handler, svg, ...) follow the SDK:
+  # update them with `npx expo install --fix`, not by accepting a Dependabot bump.
   - package-ecosystem: npm
     directory: /
     schedule: { interval: weekly }
     open-pull-requests-limit: 10
+    ignore:
+      # The reader loads pdf.js's run-time files from the web app's /pdfjs/<version>/ (ADR-0040), and the web serves
+      # one version. pdf.js moves in lvn-web and here together, with a phone release; never on its own.
+      - dependency-name: pdfjs-dist
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]

@@ -1,9 +1,9 @@
 /* eslint-disable */
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 /** Internal type. DO NOT USE DIRECTLY. */
 type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 /** Internal type. DO NOT USE DIRECTLY. */
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
-import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 /** What an achievement marks */
 export type AchievementKind =
   /** Exams that reached their Readiness target before the day */
@@ -272,6 +272,8 @@ export type CompleteRegistrationInput = {
   dateOfBirth?: string | null | undefined;
   displayName: string;
   institutionalEmail?: string | null | undefined;
+  /** Parent or guardian email. Required for an admitted registration under 18. Stored with the consent record, not as this account's email. */
+  parentEmail?: string | null | undefined;
 };
 
 export type ConnectionDirection =
@@ -374,14 +376,20 @@ export type DoubtStatus =
 
 export type EmailKind =
   | 'CLASSROOM_POST'
-  | 'DIGEST';
+  | 'DIGEST'
+  | 'MARKETING';
 
 /** Fixed error vocabulary (§6.2) */
 export type ErrorCode =
+  | 'ADMIN_MFA_REQUIRED'
   | 'AGE_RESTRICTED'
+  | 'AI_UNAVAILABLE_FOR_MINOR'
   | 'CONFLICT'
+  | 'FEATURE_UNAVAILABLE_FOR_MINOR'
   | 'FORBIDDEN'
   | 'INTERNAL'
+  | 'MFA_REQUIRED'
+  | 'MINOR_PII_BLOCKED'
   | 'NOT_FOUND'
   | 'RATE_LIMITED'
   | 'UNAUTHENTICATED'
@@ -399,7 +407,7 @@ export type ExternalIdentityKind =
   | 'ORCID'
   | 'WEBSITE';
 
-/** What an upload is for. ATTACHMENT is a picture, video, audio or PDF for a note you can edit (parentId). PAGE_IMAGE is a PNG or JPEG for a note page (parentId). VOICE_NOTE is audio; parentId is the note when the recording belongs to one, and omitted when it stands alone. Every one of these finishes with completeUpload, so a remote scan still runs. */
+/** What an upload is for. ATTACHMENT is a picture, video, audio, PDF, Word (.doc, .docx), PowerPoint (.ppt, .pptx) or plain-text file for a note you can edit (parentId). PAGE_IMAGE is a PNG or JPEG for a note page (parentId). VOICE_NOTE is audio; parentId is the note when the recording belongs to one, and omitted when it stands alone. Every one of these finishes with completeUpload, so a remote scan still runs. */
 export type FilePurpose =
   | 'ATTACHMENT'
   | 'AVATAR'
@@ -969,6 +977,8 @@ export type SignUpInput = {
   displayName: string;
   email: string;
   institutionalEmail?: string | null | undefined;
+  /** Parent or guardian email. Required for an admitted sign-up under 18. Stored with the consent record, not as this account's email. */
+  parentEmail?: string | null | undefined;
   password: string;
 };
 
@@ -1126,6 +1136,7 @@ export type UpdateNoteDraftInput = {
 
 export type UpdateNotificationSettingsInput = {
   categories?: Array<CategoryPreferenceInput> | null | undefined;
+  productEmails?: boolean | null | undefined;
   quietEnd?: string | null | undefined;
   quietStart?: string | null | undefined;
   timeZone?: string | null | undefined;
@@ -1178,14 +1189,29 @@ export type UpdateWeeklyTaskInput = {
   target?: number | null | undefined;
 };
 
+/**
+ * One usage event. The names and the props each may carry are in @lvn/contracts (USAGE_EVENT_NAMES, sanitizeUsageProps;
+ * ADR-0107).
+ */
 export type UsageEventInput = {
+  /** MAJOR.MINOR[.PATCH[.BUILD]] with an optional -prerelease and +build, at most 32 characters; anything else is not stored. */
   appVersion?: string | null | undefined;
-  /** One of: page_view, note_open, note_upload, search, download, sign_in. */
+  /** One of: page_view, note_open, note_upload, search, download, sign_in, feature_use, search_no_results, quiz_start. */
   name: string;
   occurredAt?: string | null | undefined;
   platform: ClientPlatform;
-  /** A small object. A string `feature` is counted in top features. At most 1024 characters. */
+  /**
+   * A small object: at most 1024 characters as JSON and 16 keys, or the batch is refused.
+   * feature_use: { feature } (a UsageFeature id, lower case, e.g. "pdf_viewer"; required).
+   * search_no_results: { scope, wordCount } (a UsageSearchScope id, e.g. "notes", and a whole number; both required).
+   * quiz_start: { kind } (a QuizStartKind id, e.g. "shared"; required).
+   * search: { scope, wordCount } (both optional; `words` is read as wordCount).
+   * A missing or unknown required value refuses the batch; every other key is dropped. The other events keep short
+   * tokens (letters, digits, _ . : -, at most 40, not an id), numbers and booleans under keys that do not name personal
+   * data or text; everything else is dropped. A string `feature` is counted in adminUsage's top features.
+   */
   props?: unknown;
+  /** Letters, digits, _ and -, at most 64; anything else is replaced by the server's session. */
   sessionId?: string | null | undefined;
 };
 
